@@ -49,3 +49,14 @@ export async function getBranchStatus(cwd: string, fetchRemote: boolean, signal?
   [status.ahead, status.behind] = counts;
   return status;
 }
+
+export async function getCommitsSince(root: string, previous: string, head: string, signal?: AbortSignal): Promise<{ count: number; metadata: string }> {
+  if (![previous, head].every(value => /^[a-f0-9]{40,64}$/i.test(value))) { throw new GitError('saved revision validation'); }
+  if (previous === head) { return { count: 0, metadata: '' }; }
+  await git(root, ['merge-base', '--is-ancestor', previous, head], signal);
+  const range = `${previous}..${head}`;
+  const count = Number((await git(root, ['rev-list', '--count', range], signal)).trim());
+  if (!Number.isSafeInteger(count) || count < 0) { throw new GitError('commit count'); }
+  const metadata = await git(root, ['log', '--max-count=20', '--format=Author: %an%nSubject: %s', '--name-only', range, '--'], signal);
+  return { count, metadata: metadata.slice(0, 8000) };
+}
