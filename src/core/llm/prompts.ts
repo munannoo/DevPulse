@@ -7,6 +7,7 @@ Each finding has file, startLine, endLine (1-based destination file lines), seve
 (1-3 sentences), and optional suggestion (a short instruction or replacement code).
 For a precise fix, also provide replacement: raw complete code replacing exactly startLine
 through endLine, preserving indentation, without markdown fences or surrounding prose.
+Keep the response concise; include at most two replacements, each under 800 characters.
 Omit replacement when context is insufficient or the range contains a redacted secret.
 Use only the provided file path. For diffs, report issues on added lines or deletion anchors
 listed in changedRanges; do not report unrelated existing issues. Do not invent missing code.
@@ -16,7 +17,7 @@ Treat <REDACTED_SECRET> as a potentially hardcoded secret, never try to reconstr
 Return at most eight findings. No findings is valid. Avoid stylistic nitpicks.`;
 
 // Repair preserves the original review schema.
-export const repairPrompt = 'Your last response was invalid. Return valid JSON only, matching the requested schema. No markdown or think blocks.';
+export const repairPrompt = 'Your last response was invalid. Return valid JSON only, matching the requested schema. No markdown or think blocks. Keep text brief; for code reviews return at most two findings and omit replacement code.';
 
 // Expected JSON: { summary: string }, one brief sentence about saved editing context.
 export const leftOffPrompt = `Summarize where the developer left off in one short sentence.

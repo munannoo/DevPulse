@@ -7,6 +7,28 @@ export type Finding = {
   title: string; explanation: string; suggestion?: string; replacement?: string;
 };
 export type ReviewResult = { summary: string; findings: Finding[] };
+export function reviewResponseSchema(input: ReviewInput): Record<string, unknown> {
+  return {
+    type: 'object', additionalProperties: false, required: ['summary', 'findings'],
+    properties: {
+      summary: { type: 'string', minLength: 1, maxLength: 800 },
+      findings: { type: 'array', maxItems: 8, items: {
+        type: 'object', additionalProperties: false,
+        required: ['file', 'startLine', 'endLine', 'severity', 'title', 'explanation'],
+        properties: {
+          file: { type: 'string', enum: [input.file] },
+          startLine: { type: 'integer', minimum: 1, maximum: input.lineCount },
+          endLine: { type: 'integer', minimum: 1, maximum: input.lineCount },
+          severity: { type: 'string', enum: ['warning', 'security', 'context'] },
+          title: { type: 'string', minLength: 1, maxLength: 60 },
+          explanation: { type: 'string', minLength: 1, maxLength: 500 },
+          suggestion: { type: 'string', minLength: 1, maxLength: 500 },
+          replacement: { type: 'string', minLength: 1, maxLength: 800 },
+        },
+      } },
+    },
+  };
+}
 function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) { throw new Error('Expected an object.'); }
   return value as Record<string, unknown>;
