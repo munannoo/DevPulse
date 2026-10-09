@@ -18,9 +18,30 @@
       {
         "command": "devpulse.helloWorld",
         "title": "DevPulse: Hello World"
+      },
+      { "command": "devpulse.reviewChanges", "title": "DevPulse: Review My Changes" },
+      { "command": "devpulse.analyzeFile", "title": "DevPulse: Analyze File" },
+      { "command": "devpulse.reviewSelection", "title": "DevPulse: Review Selection" },
+      { "command": "devpulse.refreshBranch", "title": "DevPulse: Check Branch Status" },
+      { "command": "devpulse.cancelReview", "title": "DevPulse: Cancel Review" },
+      { "command": "devpulse.setApiKey", "title": "DevPulse: Set API Key" }
+    ],
+    "viewsContainers": {
+      "activitybar": [{ "id": "devpulse", "title": "DevPulse", "icon": "media/icons/devpulse.svg" }]
+    },
+    "views": {
+      "devpulse": [{ "id": "devpulse.panel", "name": "DevPulse", "type": "webview" }]
+    },
+    "configuration": {
+      "title": "DevPulse",
+      "properties": {
+        "devpulse.llm.baseUrl": { "type": "string", "default": "http://localhost:11434/v1", "scope": "machine", "description": "OpenAI-compatible server base URL, including /v1 when required. Environment and DevPulse .env take precedence." },
+        "devpulse.llm.model": { "type": "string", "default": "gemma4:e4b", "scope": "machine", "description": "Exact model identifier installed on your self-hosted server." },
+        "devpulse.llm.jsonMode": { "type": "boolean", "default": true, "scope": "machine", "description": "Request JSON output. Disable for servers without response_format support; responses are always validated." }
       }
-    ]
+    }
   },
+  "capabilities": { "untrustedWorkspaces": { "supported": false }, "virtualWorkspaces": false },
   "scripts": {
     "vscode:prepublish": "npm run package",
     "compile": "npm run check-types && npm run lint && node esbuild.mjs",

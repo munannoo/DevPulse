@@ -2,4 +2,29 @@ body {
   color: var(--vscode-foreground);
   background: var(--vscode-sideBar-background);
   font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+  padding: 12px;
 }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+header { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+nav { display: flex; gap: 4px; border-bottom: 1px solid var(--vscode-panel-border); padding-bottom: 8px; }
+button { font: inherit; cursor: pointer; border: 1px solid var(--vscode-button-border, transparent); border-radius: 3px; padding: 6px 9px; color: var(--vscode-button-secondaryForeground); background: var(--vscode-button-secondaryBackground); }
+button:hover { background: var(--vscode-button-secondaryHoverBackground); }
+button:focus-visible, summary:focus-visible { outline: 1px solid var(--vscode-focusBorder); outline-offset: 2px; }
+button:disabled { opacity: .5; cursor: default; }
+nav button { flex: 1; padding: 5px 3px; background: transparent; color: var(--vscode-foreground); }
+nav button[aria-pressed="true"] { border-bottom: 2px solid var(--vscode-textLink-foreground); }
+.primary { background: var(--vscode-button-background); color: var(--vscode-button-foreground); }
+.primary:hover { background: var(--vscode-button-hoverBackground); }
+.actions { display: flex; gap: 8px; margin: 12px 0; }
+details { margin: 12px 0; padding: 8px; border: 1px solid var(--vscode-panel-border); border-radius: 4px; }
+summary { cursor: pointer; font-weight: 600; overflow-wrap: anywhere; }
+p, li { line-height: 1.5; overflow-wrap: anywhere; }
+.muted { color: var(--vscode-descriptionForeground); }
+.badge { font-size: 11px; padding: 3px 6px; background: var(--vscode-badge-background); color: var(--vscode-badge-foreground); border-radius: 4px; margin-left: auto; }
+.finding { border-left: 3px solid; padding: 10px; margin: 12px 0; background: var(--vscode-editor-background); }
+.warning { border-color: #eab308; } .security { border-color: #ef4444; } .context { border-color: #3b82f6; }
+.location { display: block; text-align: left; overflow-wrap: anywhere; background: transparent; color: var(--vscode-textLink-foreground); padding: 6px 0; }
+pre { font: var(--vscode-editor-font-size) var(--vscode-editor-font-family); white-space: pre-wrap; overflow-wrap: anywhere; }
+.loading { opacity: .75; }
