@@ -56,7 +56,8 @@ suite('Inline autocomplete in the Extension Host', () => {
       await vscode.commands.executeCommand('editor.action.inlineSuggest.trigger');
       await new Promise(resolve => setTimeout(resolve, 1500));
       await vscode.commands.executeCommand('editor.action.inlineSuggest.commit');
-      assert.ok(pythonDocument.getText().includes('    return a + b\n\ndef target_level'), 'Python ghost suggestions preserve indentation and following code');
+      assert.equal(pythonDocument.getText(), 'def add(a, b):\n    return a + b\n\ndef target_level(current):\n    return current\n',
+        'Python ghost suggestions remove echoed signatures and preserve exact indentation and following code');
       provider.dispose();
       const messages: string[] = [];
       const logger = { appendLine: (message: string) => messages.push(message) } as unknown as vscode.OutputChannel;

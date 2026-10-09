@@ -4,7 +4,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { loadConfig } from '../../core/llm/config';
 import { createLlm } from '../../core/llm/client';
 import { autocompletePrompt } from '../../core/llm/prompts';
-import { completionContext } from '../../core/llm/completion';
+import { completionContext, stripCompletionPrefix } from '../../core/llm/completion';
 import { isSensitiveFile, safeFile } from '../../core/git/diff';
 
 export class InlineCompletionProvider implements vscode.InlineCompletionItemProvider, vscode.Disposable {
@@ -51,8 +51,7 @@ export class InlineCompletionProvider implements vscode.InlineCompletionItemProv
       if (!current()) { return []; }
       const editor = vscode.window.activeTextEditor;
       if (!editor || editor.document !== document || !editor.selection.isEmpty || !editor.selection.active.isEqual(position)) { return []; }
-      const linePrefix = document.lineAt(position.line).text.slice(0, position.character);
-      let code = linePrefix.trim() && raw.startsWith(linePrefix) ? raw.slice(linePrefix.length) : raw;
+      let code = stripCompletionPrefix(raw, snippet.prefix);
       if (snippet.suffix && code.endsWith(snippet.suffix)) { code = code.slice(0, -snippet.suffix.length); }
       if (document.eol === vscode.EndOfLine.CRLF) { code = code.replace(/\r?\n/g, '\r\n'); }
       this.reported = false;

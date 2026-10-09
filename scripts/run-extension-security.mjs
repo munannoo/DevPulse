@@ -23,7 +23,7 @@ const server = createServer(async (request, response) => {
   if (!payload.stream && !payload.response_format) {
     response.setHeader('Content-Type', 'application/json');
     const completion = payload.model === 'fixture-small' ? '  return a - b;\n}'
-      : payload.messages.at(-1).content.includes('Language: python') ? '    return a + b' : '  return a + b;\n}';
+      : payload.messages.at(-1).content.includes('Language: python') ? 'def add(a, b):\n    return a + b' : '  return a + b;\n}';
     response.end(JSON.stringify({ choices: [{ message: { content: completion } }] })); return;
   }
   if (payload.stream) {

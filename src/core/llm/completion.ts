@@ -26,3 +26,17 @@ export function cleanCompletionText(text: string): string {
   if (code.length > 2000 || code.includes('<REDACTED_SECRET>') || redact(code) !== code) { return ''; }
   return code;
 }
+
+export function stripCompletionPrefix(code: string, prefix: string): string {
+  // Models may echo several trailing source lines, including cursor indentation.
+  code = code.replace(/\r\n/g, '\n');
+  prefix = prefix.replace(/\r\n/g, '\n');
+  for (let start = 0; start < prefix.length;) {
+    const suffix = prefix.slice(start);
+    if (code.startsWith(suffix)) { return code.slice(suffix.length); }
+    const newline = prefix.indexOf('\n', start);
+    if (newline === -1) { break; }
+    start = newline + 1;
+  }
+  return code;
+}

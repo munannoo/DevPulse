@@ -4,7 +4,7 @@ import { createServer } from 'node:http';
 import { once } from 'node:events';
 import { createLlm, cleanCompletionText } from '../../core/llm/client';
 import { autocompletePrompt } from '../../core/llm/prompts';
-import { completionContext } from '../../core/llm/completion';
+import { completionContext, stripCompletionPrefix } from '../../core/llm/completion';
 
 test('completion context redacts before slicing, excludes a cursor in a secret, and bounds input', () => {
   const credential = 'sk_' + 'test_FAKEKEY0000000000';
@@ -87,4 +87,15 @@ test('createLlm complete performs low-temp completion with caching and redaction
     server.closeAllConnections();
     await new Promise<void>(resolve => server.close(() => resolve()));
   }
+});
+
+
+test('completion insertion strips echoed Python context and cursor indentation', () => {
+  const prefix = 'from dataclasses import dataclass\n\ndef add(a,b):\n    ';
+  assert.equal(stripCompletionPrefix('def add(a,b):\n    return a + b', prefix), 'return a + b');
+  assert.equal(stripCompletionPrefix('    return a + b', prefix), 'return a + b');
+  assert.equal(stripCompletionPrefix('        return a + b', prefix), '    return a + b');
+  assert.equal(stripCompletionPrefix('return a + b', prefix), 'return a + b');
+  assert.equal(stripCompletionPrefix('def add(a,b):\n    return a + b', prefix.replace(/\n/g, '\r\n')), 'return a + b');
+  assert.equal(stripCompletionPrefix('  return a + b;', 'function sum(a, b) {\n'), '  return a + b;');
 });
