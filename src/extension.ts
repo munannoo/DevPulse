@@ -5,6 +5,7 @@ import { CodeReview } from './vscode/features/codeReview';
 import { PanelProvider } from './vscode/panel/PanelProvider';
 import { createStatusBar, updateStatusBar } from './vscode/statusBar';
 import { registerPrecommit } from './vscode/features/precommitBridge';
+import { LeftOff } from './vscode/features/leftOff';
 import { writeFile } from 'node:fs/promises';
 import { isAbsolute, relative, resolve, sep } from 'node:path';
 
@@ -32,6 +33,8 @@ export function activate(context: vscode.ExtensionContext) {
 
   const output = vscode.window.createOutputChannel('DevPulse');
   const review = new CodeReview(context, output);
+  const leftOff = new LeftOff(context, output);
+  const getState = () => ({ ...review.getState(), leftOff: leftOff.getState() });
   const reportReady = async () => {
     if (context.extensionMode !== vscode.ExtensionMode.Development) { return; }
     const readyFile = process.env.DEVPULSE_DEV_HOST_READY_FILE;
@@ -41,20 +44,29 @@ export function activate(context: vscode.ExtensionContext) {
     if (target.startsWith(`..${sep}`) || target === '..' || isAbsolute(target) || !target.endsWith(`${sep}devpulse-ready.json`)) { return; }
     await writeFile(readyFile, JSON.stringify({ extensionPath: context.extensionPath, panelVisible: true }), 'utf8');
   };
-  const panel = new PanelProvider(context.extensionUri, () => review.getState(), message => review.handle(message), output, reportReady);
+  const panel = new PanelProvider(context.extensionUri, getState, message => message.type === 'resumeWork' ? leftOff.resume() : review.handle(message), output, reportReady);
   const statusBar = createStatusBar();
   review.onUpdate = () => { panel.update(); updateStatusBar(statusBar, review.getState()); };
-  context.subscriptions.push(output, review, panel, statusBar,
+  leftOff.onUpdate = () => panel.update();
+  let lastBranch: string | undefined;
+  const updateReview = review.onUpdate;
+  review.onUpdate = () => {
+    updateReview();
+    const branch = review.getState().branch?.branch;
+    if (branch !== lastBranch) { lastBranch = branch; leftOff.schedule(); }
+  };
+  context.subscriptions.push(output, review, leftOff, panel, statusBar,
     vscode.window.registerWebviewViewProvider('devpulse.panel', panel),
     vscode.commands.registerCommand('devpulse.openPanel', () => vscode.commands.executeCommand('devpulse.panel.focus')),
     vscode.workspace.onDidChangeWorkspaceFolders(() => { void review.refreshBranch(); }),
   );
   // Render first; Git status loads in the background. LLM review is explicitly invoked.
   void review.refreshBranch().catch(() => output.appendLine('Initial branch check could not complete.'));
+  void leftOff.restore().catch(() => output.appendLine('Could not restore editing context.'));
   if (context.extensionMode === vscode.ExtensionMode.Development) {
     void vscode.commands.executeCommand('devpulse.openPanel').then(undefined, () => output.appendLine('Open DevPulse with the Open Panel command.'));
   }
-  return { getReviewState: () => review.getState(), isPanelVisible: () => panel.isVisible() };
+  return { getReviewState: getState, isPanelVisible: () => panel.isVisible() };
 }
 
 // This method is called when your extension is deactivated

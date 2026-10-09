@@ -1,5 +1,6 @@
 import type { BranchStatus } from '../../core/git/repo';
 import type { Finding } from '../../core/llm/schemas';
+import type { LeftOffBanner } from '../features/leftOff';
 
 export type ReviewState = {
   phase: 'idle' | 'checking' | 'reviewing' | 'complete' | 'failed' | 'cancelled';
@@ -10,9 +11,10 @@ export type ReviewState = {
   skipped: string[];
   offline: boolean;
   reviewedFiles: number;
+  leftOff?: LeftOffBanner;
 };
 export type PanelMessage =
-  | { type: 'ready' | 'reviewChanges' | 'analyzeFile' | 'refreshBranch' | 'cancelReview' }
+  | { type: 'ready' | 'reviewChanges' | 'analyzeFile' | 'refreshBranch' | 'cancelReview' | 'resumeWork' }
   | { type: 'openFinding'; index: number };
 export type ExtensionMessage = { type: 'state'; state: ReviewState };
 
@@ -22,7 +24,7 @@ export function isPanelMessage(value: unknown): value is PanelMessage {
   if (message.type === 'openFinding') {
     return Number.isInteger(message.index) && Number(message.index) >= 0;
   }
-  return ['ready', 'reviewChanges', 'analyzeFile', 'refreshBranch', 'cancelReview'].includes(String(message.type));
+  return ['ready', 'reviewChanges', 'analyzeFile', 'refreshBranch', 'cancelReview', 'resumeWork'].includes(String(message.type));
 }
 import type { SecretFinding } from '../../core/security/secretScan';
 

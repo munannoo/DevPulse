@@ -18,11 +18,15 @@ element('review').addEventListener('click', () => { selectTab('code'); send({ ty
 element('analyze').addEventListener('click', () => { selectTab('code'); send({ type: 'analyzeFile' }); });
 element('refresh').addEventListener('click', () => send({ type: 'refreshBranch' }));
 element('cancel').addEventListener('click', () => send({ type: 'cancelReview' }));
+element('resume').addEventListener('click', () => send({ type: 'resumeWork' }));
 
 /** @param {MessageEvent<ExtensionMessage>} event */
 window.addEventListener('message', event => {
   if (event.data?.type !== 'state') { return; }
   const state = event.data.state;
+  element('left-off').hidden = !state.leftOff;
+  element('left-off-summary').textContent = state.leftOff?.summary ?? '';
+  element('resume').textContent = state.leftOff ? `Resume ${state.leftOff.file}:${state.leftOff.line}` : 'Resume editing';
   const busy = state.phase === 'checking' || state.phase === 'reviewing';
   element('message').textContent = state.message;
   element('message').classList.toggle('loading', busy);
