@@ -49,6 +49,7 @@ export function createLlm(config: LlmConfig) {
             try { return request.json(parseJson(cached)); } catch { /* Revalidate against the caller's schema. */ }
           }
           let jsonMode = config.jsonMode;
+          let thinkingControls = true;
           for (let attempt = 0; attempt < 2; attempt++) {
             const send = () => fetch(`${config.baseUrl}/chat/completions`, {
               method: 'POST', signal: controller.signal,
@@ -56,6 +57,7 @@ export function createLlm(config: LlmConfig) {
               body: JSON.stringify({
                 model: config.model, temperature: 0.1, stream: false,
                 max_tokens: request.maxTokens ?? 1600,
+                ...(thinkingControls ? { reasoning_effort: 'none', chat_template_kwargs: { enable_thinking: false } } : {}),
                 ...(jsonMode ? { response_format: { type: 'json_object' } } : {}),
                 messages: [
                   { role: 'system', content: system + (attempt ? `\n${repairPrompt}` : '') },
@@ -64,6 +66,11 @@ export function createLlm(config: LlmConfig) {
               }),
             });
             let response = await send();
+            // Unsupported thinking controls must not silently disable supported JSON mode.
+            if (thinkingControls && [400, 422].includes(response.status)) {
+              await response.body?.cancel(); thinkingControls = false;
+              response = await send();
+            }
             if (jsonMode && [400, 422].includes(response.status)) {
               await response.body?.cancel();
               jsonMode = false;
