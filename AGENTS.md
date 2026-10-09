@@ -138,7 +138,7 @@ Acceptance: activity increments time, idle pauses it and flow appears at the thr
 
 ## Development and verification
 
-Open the repository containing package.json in VS Code. Terminal npm commands require the supported Node version from package.json. The default build task and F5 pre-launch task use VS Code's bundled runtime through the checked-in helpers, independent of node on PATH. Preserve this startup path; Run Extension (via Script) also uses the bundled runtime.
+Open the repository containing package.json in VS Code. Terminal npm commands, the default build task and F5 helpers require the supported Node version from package.json on PATH. Code.exe as a Node runtime stalled launch checks on Windows; preserve the verified Node startup path. Run Extension uses the script launcher by default; Run Extension (Native Debugger) remains available and shares the compile task.
 
 | Action | Command |
 | --- | --- |

@@ -105,7 +105,7 @@ The watch task includes its own esbuild problem matcher. Extension security
 tests use a disposable repository in `test-repo/` and your installed VS Code;
 set `VSCODE_EXECUTABLE_PATH` if it is installed in a different location.
 
-**Run Extension (via Script)** builds and opens a fresh Development Host window without an
+**Run Extension** builds and opens a fresh Development Host window without an
 attached debugger. This avoids the Windows Extension Host crash in VS Code's
 injected debug launcher. Installed extensions are disabled in that development
 window. The launch task finishes while the window stays open; close the window
@@ -116,10 +116,12 @@ Open the inner `DevPulse` folder containing `package.json`, run `npm install`
 once on each machine, and use VS Code 1.103 or newer. Terminal build tools need
 Node 20.19+, 22.13+, or 24+; check `node --version` after updating PATH and
 restarting your terminal. Node 12 cannot build this project. Press **Ctrl+Shift+B**
-to run **devpulse: compile** using VS Code's bundled runtime. F5 uses the same
-compile task; **Run Extension (via Script)** also runs its launcher with the
-bundled runtime. These tasks set ELECTRON_RUN_AS_NODE and clear debugger injection
-variables. The native **Run Extension** configuration remains available for debugging.
+to run **devpulse: compile** using supported Node on PATH. F5 uses the same
+compile task; **Run Extension** also runs its launcher with Node.
+These tasks clear debugger injection variables. Using Code.exe as the Node
+runtime stalled Windows launch checks. **Run Extension (Native Debugger)** remains
+available for debugging, but the script launcher is the default because the native
+Extension Host shut down during this machine's launch check.
 Auto-detected **npm: compile** and npm watch tasks still require supported Node on
 PATH. If TypeScript fails with **Unexpected token ?**, check node --version in
 the failing terminal, upgrade Node (24+ is supported), and restart VS Code and
