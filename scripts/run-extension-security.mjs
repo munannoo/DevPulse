@@ -11,7 +11,9 @@ const fixtures = path.join(project, 'test-repo');
 await mkdir(fixtures, { recursive: true });
 const root = await mkdtemp(path.join(fixtures, '.security-check-'));
 const execute = promisify(execFile);
+let commitCalls = 0;
 const server = createServer(async (request, response) => {
+  if (request.method === 'GET' && request.url === '/v1/fixture-commit-calls') { response.end(JSON.stringify({ calls: commitCalls })); return; }
   if (request.method === 'GET' && request.url === '/v1/models') {
     response.setHeader('Content-Type', 'application/json');
     response.end(JSON.stringify({ data: [{ id: 'fixture-small' }, { id: 'fixture-review' }] })); return;
@@ -19,6 +21,11 @@ const server = createServer(async (request, response) => {
   let body = '';
   for await (const chunk of request) { body += chunk; }
   const payload = JSON.parse(body);
+  if (payload.messages[0].content.startsWith('Draft a conventional commit title')) {
+    commitCalls++;
+    response.end(JSON.stringify({ choices: [{ message: { content: JSON.stringify({ title: 'feat: add staged helper',
+      description: 'Add the staged helper.', analysis: 'Check callers and edge cases. Verification has not been run.' }) } }] })); return;
+  }
   if (!payload.stream && !payload.response_format && payload.messages.at(-1).content.includes('__hold_inline__')) { return; }
   if (!payload.stream && !payload.response_format) {
     response.setHeader('Content-Type', 'application/json');
@@ -62,7 +69,7 @@ try {
     extensionTestsEnv: { DEVPULSE_SECURITY_FIXTURE: '1',
       DEVPULSE_LLM_BASE_URL: `http://127.0.0.1:${server.address().port}/v1`, DEVPULSE_LLM_MODEL: 'fixture',
       VSCODE_TEST_OPTIONS: JSON.stringify({ mochaOpts: { ui: 'tdd', timeout: 30_000 },
-        files: ['security', 'suggestion', 'highlights', 'focus', 'chat-context', 'chat', 'inlineCompletion', 'modelPicker'].map(name => path.join(project, `out/test/${name}.test.js`)), preload: [] }) },
+        files: ['security', 'suggestion', 'highlights', 'focus', 'chat-context', 'chat', 'inlineCompletion', 'modelPicker', 'commitDraft'].map(name => path.join(project, `out/test/${name}.test.js`)), preload: [] }) },
     launchArgs: [root, '--disable-extensions', '--skip-welcome', '--skip-release-notes', '--disable-workspace-trust', '--user-data-dir', path.join(root, '.profile')],
   });
 } finally {

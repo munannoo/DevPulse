@@ -13,6 +13,7 @@ import { Chat } from './vscode/assistant/chat';
 import { PullRequests } from './vscode/features/prReview';
 import { registerInlineCompletion } from './vscode/assistant/inlineCompletion';
 import { registerModelPicker } from './vscode/assistant/modelPicker';
+import { registerCommitDraft } from './vscode/features/commitDraft';
 import { writeFile } from 'node:fs/promises';
 import { isAbsolute, relative, resolve, sep } from 'node:path';
 
@@ -107,6 +108,7 @@ export function activate(context: vscode.ExtensionContext) {
     }),
     registerInlineCompletion(context, output),
     registerModelPicker(context, output),
+    registerCommitDraft(context, output),
     vscode.workspace.onDidChangeWorkspaceFolders(() => { void review.refreshBranch(); }),
   );
   // Render first; Git status loads in the background. LLM review is explicitly invoked.

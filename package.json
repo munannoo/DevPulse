@@ -24,6 +24,8 @@
       { "command": "devpulse.openChat", "title": "DevPulse: Open Chat" },
       { "command": "devpulse.selectInlineModel", "title": "DevPulse: Select Autocomplete Model" },
       { "command": "devpulse.selectModel", "title": "DevPulse: Select Model (Review & Chat)" },
+      { "command": "devpulse.generateCommitDescription", "title": "DevPulse: Generate Commit Description & Analysis" },
+      { "command": "devpulse.clearAiCache", "title": "DevPulse: Clear AI Response Cache" },
       { "command": "devpulse.explainSelection", "title": "DevPulse: Explain Selection" },
       { "command": "devpulse.fixSelection", "title": "DevPulse: Fix Selection" },
       { "command": "devpulse.writeTests", "title": "DevPulse: Write Tests" },
