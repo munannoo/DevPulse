@@ -13,7 +13,7 @@ URLs, private-key headers and pasted environment values. A finding blocks the
 commit and appears in the Security view and editor diagnostics. Existing hooks
 are backed up and chained. Reinstalling the guard is safe.
 
-lick **Fix** for supported standalone JavaScript/TypeScript literal assignments.
+Click **Fix** for supported standalone JavaScript/TypeScript literal assignments.
 Review the redacted preview and choose **Apply fix**. DevPulse replaces the literal
 with `process.env.NAME`, adds an empty `NAME=` entry to `.env` if missing, ignores
 `.env`, saves the files and re-stages the source and `.gitignore`. Fill the value
