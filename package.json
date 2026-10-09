@@ -124,7 +124,7 @@
         },
         "devpulse.assistant.inline.enabled": {
           "type": "boolean",
-          "default": true,
+          "default": false,
           "scope": "resource",
           "description": "Enable or disable Gemma-powered inline code completions."
         },
