@@ -60,7 +60,6 @@ export async function collectChanges(root: string, hasHead: boolean, signal?: Ab
     if (isSensitiveFile(file) || /(^|\/)(?:node_modules|dist|\.git)\//.test(file) || /(?:^|\/)(?:package-lock\.json|yarn\.lock|pnpm-lock\.yaml)$/.test(file)) {
       skipped.push(`${file}: private or generated file`); continue;
     }
-    if (inputs.length >= 20) { skipped.push(`${file}: 20-file limit`); continue; }
     try {
       const info = await lstat(resolve(root, file));
       if (!info.isFile() || info.isSymbolicLink() || info.size > 1_000_000) {

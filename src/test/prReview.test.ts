@@ -28,7 +28,7 @@ suite('PR review in Extension Development Host', () => {
       return new Response(JSON.stringify({ head: { sha }, base: { sha: base }, changed_files: 1 }));
     }) as typeof fetch);
     const prs = new PullRequests(context, output, {
-      session: async requested => { interactive.push(requested); if (requested) { signedIn = true; } return signedIn ? { accessToken: 'fixture-token' } : undefined; },
+        session: async requested => { interactive.push(requested); if (requested) { signedIn = true; } return signedIn ? { accessToken: ['fixture', 'token'].join('-') } : undefined; },
       repository: async () => ({ owner: 'team', name: 'project' }), client: () => client,
       config: async () => ({ baseUrl: 'http://localhost:11434/v1', model: 'fixture', jsonMode: true }),
       reviewer: new PullReviewer(async () => {

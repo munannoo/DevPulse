@@ -3,6 +3,8 @@ import { requestQueue } from './queue';
 import { contentHash, getCached, setCached } from './cache';
 import { repairPrompt } from './prompts';
 import { redact } from '../security/redact';
+import { streamChat, type StreamRequest } from './stream';
+import { StreamError } from './sse';
 
 export class LlmError extends Error {
   constructor(message: string, public readonly offline = false, public readonly configuration = false) { super(message); }
@@ -10,6 +12,7 @@ export class LlmError extends Error {
 type ChatRequest<T> = {
   system: string; user: string; json: (value: unknown) => T;
   signal?: AbortSignal; maxTokens?: number; timeoutMs?: number;
+  responseSchema?: Record<string, unknown>;
 };
 export function parseJson(text: string): unknown {
   return JSON.parse(text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim()
@@ -33,6 +36,10 @@ async function responseJson(response: Response): Promise<unknown> {
 }
 export function createLlm(config: LlmConfig) {
   return {
+    async stream(request: StreamRequest): Promise<string> {
+      try { return await streamChat(config, request); }
+      catch (error) { if (error instanceof StreamError) { throw new LlmError(error.message, error.offline, error.configuration); } throw error; }
+    },
     async chat<T>(request: ChatRequest<T>): Promise<T> {
       const controller = new AbortController();
       const cancel = () => controller.abort();
@@ -43,12 +50,14 @@ export function createLlm(config: LlmConfig) {
         return await requestQueue.run(async () => {
           const system = redact(request.system);
           const user = redact(request.user);
-          const key = contentHash(JSON.stringify([config, system, user, request.maxTokens]));
+          const key = contentHash(JSON.stringify([config, system, user, request.maxTokens, request.responseSchema]));
           const cached = getCached(key);
           if (cached) {
             try { return request.json(parseJson(cached)); } catch { /* Revalidate against the caller's schema. */ }
           }
           let jsonMode = config.jsonMode;
+          let schemaMode = Boolean(request.responseSchema);
+          let thinkingControls = true;
           for (let attempt = 0; attempt < 2; attempt++) {
             const send = () => fetch(`${config.baseUrl}/chat/completions`, {
               method: 'POST', signal: controller.signal,
@@ -56,7 +65,10 @@ export function createLlm(config: LlmConfig) {
               body: JSON.stringify({
                 model: config.model, temperature: 0.1, stream: false,
                 max_tokens: request.maxTokens ?? 1600,
-                ...(jsonMode ? { response_format: { type: 'json_object' } } : {}),
+                ...(thinkingControls ? { reasoning_effort: 'none', chat_template_kwargs: { enable_thinking: false } } : {}),
+                ...(jsonMode ? { response_format: schemaMode
+                  ? { type: 'json_schema', json_schema: { name: 'devpulse_review', schema: request.responseSchema } }
+                  : { type: 'json_object' } } : {}),
                 messages: [
                   { role: 'system', content: system + (attempt ? `\n${repairPrompt}` : '') },
                   { role: 'user', content: user },
@@ -64,6 +76,15 @@ export function createLlm(config: LlmConfig) {
               }),
             });
             let response = await send();
+            // Unsupported thinking controls must not silently disable supported JSON mode.
+            if (thinkingControls && [400, 422].includes(response.status)) {
+              await response.body?.cancel(); thinkingControls = false;
+              response = await send();
+            }
+            if (jsonMode && schemaMode && [400, 422].includes(response.status)) {
+              await response.body?.cancel(); schemaMode = false;
+              response = await send();
+            }
             if (jsonMode && [400, 422].includes(response.status)) {
               await response.body?.cancel();
               jsonMode = false;

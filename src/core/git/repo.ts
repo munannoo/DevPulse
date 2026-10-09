@@ -1,5 +1,6 @@
 import { execFile } from 'node:child_process';
 import { resolve } from 'node:path';
+import { redact } from '../security/redact';
 
 export class GitError extends Error {
   constructor(public readonly operation: string) { super(`Git ${operation} failed or timed out.`); }
@@ -48,4 +49,29 @@ export async function getBranchStatus(cwd: string, fetchRemote: boolean, signal?
   }
   [status.ahead, status.behind] = counts;
   return status;
+}
+export class PullBlockedError extends Error {}
+
+export async function getCommitsSince(root: string, previous: string, head: string, signal?: AbortSignal): Promise<{ count: number; metadata: string }> {
+  if (![previous, head].every(value => /^[a-f0-9]{40,64}$/i.test(value))) { throw new GitError('saved revision validation'); }
+  if (previous === head) { return { count: 0, metadata: '' }; }
+  await git(root, ['merge-base', '--is-ancestor', previous, head], signal);
+  const range = `${previous}..${head}`;
+  const count = Number((await git(root, ['rev-list', '--count', range], signal)).trim());
+  if (!Number.isSafeInteger(count) || count < 0) { throw new GitError('commit count'); }
+  const metadata = await git(root, ['log', '--max-count=20', '--format=Author: %an%nSubject: %s', '--name-only', range, '--'], signal);
+  return { count, metadata: redact(metadata).slice(0, 8000) };
+}
+
+export async function pullFastForward(branch: BranchStatus, signal?: AbortSignal, verifyBeforePull?: () => void): Promise<boolean> {
+  const current = await getBranchStatus(branch.root, true, signal);
+  if (current.branch !== branch.branch || current.head !== branch.head) { throw new PullBlockedError('Branch changed. Refresh status before pulling.'); }
+  if (!current.upstream) { throw new PullBlockedError('No upstream configured for this branch.'); }
+  if (!current.fresh) { throw new PullBlockedError('Fetch unavailable. Retry when the remote is reachable.'); }
+  if (current.ahead && current.behind) { throw new PullBlockedError('Branches have diverged. Reconcile them before pulling.'); }
+  if ((await git(branch.root, ['status', '--porcelain'], signal)).trim()) { throw new PullBlockedError('Commit or stash local changes before pulling.'); }
+  if (!current.behind) { return false; }
+  verifyBeforePull?.();
+  await git(branch.root, ['pull', '--ff-only'], signal, 30_000);
+  return true;
 }

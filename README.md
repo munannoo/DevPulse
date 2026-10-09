@@ -1,6 +1,48 @@
 # Gemma DevPulse
 A local-first, self-hostable VS Code extension and Git pre-commit guard.
 
+## Welcome and sync
+
+Overview shows your branch status and a short summary of commits since the last
+visit, including authors and changed files. The first visit establishes a baseline.
+Only bounded, redacted commit metadata goes to Gemma; commit counts remain available
+when the server is unavailable. Reload the same Development Host to test revisits.
+
+**Git Pull & Sync** uses fast-forward only and refreshes the summary and reminders.
+Save your edited files and commit or stash local changes first. Diverged branches
+need manual reconciliation. Check the configured server and model with
+`node dist/cli.js ping`; the diagnostic prints reachability and latency without
+printing the endpoint or token.
+
+## Saved context and pull reminders
+
+DevPulse saves editing context after about two seconds of inactivity. Reopening
+the workspace shows a brief **Where You Left Off** banner; **Resume editing**
+opens the saved file and line. Gemma can summarize the context, with a file/line
+fallback when unavailable. To test in a Development Host, use **Developer: Reload
+Window**: each new F5 launch uses a fresh profile with separate saved state.
+
+If the branch is behind its upstream, **Attention** and the status bar explain
+that a pull is needed. Checks run every minute, on window focus and after Git ref
+changes. The reminder clears after catching up; diverged branches and failed
+fetches receive distinct messages. Pulling remains an explicit user action.
+
+## Editor highlights and suggestions
+
+Run **DevPulse: Analyze File** on a saved file. Yellow, red and blue gutters
+mark logic, security and context findings. Hover for the explanation, or open
+the **Code** tab. **Apply Suggestion** appears when Gemma provides a precise
+code replacement; the command palette also lets you choose one.
+
+Review the redacted diff and confirm before applying. The edit supports Undo
+and stays unsaved and unstaged. Changing the file clears its findings; changed
+files and branches are checked again after confirmation. Save and re-analyze
+to get current suggestions. Instruction-only suggestions and selection reviews
+remain read-only. Use the Security view's **Fix** action for hardcoded credentials.
+
+Gemma requests have a 30-second timeout. A reachable server can still be too
+busy to finish analysis; Git status and regex secret verification keep working.
+
 ## Pre-commit secret verification
 
 Open your Git repository in the Extension Development Host (F5), then open
@@ -63,7 +105,7 @@ The watch task includes its own esbuild problem matcher. Extension security
 tests use a disposable repository in `test-repo/` and your installed VS Code;
 set `VSCODE_EXECUTABLE_PATH` if it is installed in a different location.
 
-**Run Extension (via Script)** builds and opens a fresh Development Host window without an
+**Run Extension** builds and opens a fresh Development Host window without an
 attached debugger. This avoids the Windows Extension Host crash in VS Code's
 injected debug launcher. Installed extensions are disabled in that development
 window. The launch task finishes while the window stays open; close the window
@@ -74,10 +116,12 @@ Open the inner `DevPulse` folder containing `package.json`, run `npm install`
 once on each machine, and use VS Code 1.103 or newer. Terminal build tools need
 Node 20.19+, 22.13+, or 24+; check `node --version` after updating PATH and
 restarting your terminal. Node 12 cannot build this project. Press **Ctrl+Shift+B**
-to run **devpulse: compile** using VS Code's bundled runtime. F5 uses the same
-compile task; **Run Extension (via Script)** also runs its launcher with the
-bundled runtime. These tasks set ELECTRON_RUN_AS_NODE and clear debugger injection
-variables. The native **Run Extension** configuration remains available for debugging.
+to run **devpulse: compile** using supported Node on PATH. F5 uses the same
+compile task; **Run Extension** also runs its launcher with Node.
+These tasks clear debugger injection variables. Using Code.exe as the Node
+runtime stalled Windows launch checks. **Run Extension (Native Debugger)** remains
+available for debugging, but the script launcher is the default because the native
+Extension Host shut down during this machine's launch check.
 Auto-detected **npm: compile** and npm watch tasks still require supported Node on
 PATH. If TypeScript fails with **Unexpected token ?**, check node --version in
 the failing terminal, upgrade Node (24+ is supported), and restart VS Code and

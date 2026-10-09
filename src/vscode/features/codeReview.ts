@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { dirname, relative } from 'node:path';
 import { readFile } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
 import { getBranchStatus, git, GitError } from '../../core/git/repo';
 import { collectChanges, isSensitiveFile, safeFile, type ReviewInput } from '../../core/git/diff';
 import { loadConfig } from '../../core/llm/config';
@@ -9,6 +10,8 @@ import { LlmError } from '../../core/llm/client';
 import { analyze } from '../../core/review/analyze';
 import { ReviewLimitError } from '../../core/review/chunks';
 import { Highlights } from './highlights';
+import { suggestionEdit } from '../../core/review/suggestion';
+import { applySuggestion } from './applySuggestion';
 import type { PanelMessage, ReviewState } from '../panel/messages';
 
 export class CodeReview implements vscode.Disposable {
@@ -18,6 +21,7 @@ export class CodeReview implements vscode.Disposable {
     summaries: [], skipped: [], offline: false, reviewedFiles: 0,
   };
   private operation?: AbortController;
+  private applying = false;
   private snapshots = new Map<string, string>();
   private readonly subscriptions: vscode.Disposable[] = [];
   onUpdate: () => void = () => {};
@@ -29,6 +33,7 @@ export class CodeReview implements vscode.Disposable {
       vscode.commands.registerCommand('devpulse.reviewSelection', () => this.review('selection')),
       vscode.commands.registerCommand('devpulse.refreshBranch', () => this.refreshBranch()),
       vscode.commands.registerCommand('devpulse.cancelReview', () => this.operation?.abort()),
+      vscode.commands.registerCommand('devpulse.applySuggestion', (id: unknown) => this.apply(id)),
       vscode.commands.registerCommand('devpulse.setApiKey', async () => {
         const key = await vscode.window.showInputBox({ prompt: 'Gemma server API key (leave empty to remove)', password: true, ignoreFocusOut: true });
         if (key === undefined) { return; }
@@ -145,8 +150,12 @@ export class CodeReview implements vscode.Disposable {
                 this.update({ skipped: [...this.state.skipped, `${input.file}: changed during review; review again`] }); continue;
               }
               this.snapshots.set(uri.toString(), input.sourceHash!);
-              this.highlights.set(uri, result.findings);
-              this.update({ findings: [...this.state.findings, ...result.findings], reviewedFiles: this.state.reviewedFiles + 1,
+              // Partial selections lack complete line context, so keep their suggestions read-only.
+              const findings = result.findings.map(finding => ({ ...finding,
+                ...(mode !== 'selection' && !document.isDirty && suggestionEdit(document.getText(), finding)
+                  ? { suggestionId: randomUUID() } : {}) }));
+              this.highlights.set(uri, findings);
+              this.update({ findings: [...this.state.findings, ...findings], reviewedFiles: this.state.reviewedFiles + 1,
                 summaries: [...this.state.summaries, { file: input.file, text: result.summary || `${result.findings.length} finding(s).` }] });
             } catch (error) {
               if (operation.signal.aborted || (error instanceof LlmError && (error.offline || error.configuration))) { throw error; }
@@ -172,6 +181,32 @@ export class CodeReview implements vscode.Disposable {
       this.update({ phase: cancelled ? 'cancelled' : 'failed', message, offline: error instanceof LlmError && error.offline });
     } finally { this.operation = undefined; }
   }
+  private async apply(id: unknown): Promise<void> {
+    if (this.applying || this.operation) { return; }
+    this.applying = true;
+    try {
+      if (id === undefined) {
+        const choice = await vscode.window.showQuickPick(this.state.findings.filter(item => item.suggestionId)
+          .map(item => ({ label: item.title, description: `${item.file}:${item.startLine}`, id: item.suggestionId })),
+        { placeHolder: 'Choose a suggestion to preview' });
+        id = choice?.id;
+      }
+      if (typeof id !== 'string') { return; }
+      const finding = this.state.findings.find(item => item.suggestionId === id);
+      const branch = this.state.branch;
+      if (!finding || !branch) { return; }
+      const uri = vscode.Uri.file(await safeFile(branch.root, finding.file));
+      const hash = this.snapshots.get(uri.toString());
+      if (!hash) { return; }
+      const applied = await applySuggestion(finding, branch, hash,
+        () => this.state.findings.includes(finding) && !this.operation);
+      this.update({ message: applied ? 'Suggestion applied. Review the edit and save when ready.'
+        : 'Suggestion not applied. If the file changed, save and review it again.' });
+    } catch {
+      this.output.appendLine('Could not apply this suggestion. Save and review the file again.');
+      this.update({ message: 'Could not apply this suggestion. Save and review the file again.' });
+    } finally { this.applying = false; }
+  }
   private markStale(uri: vscode.Uri): void {
     const branch = this.state.branch; if (!branch) { return; }
     const file = relative(branch.root, uri.fsPath).replace(/\\/g, '/');
@@ -189,6 +224,7 @@ export class CodeReview implements vscode.Disposable {
     else if (message.type === 'analyzeFile') { await this.review('file'); }
     else if (message.type === 'refreshBranch') { await this.refreshBranch(); }
     else if (message.type === 'cancelReview') { this.operation?.abort(); }
+    else if (message.type === 'applySuggestion') { await this.apply(message.id); }
     else if (message.type === 'openFinding') {
       const finding = this.state.findings[message.index]; const root = this.state.branch?.root;
       if (!finding || !root) { return; }

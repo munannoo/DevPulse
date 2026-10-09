@@ -96,6 +96,12 @@ test('Git fetch detects behind; review collects saved staged, unstaged and new f
   const largeChanges = await collectChanges(local, true);
   assert.equal(largeChanges.inputs.filter(input => input.file.startsWith('large')).length, 3);
   assert.ok(!largeChanges.skipped.some(file => file.includes('review size limit')));
+  for (let index = 0; index < 25; index++) {
+    await writeFile(join(local, `extra${index}.ts`), 'export const extra = true;\n');
+  }
+  const manyChanges = await collectChanges(local, true);
+  assert.equal(manyChanges.inputs.filter(input => input.file.startsWith('extra')).length, 25);
+  assert.ok(!manyChanges.skipped.some(file => file.includes('20-file limit')));
   await git(local, ['remote', 'set-url', 'origin', join(directory, 'missing.git')]);
   const offline = await getBranchStatus(local, true);
   assert.equal(offline.fresh, false); assert.equal(offline.behind, 1);
@@ -112,8 +118,8 @@ test('LLM HTTP flow redacts, repairs JSON once, supports servers without JSON mo
     request.on('end', () => {
       calls++; payloads.push(body);
       assert.equal(request.headers.authorization, 'Bearer fixture-token');
-      if (calls === 1) { response.writeHead(400); response.end(); return; }
-      const content = calls === 2 ? 'invalid JSON' : '<think>reasoning</think>{"findings":[]}';
+      if (JSON.parse(body).response_format) { response.writeHead(400); response.end(); return; }
+      const content = calls === 3 ? 'invalid JSON' : '<think>reasoning</think>{"findings":[]}';
       response.setHeader('Content-Type', 'application/json');
       response.end(JSON.stringify({ choices: [{ message: { content } }] }));
     });
@@ -124,11 +130,15 @@ test('LLM HTTP flow redacts, repairs JSON once, supports servers without JSON mo
   const request = { system: 'Review', user: 'const apiKey = "sk_test_FAKEKEY0000000000";', json: (value: unknown) => validateReview(value, { file: 'app.ts', content: '', lineCount: 1 }) };
   try {
     assert.deepEqual((await llm.chat(request)).findings, []);
-    assert.equal(calls, 3);
+    assert.equal(calls, 4);
     assert.ok(payloads.every(body => !body.includes('FAKEKEY')));
     assert.ok(payloads[0].includes('response_format'));
-    assert.ok(!payloads[1].includes('response_format'));
-    await llm.chat(request); assert.equal(calls, 3);
+    assert.ok(payloads[1].includes('response_format'));
+    assert.ok(!payloads[2].includes('response_format'));
+    assert.equal(JSON.parse(payloads[0]).reasoning_effort, 'none');
+    assert.equal(JSON.parse(payloads[0]).chat_template_kwargs.enable_thinking, false);
+    assert.ok(!payloads[1].includes('reasoning_effort'));
+    await llm.chat(request); assert.equal(calls, 4);
   } finally { server.closeAllConnections(); await new Promise<void>(resolve => server.close(() => resolve())); }
   const hanging = createServer(() => { /* The abort must end this response. */ });
   hanging.listen(0, '127.0.0.1'); await once(hanging, 'listening');

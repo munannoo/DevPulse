@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
 import type { Finding } from '../../core/llm/schemas';
+import type { PanelFinding } from '../panel/messages';
 
 export class Highlights implements vscode.Disposable {
-  private readonly findings = new Map<string, Finding[]>();
+  private readonly findings = new Map<string, PanelFinding[]>();
   private readonly diagnostics = vscode.languages.createDiagnosticCollection('devpulse');
   private readonly decorations: Record<Finding['severity'], vscode.TextEditorDecorationType>;
   private readonly listeners: vscode.Disposable[];
@@ -27,15 +28,19 @@ export class Highlights implements vscode.Disposable {
             const markdown = new vscode.MarkdownString();
             markdown.appendText(`${finding.title}\n\n${finding.explanation}`);
             if (finding.suggestion) { markdown.appendText(`\n\nSuggestion: ${finding.suggestion}`); }
-            // Model output never gets trusted HTML, command links, or executable edits.
-            markdown.isTrusted = false;
+            if (finding.replacement) { markdown.appendCodeblock(finding.replacement, document.languageId); }
+            if (finding.suggestionId) {
+              const args = encodeURIComponent(JSON.stringify([finding.suggestionId]));
+              markdown.appendMarkdown(`\n\n[Apply Suggestion](command:devpulse.applySuggestion?${args})`);
+              markdown.isTrusted = { enabledCommands: ['devpulse.applySuggestion'] };
+            } else { markdown.isTrusted = false; }
             return markdown;
           }));
         },
       }),
     ];
   }
-  set(uri: vscode.Uri, findings: Finding[]): void {
+  set(uri: vscode.Uri, findings: PanelFinding[]): void {
     this.findings.set(uri.toString(), findings);
     this.diagnostics.set(uri, findings.map(finding => {
       const diagnostic = new vscode.Diagnostic(this.range(finding), `${finding.title}: ${finding.explanation}`,

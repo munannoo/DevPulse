@@ -39,10 +39,10 @@
         </svg>
         <span>Code</span>
       </button>
-      <button class="tab-btn tab-disabled" disabled title="Focus tracking coming soon">
+      <button class="tab-btn" data-tab="focus" aria-pressed="false">
         <span>Focus</span>
       </button>
-      <button class="tab-btn tab-disabled" disabled title="Assistant chat coming soon">
+      <button class="tab-btn" data-tab="chat" aria-pressed="false">
         <span>Chat</span>
       </button>
     </nav>
@@ -83,6 +83,10 @@
         <p id="attention-text" class="attention-body"></p>
       </div>
 
+    <details open><summary>Welcome back</summary><p id="welcome-summary" role="status" aria-live="polite">Loading welcome…</p></details>
+    <details id="left-off" open hidden><summary>Where You Left Off</summary>
+      <p id="left-off-summary"></p><button id="resume">Resume editing</button>
+    </details>
       <!-- Main Action Callout -->
       <div class="primary-action-wrap">
         <button id="review" class="btn-primary">
@@ -111,6 +115,7 @@
         <div class="branch-body">
           <div id="branch" class="branch-metrics">Checking repository…</div>
           <p id="branch-note" class="muted-note"></p>
+          <button id="pull" class="btn-secondary">Git Pull &amp; Sync</button><p id="pull-message" role="status" aria-live="polite" hidden></p>
         </div>
       </div>
 
@@ -164,7 +169,26 @@
         <ul id="skipped-list" class="skipped-list"></ul>
       </details>
     </section>
+  <section id="focus" hidden>
+    <h2>Today's focus</h2><p id="focus-time">0 minutes</p>
+    <p id="focus-switches">0 context switches</p><p id="focus-state" role="status"></p>
+    <p id="focus-shield" class="muted"></p>
+    <p class="muted">Tracks editor and debug activity. Pauses after two idle minutes or when this window loses focus.</p>
+  </section>
+  <section id="chat" hidden>
+    <div id="chat-messages" aria-label="Conversation"></div>
+    <p id="chat-status" role="status" aria-live="polite">Ask Gemma about your code.</p>
+    <form id="chat-form">
+      <label for="chat-question">Message</label>
+      <textarea id="chat-question" rows="4" maxlength="8000" required placeholder="Ask about your code…"></textarea>
+      <label><input id="chat-file" type="checkbox"> Include current file</label>
+      <label><input id="chat-selection" type="checkbox"> Include selection</label>
+      <div class="actions"><button id="chat-send" class="primary" type="submit">Send</button>
+        <button id="chat-stop" type="button" hidden>Stop</button><button id="chat-clear" type="button">Clear</button></div>
+    </form>
+  </section>
   </div>
+  <script nonce="{{NONCE}}" src="{{CHATJS}}"></script>
   <script nonce="{{NONCE}}" src="{{JS}}"></script>
 </body>
 </html>

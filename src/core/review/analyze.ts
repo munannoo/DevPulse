@@ -2,7 +2,7 @@ import type { ReviewInput } from '../git/diff';
 import type { LlmConfig } from '../llm/config';
 import { createLlm } from '../llm/client';
 import { reviewPrompt } from '../llm/prompts';
-import { validateReview, type Finding, type ReviewResult } from '../llm/schemas';
+import { validateReview, reviewResponseSchema, type Finding, type ReviewResult } from '../llm/schemas';
 import { redact } from '../security/redact';
 import { chunkReview } from './chunks';
 
@@ -27,7 +27,7 @@ export async function analyze(input: ReviewInput, config: LlmConfig, signal?: Ab
     const result = await llm.chat({
       system: reviewPrompt,
       user: `File: ${chunk.file}\nDestination lines: ${chunk.lineCount}\nChanged ranges: ${JSON.stringify(chunk.changedRanges ?? 'whole file')}\nCode or diff:\n${chunk.content}`,
-      json: value => validateReview(value, chunk), signal, maxTokens: 1800,
+      json: value => validateReview(value, chunk), responseSchema: reviewResponseSchema(chunk), signal, maxTokens: 1800,
     });
     if (result.summary) { summaries.push(result.summary); }
     for (const finding of result.findings) {

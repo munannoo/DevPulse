@@ -5,6 +5,11 @@ import { CodeReview } from './vscode/features/codeReview';
 import { PanelProvider } from './vscode/panel/PanelProvider';
 import { createStatusBar, updateStatusBar } from './vscode/statusBar';
 import { registerPrecommit } from './vscode/features/precommitBridge';
+import { LeftOff } from './vscode/features/leftOff';
+import { PullReminder, pullReminder } from './vscode/features/reminder';
+import { Welcome } from './vscode/features/welcome';
+import { Focus } from './vscode/features/focus';
+import { Chat } from './vscode/assistant/chat';
 import { PullRequests } from './vscode/features/prReview';
 import { writeFile } from 'node:fs/promises';
 import { isAbsolute, relative, resolve, sep } from 'node:path';
@@ -33,6 +38,28 @@ export function activate(context: vscode.ExtensionContext) {
 
   const output = vscode.window.createOutputChannel('DevPulse');
   const review = new CodeReview(context, output);
+  const focus = new Focus(context, output);
+  const chat = new Chat(context, output);
+  const leftOff = new LeftOff(context, output);
+  const reminder = new PullReminder(() => review.refreshBranch(), output, () => {
+    const state = focus.getState(); return state.shield && state.inFlow;
+  });
+  const welcome = new Welcome(context, output);
+  const getState = () => ({ ...review.getState(), leftOff: leftOff.getState(), pullReminder: pullReminder(review.getState().branch),
+    pullRequests: pullRequests.getState(), welcome: welcome.getState(), focus: focus.getState(), chat: chat.getState(),
+    offline: review.getState().offline || welcome.getState().offline || chat.getState().offline || Boolean(pullRequests.getState().offline) });
+  const pull = async () => {
+    const state = review.getState();
+    if (state.phase === 'checking' || state.phase === 'reviewing' || !state.branch) { return; }
+    await welcome.pull(state.branch, async () => {
+      const deadline = Date.now() + 20_000;
+      while (review.getState().phase === 'checking' && Date.now() < deadline) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+      await review.refreshBranch();
+      return review.getState().phase === 'idle' ? review.getState().branch : undefined;
+    });
+  };
   const pullRequests = new PullRequests(context, output);
   const reportReady = async () => {
     if (context.extensionMode !== vscode.ExtensionMode.Development) { return; }
@@ -43,24 +70,43 @@ export function activate(context: vscode.ExtensionContext) {
     if (target.startsWith(`..${sep}`) || target === '..' || isAbsolute(target) || !target.endsWith(`${sep}devpulse-ready.json`)) { return; }
     await writeFile(readyFile, JSON.stringify({ extensionPath: context.extensionPath, panelVisible: true }), 'utf8');
   };
-  const panel = new PanelProvider(context.extensionUri,
-    () => ({ ...review.getState(), pullRequests: pullRequests.getState() }),
-    async message => { await pullRequests.handle(message); await review.handle(message); }, output, reportReady);
+  const panel = new PanelProvider(context.extensionUri, getState, message => message.type === 'resumeWork' ? leftOff.resume()
+    : message.type === 'pullAndSync' ? pull() : message.type.startsWith('chat') ? chat.handle(message) : message.type === "connectGitHub" || message.type === "refreshPullRequests" || message.type === "reviewPullRequest" || message.type === "cancelPullReview" || message.type === "openPullFinding" ? pullRequests.handle(message) : review.handle(message), output, reportReady);
   const statusBar = createStatusBar();
-  review.onUpdate = () => { panel.update(); updateStatusBar(statusBar, review.getState()); };
+  review.onUpdate = () => {
+    panel.update(); updateStatusBar(statusBar, getState());
+    if (review.getState().phase === 'idle') {
+      const branch = review.getState().branch;
+      reminder.observe(branch);
+      if (branch) { void welcome.visit(branch).catch(() => output.appendLine('Could not prepare the welcome summary.')); }
+    }
+  };
   pullRequests.onUpdate = () => panel.update();
-  context.subscriptions.push(output, review, pullRequests, ...pullRequests.registerCommands(), panel, statusBar,
+  leftOff.onUpdate = () => panel.update();
+  welcome.onUpdate = () => panel.update();
+  focus.onUpdate = () => { panel.update(); updateStatusBar(statusBar, getState()); reminder.flush(); };
+  chat.onUpdate = () => panel.update();
+  let lastBranch: string | undefined;
+  const updateReview = review.onUpdate;
+  review.onUpdate = () => {
+    updateReview();
+    const branch = review.getState().branch?.branch;
+    if (branch !== lastBranch) { lastBranch = branch; leftOff.schedule(); focus.observeBranch(branch); }
+  };
+  context.subscriptions.push(output, review, pullRequests, ...pullRequests.registerCommands(), leftOff, reminder, welcome, focus, chat, panel, statusBar,
     vscode.window.registerWebviewViewProvider('devpulse.panel', panel),
     vscode.commands.registerCommand('devpulse.openPanel', () => vscode.commands.executeCommand('devpulse.panel.focus')),
+    vscode.commands.registerCommand('devpulse.pullAndSync', pull),
     vscode.workspace.onDidChangeWorkspaceFolders(() => { void review.refreshBranch(); }),
   );
   // Render first; Git status loads in the background. LLM review is explicitly invoked.
   void review.refreshBranch().catch(() => output.appendLine('Initial branch check could not complete.'));
+  void leftOff.restore().catch(() => output.appendLine('Could not restore editing context.'));
   void pullRequests.refresh().catch(() => output.appendLine('Initial requested PR check could not complete.'));
   if (context.extensionMode === vscode.ExtensionMode.Development) {
     void vscode.commands.executeCommand('devpulse.openPanel').then(undefined, () => output.appendLine('Open DevPulse with the Open Panel command.'));
   }
-  return { getReviewState: () => review.getState(), isPanelVisible: () => panel.isVisible() };
+  return { getReviewState: getState, isPanelVisible: () => panel.isVisible() };
 }
 
 // This method is called when your extension is deactivated

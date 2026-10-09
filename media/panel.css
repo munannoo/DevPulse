@@ -807,3 +807,40 @@ button:focus-visible, summary:focus-visible {
   outline: 2px solid var(--vscode-focusBorder);
   outline-offset: 1px;
 }
+
+textarea { width: 100%; resize: vertical; min-height: 70px; font: inherit; color: var(--vscode-input-foreground);
+  background: var(--vscode-input-background); border: 1px solid var(--vscode-input-border, transparent); padding: 8px; margin: 6px 0; }
+textarea:focus-visible, input:focus-visible { outline: 1px solid var(--vscode-focusBorder); }
+#chat-form label { display: block; margin: 5px 0; }
+.chat-message { margin: 12px 0; padding: 10px; border: 1px solid var(--vscode-panel-border); background: var(--vscode-editor-background); }
+.chat-message button { margin-right: 6px; }
+.chat-message pre, code { background: var(--vscode-textCodeBlock-background); }
+.chat-open { height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; }
+.chat-open .panel-header, .chat-open .nav-tabs { flex-shrink: 0; }
+.chat-open .status-strip, .focus-open .status-strip { display: none !important; }
+.chat-open .panel-layout { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+#chat { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+#chat-messages { flex: 1; min-height: 72px; overflow-y: auto; }
+#chat-status { margin: 5px 0; }
+#chat-form { flex-shrink: 0; }
+#chat-form label { margin: 2px 0; }
+#chat-form textarea { height: 48px; min-height: 42px; max-height: 90px; margin: 3px 0; padding: 6px; }
+#chat-form .actions { margin: 6px 0; }
+@media (max-height: 340px) {
+  .chat-open { overflow-y: auto; }
+  #chat { flex: none; min-height: 260px; }
+  #chat-messages { max-height: 120px; }
+}
+
+.muted { color: var(--vscode-descriptionForeground); }
+.actions { display: flex; gap: 8px; }
+.primary { background: var(--vscode-button-background); color: var(--vscode-button-foreground); }
+#chat button, #resume, #pull {
+  font: inherit; cursor: pointer; border: 1px solid var(--vscode-button-border, transparent);
+  border-radius: var(--radius-sm); padding: 4px 8px;
+  color: var(--vscode-button-secondaryForeground); background: var(--vscode-button-secondaryBackground);
+}
+#chat button:hover, #resume:hover, #pull:hover { background: var(--vscode-button-secondaryHoverBackground); }
+#chat #chat-send { background: var(--vscode-button-background); color: var(--vscode-button-foreground); }
+#chat #chat-send:hover { background: var(--vscode-button-hoverBackground); }
+#chat button:disabled { opacity: .5; cursor: default; }

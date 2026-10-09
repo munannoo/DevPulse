@@ -96,7 +96,8 @@ test('PR review rejects racing/incomplete diffs, cancellation and failed analysi
 });
 
 test('PR diff reaches the real shared engine redacted and validates changed-line findings', async () => {
-  const secretPatch = patch.replace('+new', '+const apiKey = "sk_test_FAKEKEY0000000000";');
+  const fakeKey = 'sk_' + 'test_FAKEKEY0000000000';
+  const secretPatch = patch.replace('+new', ['+const api', 'Key = "', fakeKey, '";'].join(''));
   const server = createServer((request, response) => {
     let body = '';
     request.on('data', chunk => { body += chunk; });

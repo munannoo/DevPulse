@@ -4,9 +4,31 @@ import { redact } from '../security/redact';
 export type Finding = {
   file: string; startLine: number; endLine: number;
   severity: 'warning' | 'security' | 'context';
-  title: string; explanation: string; suggestion?: string;
+  title: string; explanation: string; suggestion?: string; replacement?: string;
 };
 export type ReviewResult = { summary: string; findings: Finding[] };
+export function reviewResponseSchema(input: ReviewInput): Record<string, unknown> {
+  return {
+    type: 'object', additionalProperties: false, required: ['summary', 'findings'],
+    properties: {
+      summary: { type: 'string', minLength: 1, maxLength: 800 },
+      findings: { type: 'array', maxItems: 8, items: {
+        type: 'object', additionalProperties: false,
+        required: ['file', 'startLine', 'endLine', 'severity', 'title', 'explanation'],
+        properties: {
+          file: { type: 'string', enum: [input.file] },
+          startLine: { type: 'integer', minimum: 1, maximum: input.lineCount },
+          endLine: { type: 'integer', minimum: 1, maximum: input.lineCount },
+          severity: { type: 'string', enum: ['warning', 'security', 'context'] },
+          title: { type: 'string', minLength: 1, maxLength: 60 },
+          explanation: { type: 'string', minLength: 1, maxLength: 500 },
+          suggestion: { type: 'string', minLength: 1, maxLength: 500 },
+          replacement: { type: 'string', minLength: 1, maxLength: 800 },
+        },
+      } },
+    },
+  };
+}
 function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) { throw new Error('Expected an object.'); }
   return value as Record<string, unknown>;
@@ -31,10 +53,18 @@ export function validateReview(value: unknown, input: ReviewInput): ReviewResult
     const changed = input.changedRanges?.find(range => startLine >= range.start && startLine <= range.end);
     if (input.changedRanges && !changed) { continue; }
     if (changed) { endLine = Math.min(endLine, changed.end); }
+    // Only exact, bounded ranges can become edits. Never insert redacted placeholders.
+    const replacement = typeof finding.replacement === 'string'
+      && finding.replacement.length <= 4000 && finding.replacement.trim()
+      && !finding.replacement.includes('```') && !finding.replacement.includes('<REDACTED_SECRET>')
+      && redact(finding.replacement) === finding.replacement
+      && finding.startLine === startLine && finding.endLine === endLine
+      ? finding.replacement : undefined;
     findings.push({
       file: input.file, startLine, endLine, severity: finding.severity as Finding['severity'],
       title: text(finding.title, 60), explanation: text(finding.explanation, 1200),
       ...(finding.suggestion === undefined ? {} : { suggestion: text(finding.suggestion, 4000) }),
+      ...(replacement === undefined ? {} : { replacement }),
     });
   }
   return { summary: data.summary === undefined ? '' : text(data.summary, 1600), findings };

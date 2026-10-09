@@ -21,6 +21,13 @@
       { "command": "devpulse.reviewPullRequest", "title": "DevPulse: Review Pull Request", "enablement": "false" },
       { "command": "devpulse.cancelPullReview", "title": "DevPulse: Cancel PR Review" },
       { "command": "devpulse.openPanel", "title": "DevPulse: Open Panel" },
+      { "command": "devpulse.openChat", "title": "DevPulse: Open Chat" },
+      { "command": "devpulse.explainSelection", "title": "DevPulse: Explain Selection" },
+      { "command": "devpulse.fixSelection", "title": "DevPulse: Fix Selection" },
+      { "command": "devpulse.writeTests", "title": "DevPulse: Write Tests" },
+      { "command": "devpulse.resumeWork", "title": "DevPulse: Resume Where You Left Off" },
+      { "command": "devpulse.pullAndSync", "title": "DevPulse: Git Pull & Sync" },
+      { "command": "devpulse.applySuggestion", "title": "DevPulse: Apply Suggestion" },
       {
         "command": "devpulse.helloWorld",
         "title": "DevPulse: Hello World"
@@ -89,6 +96,10 @@
     "configuration": {
       "title": "DevPulse",
       "properties": {
+        "devpulse.focus.flowMinutes": { "type": "number", "default": 30, "minimum": 1, "maximum": 240,
+          "description": "Continuous active minutes before the In Flow badge appears." },
+        "devpulse.focus.shield": { "type": "boolean", "default": true,
+          "description": "Delay DevPulse reminder toasts during Flow. Other extensions and apps are unaffected." },
         "devpulse.llm.baseUrl": {
           "type": "string",
           "default": "http://localhost:11434/v1",

@@ -34,6 +34,7 @@ export class PanelProvider implements vscode.WebviewViewProvider, vscode.Disposa
         NONCE: randomBytes(16).toString('hex'), CSP: view.webview.cspSource,
         CSS: view.webview.asWebviewUri(vscode.Uri.joinPath(media, 'panel.css')).toString(),
         JS: view.webview.asWebviewUri(vscode.Uri.joinPath(media, 'panel.js')).toString(),
+        CHATJS: view.webview.asWebviewUri(vscode.Uri.joinPath(media, 'chat.js')).toString(),
         MASCOT: view.webview.asWebviewUri(vscode.Uri.joinPath(media, 'mascot.svg')).toString(),
       };
       for (const [key, value] of Object.entries(resources)) { html = html.replaceAll(`{{${key}}}`, value); }

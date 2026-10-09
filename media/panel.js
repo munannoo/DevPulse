@@ -11,6 +11,10 @@ const send = message => vscode.postMessage(message);
 function selectTab(tab) {
   element('overview').hidden = tab !== 'overview';
   element('code').hidden = tab !== 'code';
+  element('focus').hidden = tab !== 'focus';
+  element('chat').hidden = tab !== 'chat';
+  document.body.classList.toggle('chat-open', tab === 'chat');
+  document.body.classList.toggle('focus-open', tab === 'focus');
   document.querySelectorAll('[data-tab]').forEach(button => {
     button.setAttribute('aria-pressed', String(button.dataset.tab === tab));
   });
@@ -32,6 +36,17 @@ element('analyze').addEventListener('click', () => {
 
 element('refresh').addEventListener('click', () => send({ type: 'refreshBranch' }));
 element('cancel').addEventListener('click', () => send({ type: 'cancelReview' }));
+element('resume').addEventListener('click', () => send({ type: 'resumeWork' }));
+element('pull').addEventListener('click', () => send({ type: 'pullAndSync' }));
+element('chat-form').addEventListener('submit', event => {
+  event.preventDefault();
+  const text = element('chat-question').value.trim(); if (!text || element('chat-send').disabled) { return; }
+  send({ type: 'chatSend', text, includeFile: element('chat-file').checked, includeSelection: element('chat-selection').checked });
+  element('chat-send').disabled = true;
+});
+element('chat-stop').addEventListener('click', () => send({ type: 'chatCancel' }));
+element('chat-clear').addEventListener('click', () => send({ type: 'chatClear' }));
+
 element('pr-connect').addEventListener('click', () => send({ type: 'connectGitHub' }));
 element('pr-refresh').addEventListener('click', () => send({ type: 'refreshPullRequests' }));
 element('pr-cancel').addEventListener('click', () => send({ type: 'cancelPullReview' }));
@@ -74,7 +89,7 @@ function renderPullRequests(state) {
     location.addEventListener('click', () => send({ type: 'openPullFinding', index }));
     const explanation = document.createElement('p'); explanation.textContent = finding.explanation;
     card.append(title, location, explanation);
-    if (finding.suggestion) { const suggestion = document.createElement('pre'); suggestion.textContent = finding.suggestion; card.append(suggestion); }
+    if (finding.suggestion || finding.replacement) { const suggestion = document.createElement('pre'); suggestion.textContent = finding.replacement ?? finding.suggestion ?? ''; card.append(suggestion); }
     element('pr-result').append(card);
   });
   if (result.skipped.length) {
@@ -91,7 +106,19 @@ window.addEventListener('message', event => {
   if (event.data?.type !== 'state') { return; }
   const state = event.data.state;
   renderPullRequests(state.pullRequests);
-  const busy = state.phase === 'checking' || state.phase === 'reviewing';
+  renderChat(state, send);
+  const focus = state.focus;
+  element('focus-time').textContent = `${Math.floor((focus?.milliseconds ?? 0) / 60000)} minutes today`;
+  element('focus-switches').textContent = `${focus?.switches ?? 0} context switches`;
+  element('focus-state').textContent = focus?.inFlow ? '✦ In Flow' : focus?.active ? 'Active' : 'Paused';
+  element('focus-shield').textContent = focus?.shield ? 'Flow Shield delays DevPulse reminders during Flow.' : 'Flow Shield is off.';
+  element('welcome-summary').textContent = state.welcome?.summary ?? 'Loading welcome…';
+  element('welcome-summary').classList.toggle('loading', Boolean(state.welcome?.loading));
+  element('left-off').hidden = !state.leftOff;
+  element('left-off-summary').textContent = state.leftOff?.summary ?? '';
+  element('resume').textContent = state.leftOff ? `Resume ${state.leftOff.file}:${state.leftOff.line}` : 'Resume editing';
+
+  const busy = state.phase === 'checking' || state.phase === 'reviewing' || Boolean(state.welcome?.pulling);
 
   // Status strip updates
   element('message').textContent = state.message;
@@ -141,6 +168,10 @@ window.addEventListener('message', event => {
 
   // Branch status formatting
   const branch = state.branch;
+  element('pull').disabled = busy || !branch?.upstream || !branch.behind || Boolean(branch.ahead);
+  element('pull-message').hidden = !state.welcome?.pullMessage;
+  element('pull-message').textContent = state.welcome?.pullMessage ?? '';
+
   element('branch').replaceChildren();
   if (branch) {
     const branchChip = document.createElement('span');
@@ -187,7 +218,7 @@ window.addEventListener('message', event => {
   const security = state.findings.filter(finding => finding.severity === 'security').length;
   element('attention').hidden = !branch?.behind && !security;
   element('attention-text').textContent = [
-    branch?.behind ? `${branch.behind} commit(s) behind upstream${branch.fresh ? '' : ' (last fetched)'}.` : '',
+    state.pullReminder ?? (branch?.behind ? `${branch.behind} commit(s) behind upstream${branch.fresh ? '' : ' (last fetched)'}.` : ''),
     security ? `${security} security finding(s) detected in local code.` : '',
   ].filter(Boolean).join(' ');
 
@@ -267,6 +298,11 @@ window.addEventListener('message', event => {
       card.append(details);
     }
 
+    if (finding.suggestionId) {
+      const apply = document.createElement('button'); apply.textContent = 'Apply Suggestion'; apply.disabled = busy;
+      apply.addEventListener('click', () => { apply.disabled = true; send({ type: 'applySuggestion', id: finding.suggestionId }); });
+      card.append(apply);
+    }
     element('findings').append(card);
   });
 
