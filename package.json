@@ -61,6 +61,10 @@
         "command": "devpulse.fixSecret",
         "title": "DevPulse: Fix Secret",
         "enablement": "false"
+      },
+      {
+        "command": "devpulse.toggleInlineCompletion",
+        "title": "DevPulse: Toggle Inline Autocomplete"
       }
     ],
     "viewsContainers": {
