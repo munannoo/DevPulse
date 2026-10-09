@@ -1,6 +1,8 @@
 import { redact } from '../security/redact';
 
-export class StreamError extends Error {}
+export class StreamError extends Error {
+  constructor(message: string, public readonly offline = false, public readonly configuration = false) { super(message); }
+}
 
 export async function* streamEvents(response: Response): AsyncGenerator<string> {
   if (!response.body) { throw new StreamError('Gemma returned an empty chat stream.'); }

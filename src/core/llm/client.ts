@@ -3,6 +3,8 @@ import { requestQueue } from './queue';
 import { contentHash, getCached, setCached } from './cache';
 import { repairPrompt } from './prompts';
 import { redact } from '../security/redact';
+import { streamChat, type StreamRequest } from './stream';
+import { StreamError } from './sse';
 
 export class LlmError extends Error {
   constructor(message: string, public readonly offline = false, public readonly configuration = false) { super(message); }
@@ -34,6 +36,10 @@ async function responseJson(response: Response): Promise<unknown> {
 }
 export function createLlm(config: LlmConfig) {
   return {
+    async stream(request: StreamRequest): Promise<string> {
+      try { return await streamChat(config, request); }
+      catch (error) { if (error instanceof StreamError) { throw new LlmError(error.message, error.offline, error.configuration); } throw error; }
+    },
     async chat<T>(request: ChatRequest<T>): Promise<T> {
       const controller = new AbortController();
       const cancel = () => controller.abort();
