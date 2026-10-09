@@ -72,8 +72,9 @@ Run `npm run watch` separately for automatic rebuilds while editing.
 Open the inner `DevPulse` folder containing `package.json`, run `npm install`
 once on each machine, and use VS Code 1.103 or newer. Terminal build tools need
 Node 20.19+, 22.13+, or 24+; check `node --version` after updating PATH and
-restarting your terminal. Node 12 cannot build this project. F5 uses VS Code's
-bundled Node for both the build and launcher, avoiding an old system Node.
+restarting your terminal. Node 12 cannot build this project. F5 uses `node` on
+PATH for both the build and launcher. Using `Code.exe` as the Node runtime can
+stall the compile task or debugger startup on Windows.
 F5 opens a separate
 Development Host; DevPulse is loaded there, rather than installed into your
 original editor. The launcher now waits until DevPulse activates and its panel
@@ -116,7 +117,9 @@ per value from process environment, the nearest `.env` above `dist/`, VS Code
 settings, then defaults. Alternatively set `devpulse.llm.baseUrl` and
 `devpulse.llm.model`, and use **DevPulse: Set API Key** for secret storage.
 Never put an API key in settings. Requests use the OpenAI-compatible
-`/chat/completions` route; include `/v1` in the base URL when your server requires it.
+`/chat/completions` route. Origin-only addresses automatically use `/v1`.
+Explicit custom paths are preserved. A missing route/model or denied access
+stops the review once and shows a configuration message.
 
 Press F5, open the Git repository you want to review in the Development Host,
 and choose **DevPulse: Review My Changes**. The DevPulse activity-bar view shows
@@ -134,14 +137,18 @@ Local-change review covers the net saved working-tree changes against HEAD
 (including staged edits) and untracked files. Staged edits subsequently undone
 in the working tree are therefore not reviewed separately. Unsaved files are
 skipped until saved. Private environment/key files, binary files, generated
-lockfiles, and deleted files are skipped and reported. Limits: 20 files, 64 KB
-per source file, 24,000 characters per request, 80,000 per changes review.
+lockfiles, and deleted files are skipped and reported. Limits: 20 files, 1 MB
+per source file, 24,000 characters per request and 32 parts per file.
+Large inputs are redacted first, then split into numbered parts with a little
+boundary context. Progress shows the current part. There is no aggregate
+80,000-character cutoff; results are merged and duplicate findings removed.
 Only changed lines or deletion anchors receive diff findings.
 
 Detected secrets are redacted before requests. Calls are serialized, cached for
 five minutes, and time out after 30 seconds each. Review can be cancelled.
 If Gemma is unavailable, branch information remains visible. Results are cleared
-when an open document changes. There are no automatic code fixes in this version.
+when an open document changes. Review suggestions are for manual use; the
+Security view separately offers confirmed fixes for supported credentials.
 
 Run `npm run test:core` for temporary local-Git and mock-HTTP tests covering
 behind status, change collection, configuration, redaction, validation, retries,

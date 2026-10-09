@@ -48,8 +48,10 @@ export async function loadConfig(options: ConfigOptions = {}): Promise<LlmConfig
   if (!['http:', 'https:'].includes(parsed.protocol) || parsed.username || parsed.password || parsed.search || parsed.hash) {
     throw new Error('Use an HTTP(S) base URL without credentials, query parameters, or a fragment.');
   }
+  // Origin-only server addresses use the standard OpenAI-compatible API prefix.
+  if (parsed.pathname === '/') { parsed.pathname = '/v1'; }
   return {
-    baseUrl: baseUrl.replace(/\/+$/, ''),
+    baseUrl: parsed.toString().replace(/\/+$/, ''),
     model: first(env.DEVPULSE_LLM_MODEL, dotenv.DEVPULSE_LLM_MODEL, options.settings?.model, 'gemma4:e4b')!,
     apiKey: first(env.DEVPULSE_LLM_API_KEY, dotenv.DEVPULSE_LLM_API_KEY, options.secretApiKey),
     jsonMode: options.settings?.jsonMode ?? true,

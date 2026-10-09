@@ -7,6 +7,7 @@ import { loadConfig } from '../../core/llm/config';
 import { contentHash } from '../../core/llm/cache';
 import { LlmError } from '../../core/llm/client';
 import { analyze } from '../../core/review/analyze';
+import { ReviewLimitError } from '../../core/review/chunks';
 import { Highlights } from './highlights';
 import type { PanelMessage, ReviewState } from '../panel/messages';
 
@@ -44,7 +45,7 @@ export class CodeReview implements vscode.Disposable {
     this.state = { ...this.state, ...patch }; this.onUpdate();
   }
   private failure(error: unknown): string {
-    return error instanceof LlmError || error instanceof GitError ? error.message : 'Could not complete the review. Check repository and LLM configuration.';
+    return error instanceof LlmError || error instanceof GitError || error instanceof ReviewLimitError ? error.message : 'Could not complete the review. Check repository and LLM configuration.';
   }
   private async repository(): Promise<string | undefined> {
     if (!vscode.workspace.isTrusted) {
@@ -132,7 +133,11 @@ export class CodeReview implements vscode.Disposable {
             operation.signal.throwIfAborted();
             progress.report({ message: `${input.file} (${index + 1}/${inputs.length})`, increment: 100 / inputs.length });
             try {
-              const result = await analyze(input, config, operation.signal);
+              const result = await analyze(input, config, operation.signal, (part, total) => {
+                const message = `Reviewing ${input.file}${total > 1 ? ` (part ${part}/${total})` : ''}…`;
+                progress.report({ message });
+                this.update({ message });
+              });
               operation.signal.throwIfAborted();
               const uri = vscode.Uri.file(await safeFile(branch.root, input.file));
               const document = await vscode.workspace.openTextDocument(uri);
@@ -144,7 +149,7 @@ export class CodeReview implements vscode.Disposable {
               this.update({ findings: [...this.state.findings, ...result.findings], reviewedFiles: this.state.reviewedFiles + 1,
                 summaries: [...this.state.summaries, { file: input.file, text: result.summary || `${result.findings.length} finding(s).` }] });
             } catch (error) {
-              if (operation.signal.aborted || (error instanceof LlmError && error.offline)) { throw error; }
+              if (operation.signal.aborted || (error instanceof LlmError && (error.offline || error.configuration))) { throw error; }
               const message = this.failure(error);
               this.output.appendLine(message);
               this.update({ skipped: [...this.state.skipped, `${input.file}: ${message}`] });

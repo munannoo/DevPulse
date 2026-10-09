@@ -5,7 +5,7 @@ import { repairPrompt } from './prompts';
 import { redact } from '../security/redact';
 
 export class LlmError extends Error {
-  constructor(message: string, public readonly offline = false) { super(message); }
+  constructor(message: string, public readonly offline = false, public readonly configuration = false) { super(message); }
 }
 type ChatRequest<T> = {
   system: string; user: string; json: (value: unknown) => T;
@@ -71,6 +71,12 @@ export function createLlm(config: LlmConfig) {
             }
             if (!response.ok) {
               await response.body?.cancel();
+              if (response.status === 404) {
+                throw new LlmError('Gemma chat route or model was not found (HTTP 404). Check the OpenAI-compatible base URL and installed model; DevPulse .env overrides VS Code settings.', false, true);
+              }
+              if ([401, 403].includes(response.status)) {
+                throw new LlmError('Gemma server denied access. Update the API key with DevPulse: Set API Key or in your local .env.', false, true);
+              }
               throw new LlmError(`Gemma request failed (HTTP ${response.status}). Check model and authentication settings.`);
             }
             try {
