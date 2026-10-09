@@ -5,6 +5,7 @@ import { repairPrompt } from './prompts';
 import { redact } from '../security/redact';
 import { streamChat, type StreamRequest } from './stream';
 import { StreamError } from './sse';
+import { setTimeout as delay } from 'node:timers/promises';
 
 export class LlmError extends Error {
   constructor(message: string, public readonly offline = false, public readonly configuration = false) { super(message); }
@@ -58,8 +59,9 @@ export function createLlm(config: LlmConfig) {
           let jsonMode = config.jsonMode;
           let schemaMode = Boolean(request.responseSchema);
           let thinkingControls = true;
+          let serverRetryUsed = false;
           for (let attempt = 0; attempt < 2; attempt++) {
-            const send = () => fetch(`${config.baseUrl}/chat/completions`, {
+            const fetchResponse = () => fetch(`${config.baseUrl}/chat/completions`, {
               method: 'POST', signal: controller.signal,
               headers: { 'Content-Type': 'application/json', ...(config.apiKey ? { Authorization: `Bearer ${config.apiKey}` } : {}) },
               body: JSON.stringify({
@@ -75,6 +77,16 @@ export function createLlm(config: LlmConfig) {
                 ],
               }),
             });
+            const send = async () => {
+              let response = await fetchResponse();
+              if (!serverRetryUsed && [500, 502, 503, 504].includes(response.status)) {
+                serverRetryUsed = true;
+                await response.body?.cancel();
+                await delay(250, undefined, { signal: controller.signal });
+                response = await fetchResponse();
+              }
+              return response;
+            };
             let response = await send();
             // Unsupported thinking controls must not silently disable supported JSON mode.
             if (thinkingControls && [400, 422].includes(response.status)) {
@@ -97,6 +109,9 @@ export function createLlm(config: LlmConfig) {
               }
               if ([401, 403].includes(response.status)) {
                 throw new LlmError('Gemma server denied access. Update the API key with DevPulse: Set API Key or in your local .env.', false, true);
+              }
+              if (response.status >= 500) {
+                throw new LlmError(`Gemma server could not complete the review (HTTP ${response.status}). Try again; if it continues, check the server logs.`);
               }
               throw new LlmError(`Gemma request failed (HTTP ${response.status}). Check model and authentication settings.`);
             }

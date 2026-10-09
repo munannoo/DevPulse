@@ -34,3 +34,28 @@ test('structured review falls back through unsupported controls and schema while
     server.closeAllConnections(); await new Promise<void>(resolve => server.close(() => resolve()));
   }
 });
+
+test('server failures retry once within the existing deadline and keep private errors out of messages', async () => {
+  let calls = 0; let fail = false;
+  const server = createServer((_request, response) => {
+    calls++;
+    if (fail || calls === 1) { response.writeHead(500); response.end('private server diagnostics'); return; }
+    response.end(JSON.stringify({ choices: [{ message: { content: '{"ok":true}' } }] }));
+  });
+  server.listen(0, '127.0.0.1'); await once(server, 'listening');
+  const address = server.address(); assert.ok(address && typeof address !== 'string');
+  const llm = createLlm({ baseUrl: `http://127.0.0.1:${address.port}/v1`, model: 'retry-fixture', jsonMode: true });
+  const request = { system: 'JSON only', user: 'Recover', json: (value: unknown) => value };
+  try {
+    assert.deepEqual(await llm.chat(request), { ok: true }); assert.equal(calls, 2);
+    fail = true; calls = 0;
+    await assert.rejects(llm.chat({ ...request, user: 'Fail' }), (error: unknown) => {
+      assert.ok(error instanceof Error); assert.match(error.message, /server.*HTTP 500/);
+      assert.ok(!error.message.includes('private')); assert.ok(!error.message.includes('authentication')); return true;
+    });
+    assert.equal(calls, 2);
+    calls = 0;
+    await assert.rejects(llm.chat({ ...request, user: 'Deadline', timeoutMs: 50 }), /timed out/);
+    assert.equal(calls, 1, 'The retry delay must respect the original deadline');
+  } finally { server.closeAllConnections(); await new Promise<void>(resolve => server.close(() => resolve())); }
+});
