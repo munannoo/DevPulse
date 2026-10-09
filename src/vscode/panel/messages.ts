@@ -12,6 +12,7 @@ export type ReviewState = {
   offline: boolean;
   reviewedFiles: number;
   leftOff?: LeftOffBanner;
+  pullReminder?: string;
 };
 export type PanelMessage =
   | { type: 'ready' | 'reviewChanges' | 'analyzeFile' | 'refreshBranch' | 'cancelReview' | 'resumeWork' }

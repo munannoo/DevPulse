@@ -14,5 +14,5 @@ export function updateStatusBar(item: vscode.StatusBarItem, state: ReviewState):
   const busy = state.phase === 'checking' || state.phase === 'reviewing';
   const counts = branch?.upstream ? ` ↓${branch.behind ?? '?'} ↑${branch.ahead ?? '?'}` : '';
   item.text = `${busy ? '$(sync~spin)' : '$(pulse)'} ${branch?.branch ?? 'DevPulse'}${counts}`;
-  item.tooltip = `${state.message}\n${branch?.note ?? ''}\nClick to review local changes.`;
+  item.tooltip = `${state.pullReminder ?? state.message}\n${branch?.note ?? ''}\nClick to review local changes.`;
 }

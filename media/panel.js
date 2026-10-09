@@ -41,7 +41,7 @@ window.addEventListener('message', event => {
   const security = state.findings.filter(finding => finding.severity === 'security').length;
   element('attention').hidden = !branch?.behind && !security;
   element('attention-text').textContent = [
-    branch?.behind ? `${branch.behind} commit(s) behind upstream${branch.fresh ? '' : ' (last fetched)'}.` : '',
+    state.pullReminder ?? (branch?.behind ? `${branch.behind} commit(s) behind upstream${branch.fresh ? '' : ' (last fetched)'}.` : ''),
     security ? `${security} security finding(s) to check.` : '',
   ].filter(Boolean).join(' ');
   element('empty').hidden = state.findings.length > 0 || (state.summaries.length > 0 && state.phase !== 'complete');
