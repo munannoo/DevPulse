@@ -243,3 +243,18 @@ Run **npm run test:pr** for an Extension Development Host fixture test of sign-i
 states, requested PR loading, review results, cancellation and safe panel rendering.
 It uses injected GitHub/model fixtures; live GitHub/Gemma verification requires
 your account and a PR requesting your review.
+
+## Inline autocomplete
+
+Reload the Development Host, then run **DevPulse: Toggle Inline Autocomplete**
+to opt in. Suggestions appear as ghost text; press Tab to accept or Escape to
+dismiss. Only workspace files are eligible; environment/key files are excluded.
+DevPulse sends up to 1,500 characters before and 500 after the cursor, with
+secrets redacted before slicing. Edits, cancellation and superseding requests
+discard stale suggestions. Requests share the LLM queue and stop after eight seconds.
+
+Set `devpulse.assistant.inline.model` to an exact installed smaller model for
+faster completions. On the tested server, `gemma4:e2b-it-q4_K_M` completed a
+function signature in about 146 ms; the `gemma4:e2b` alias timed out. An empty
+override uses the configured review/chat model. Server failure yields no
+suggestion and leaves the editor and other features usable.
