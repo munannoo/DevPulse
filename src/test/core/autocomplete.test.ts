@@ -4,6 +4,21 @@ import { createServer } from 'node:http';
 import { once } from 'node:events';
 import { createLlm, cleanCompletionText } from '../../core/llm/client';
 import { autocompletePrompt } from '../../core/llm/prompts';
+import { completionContext } from '../../core/llm/completion';
+
+test('completion context redacts before slicing, excludes a cursor in a secret, and bounds input', () => {
+  const credential = 'sk_' + 'test_FAKEKEY0000000000';
+  const source = credential + ' '.repeat(1490) + '\nfunction sum(a, b) {';
+  const context = completionContext(source, source.length)!;
+  assert.ok(context.prefix.length <= 1500); assert.ok(!context.prefix.includes('FAKEKEY'));
+  assert.equal(completionContext(credential, 10), undefined);
+  assert.equal(completionContext('x'.repeat(4000), 2000)?.suffix.length, 500);
+  assert.equal(cleanCompletionText('Here is the code:\n```ts\n  return a + b;\n```\nExplanation'), '  return a + b;');
+  assert.equal(cleanCompletionText('<think>unfinished reasoning'), '');
+  assert.equal(cleanCompletionText('Here is a suggestion: use a loop.'), '');
+  assert.equal(cleanCompletionText(credential), '');
+  assert.equal(cleanCompletionText('<REDACTED_SECRET>'), '');
+});
 
 test('cleanCompletionText strips think blocks and markdown code fences', () => {
   const withThink = '<think>I should complete this function.</think>return a + b;';

@@ -6,6 +6,8 @@ import { redact } from '../security/redact';
 import { streamChat, type StreamRequest } from './stream';
 import { StreamError } from './sse';
 import { setTimeout as delay } from 'node:timers/promises';
+import { cleanCompletionText } from './completion';
+export { cleanCompletionText } from './completion';
 
 export class LlmError extends Error {
   constructor(message: string, public readonly offline = false, public readonly configuration = false) { super(message); }
@@ -24,12 +26,6 @@ export type CompletionRequest = {
   model?: string;
   temperature?: number;
 };
-export function cleanCompletionText(text: string): string {
-  let cleaned = text.replace(/<think>[\s\S]*?<\/think>/gi, '').trimEnd();
-  cleaned = cleaned.replace(/^```[a-zA-Z0-9_-]*\r?\n?/, '');
-  cleaned = cleaned.replace(/\r?\n?```$/, '');
-  return cleaned;
-}
 export function parseJson(text: string): unknown {
   return JSON.parse(text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim()
     .replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, ''));
@@ -165,12 +161,13 @@ export function createLlm(config: LlmConfig) {
           const system = redact(request.system);
           const user = redact(request.user);
           const model = request.model?.trim() || config.model;
-          const key = contentHash(JSON.stringify(['complete', model, system, user, request.maxTokens]));
+          const key = contentHash(JSON.stringify(['complete', config, model, system, user, request.maxTokens, request.temperature]));
           const cached = getCached(key);
           if (cached !== undefined) {
             return cached;
           }
-          const response = await fetch(`${config.baseUrl}/chat/completions`, {
+          let thinking = true;
+          const send = () => fetch(`${config.baseUrl}/chat/completions`, {
             method: 'POST',
             signal: controller.signal,
             headers: {
@@ -182,12 +179,17 @@ export function createLlm(config: LlmConfig) {
               temperature: request.temperature ?? 0.1,
               stream: false,
               max_tokens: request.maxTokens ?? 64,
+              ...(thinking ? { reasoning_effort: 'none', chat_template_kwargs: { enable_thinking: false } } : {}),
               messages: [
                 { role: 'system', content: system },
                 { role: 'user', content: user },
               ],
             }),
           });
+          let response = await send();
+          if ([400, 422].includes(response.status)) {
+            await response.body?.cancel(); thinking = false; response = await send();
+          }
           if (!response.ok) {
             await response.body?.cancel();
             if (response.status === 404) {
