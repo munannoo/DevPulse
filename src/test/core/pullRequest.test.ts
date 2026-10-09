@@ -4,6 +4,8 @@ import { parseGitHubRemote } from '../../core/github/repository';
 import { GitHubClient } from '../../core/github/client';
 import { PullReviewer, pullInputs } from '../../core/review/pullRequest';
 import type { ReviewInput } from '../../core/git/diff';
+import { createServer } from 'node:http';
+import { once } from 'node:events';
 
 const repository = { owner: 'team', name: 'project' };
 const sha = 'a'.repeat(40); const base = 'b'.repeat(40);
@@ -91,4 +93,28 @@ test('PR review rejects racing/incomplete diffs, cancellation and failed analysi
   assert.equal(calls, 2);
   const cancellation = new AbortController(); cancellation.abort();
   await assert.rejects(new PullReviewer().review(client, repository, 1, config, cancellation.signal, () => {}), /abort/i);
+});
+
+test('PR diff reaches the real shared engine redacted and validates changed-line findings', async () => {
+  const secretPatch = patch.replace('+new', '+const apiKey = "sk_test_FAKEKEY0000000000";');
+  const server = createServer((request, response) => {
+    let body = '';
+    request.on('data', chunk => { body += chunk; });
+    request.on('end', () => {
+      assert.ok(!body.includes('FAKEKEY')); assert.ok(body.includes('<REDACTED_SECRET>'));
+      response.setHeader('Content-Type', 'application/json');
+      response.end(JSON.stringify({ choices: [{ message: { content: JSON.stringify({ summary: 'Adds configuration', findings: [
+        { file: 'app.ts', startLine: 2, endLine: 2, severity: 'security', title: 'Unsafe configuration', explanation: 'Check configuration.' },
+        { file: 'app.ts', startLine: 1, endLine: 1, severity: 'warning', title: 'Unchanged line', explanation: 'Must be discarded.' },
+      ] }) } }] }));
+    });
+  });
+  server.listen(0, '127.0.0.1'); await once(server, 'listening');
+  const address = server.address(); assert.ok(address && typeof address !== 'string');
+  const client = new GitHubClient('fixture', mock((_url, init) => (init.headers as Record<string, string>).Accept === 'application/vnd.github.diff'
+    ? new Response(secretPatch) : json({ head: { sha }, base: { sha: base }, changed_files: 1 })));
+  try {
+    const result = await new PullReviewer().review(client, repository, 3, { ...config, baseUrl: `http://127.0.0.1:${address.port}/v1` }, new AbortController().signal, () => {});
+    assert.equal(result.risk, 'security'); assert.equal(result.findings.length, 1); assert.equal(result.summaries[0].text, 'Adds configuration');
+  } finally { server.closeAllConnections(); await new Promise<void>(resolve => server.close(() => resolve())); }
 });
