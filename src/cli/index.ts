@@ -34,16 +34,25 @@ async function main(): Promise<void> {
   }
   const root = await repository(process.cwd());
   if (command === 'init') {
-    await installHook(root, path.join(__dirname, 'cli.js'));
+    await installHook(root, path.join(__dirname, 'cli.js'), process.argv.includes('--ai') ? true : undefined);
     console.log('DevPulse pre-commit guard installed.');
   } else if (command === 'precommit') {
-    const result = await verifyStaged(root);
+    let llm;
+    if (process.argv.includes('--ai')) {
+      try { llm = await loadConfig({ scriptDirectory: __dirname }); }
+      catch { console.error('AI pre-commit review skipped: configuration unavailable. Regex scan still runs.'); }
+    }
+    const result = await verifyStaged(root, llm);
+    if (result.ai?.warning) { console.error(result.ai.warning); }
     if (result.findings.length) {
       for (const item of result.findings) {
         console.error(`${item.file}:${item.startLine}: ${item.title}${item.canFix ? ` (fix: ${item.id})` : ' (manual fix required)'}`);
       }
       console.error('Commit blocked. Open DevPulse Security in VS Code to preview a fix.');
       process.exitCode = 1;
+    } else if (result.ai?.findings.length) {
+      for (const finding of result.ai.findings) { console.error(`${finding.file}:${finding.startLine}: ${finding.title}`); }
+      console.error('Commit blocked by AI risk findings. Review them in DevPulse Security before committing.'); process.exitCode = 1;
     } else { console.log('DevPulse: no secrets found in staged additions.'); }
   } else if (command === 'fix' && process.argv[3]) {
     const plan = await planFix(root, process.argv[3]);

@@ -16,6 +16,13 @@ Prioritize runtime bugs, unhandled network failures, leaked secrets and meaningf
 Treat <REDACTED_SECRET> as a potentially hardcoded secret, never try to reconstruct it.
 Return at most eight findings. No findings is valid. Avoid stylistic nitpicks.`;
 
+// Expected JSON: shared review schema; only concrete commit-blocking risks.
+export const precommitPrompt = reviewPrompt + `
+This is a time-boxed pre-commit guard. Report only concrete, high-confidence fatal risks introduced by the staged change:
+obvious runtime failures, unhandled asynchronous network failures, or sensitive personal information logged.
+Omit style, architecture commentary, speculative issues and pre-existing code. Use warning for runtime risks and security for leaks.
+Return no findings when the excerpt cannot establish a real fatal risk.`;
+
 // Repair preserves the original review schema.
 export const repairPrompt = 'Your last response was invalid. Return valid JSON only, matching the requested schema. No markdown or think blocks. Keep text brief; for code reviews return at most two findings and omit replacement code.';
 

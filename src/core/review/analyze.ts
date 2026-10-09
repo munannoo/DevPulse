@@ -7,7 +7,7 @@ import { redact } from '../security/redact';
 import { chunkReview } from './chunks';
 
 export async function analyze(input: ReviewInput, config: LlmConfig, signal?: AbortSignal,
-  onProgress?: (part: number, total: number) => void): Promise<ReviewResult> {
+  onProgress?: (part: number, total: number) => void, system = reviewPrompt): Promise<ReviewResult> {
   // Redact the complete input before splitting so multiline secrets cannot cross a boundary.
   const originalLines = input.content.split('\n');
   const content = redact(input.content).split('\n').map((text, index) => {
@@ -25,7 +25,7 @@ export async function analyze(input: ReviewInput, config: LlmConfig, signal?: Ab
     signal?.throwIfAborted();
     onProgress?.(index + 1, chunks.length);
     const result = await llm.chat({
-      system: reviewPrompt,
+      system,
       user: `File: ${chunk.file}\nDestination lines: ${chunk.lineCount}\nChanged ranges: ${JSON.stringify(chunk.changedRanges ?? 'whole file')}\nCode or diff:\n${chunk.content}`,
       json: value => validateReview(value, chunk), responseSchema: reviewResponseSchema(chunk), signal, maxTokens: 1800,
     });

@@ -5,11 +5,26 @@ import { randomUUID } from 'node:crypto';
 import { stagedDiff } from '../git/diff';
 import { gitPath } from '../git/repo';
 import { scanSecrets, SecretFinding } from './secretScan';
+import { reviewStagedRisks, type AiScan } from './aiPrecommit';
+import type { LlmConfig } from '../llm/config';
+import { stagedFingerprint } from '../review/commit';
 
-export type ScanResult = { timestamp: string; findings: SecretFinding[] };
+export type ScanResult = { timestamp: string; findings: SecretFinding[]; ai?: AiScan; fingerprint?: string };
 
-export async function verifyStaged(root: string): Promise<ScanResult> {
-  const result = { timestamp: new Date().toISOString(), findings: scanSecrets(await stagedDiff(root)) };
+export async function verifyStaged(root: string, llm?: LlmConfig, persist = true): Promise<ScanResult> {
+  const fingerprint = llm ? await stagedFingerprint(root) : undefined;
+  const diff = await stagedDiff(root);
+  const result: ScanResult = { timestamp: new Date().toISOString(), findings: scanSecrets(diff) };
+  if (llm && !result.findings.length) {
+    result.fingerprint = fingerprint;
+    result.ai = await reviewStagedRisks(diff, llm);
+    if (await stagedFingerprint(root) !== fingerprint) {
+      result.findings = scanSecrets(await stagedDiff(root));
+      result.fingerprint = await stagedFingerprint(root);
+      result.ai = { findings: [], warning: 'AI review skipped: staging changed during analysis.' };
+    }
+  }
+  if (!persist) { return result; }
   const target = await gitPath(root, 'devpulse/last-scan.json');
   await mkdir(path.dirname(target), { recursive: true });
   const temporary = `${target}.${randomUUID()}.tmp`;
