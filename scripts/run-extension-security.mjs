@@ -25,7 +25,7 @@ try {
     vscodeExecutablePath: executable,
     extensionDevelopmentPath: project,
     extensionTestsPath: path.join(project, 'node_modules/@vscode/test-cli/out/runner.cjs'),
-    extensionTestsEnv: { DEVPULSE_SECURITY_FIXTURE: '1', VSCODE_TEST_OPTIONS: JSON.stringify({ mochaOpts: { ui: 'tdd', timeout: 30_000 }, files: [path.join(project, 'out/test/security.test.js')], preload: [] }) },
+    extensionTestsEnv: { DEVPULSE_SECURITY_FIXTURE: '1', VSCODE_TEST_OPTIONS: JSON.stringify({ mochaOpts: { ui: 'tdd', timeout: 30_000 }, files: [path.join(project, 'out/test/security.test.js'), path.join(project, 'out/test/suggestion.test.js')], preload: [] }) },
     launchArgs: [root, '--disable-extensions', '--skip-welcome', '--skip-release-notes', '--disable-workspace-trust', '--user-data-dir', path.join(root, '.profile')],
   });
 } finally {
