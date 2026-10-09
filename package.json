@@ -14,7 +14,16 @@
   ],
   "main": "./dist/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [{ "id": "devpulse", "title": "DevPulse", "icon": "media/mascot.svg" }]
+    },
+    "views": {
+      "devpulse": [{ "type": "webview", "id": "devpulse.security", "name": "Security" }]
+    },
     "commands": [
+      { "command": "devpulse.verifyStaged", "title": "DevPulse: Verify Staged Changes" },
+      { "command": "devpulse.installPrecommitHook", "title": "DevPulse: Install Pre-Commit Hook" },
+      { "command": "devpulse.fixSecret", "title": "DevPulse: Fix Secret", "enablement": "false" },
       {
         "command": "devpulse.helloWorld",
         "title": "DevPulse: Hello World"
@@ -34,7 +43,8 @@
     "check-types": "tsc --noEmit",
     "lint": "eslint src",
     "test": "vscode-test",
-    "build": "npm run package"
+    "build": "npm run package",
+    "test:security": "node scripts/test-security.mjs"
   },
   "devDependencies": {
     "@types/vscode": "^1.103.0",
