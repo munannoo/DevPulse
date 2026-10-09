@@ -14,6 +14,7 @@ import { PullRequests } from './vscode/features/prReview';
 import { registerInlineCompletion } from './vscode/assistant/inlineCompletion';
 import { registerModelPicker } from './vscode/assistant/modelPicker';
 import { registerCommitDraft } from './vscode/features/commitDraft';
+import { Attention } from './vscode/features/attention';
 import { writeFile } from 'node:fs/promises';
 import { isAbsolute, relative, resolve, sep } from 'node:path';
 
@@ -42,6 +43,7 @@ export function activate(context: vscode.ExtensionContext) {
   const output = vscode.window.createOutputChannel('DevPulse');
   const review = new CodeReview(context, output);
   const focus = new Focus(context, output);
+  const attention = new Attention(context, output, () => { const state = focus.getState(); return state.shield && state.inFlow; });
   const chat = new Chat(context, output);
   const leftOff = new LeftOff(context, output);
   const reminder = new PullReminder(() => review.refreshBranch(), output, () => {
@@ -49,6 +51,7 @@ export function activate(context: vscode.ExtensionContext) {
   });
   const welcome = new Welcome(context, output);
   const getState = () => ({ ...review.getState(), leftOff: leftOff.getState(), pullReminder: pullReminder(review.getState().branch),
+    attention: attention.getState(),
     pullRequests: pullRequests.getState(), welcome: welcome.getState(), focus: focus.getState(), chat: chat.getState(),
     offline: review.getState().offline || welcome.getState().offline || chat.getState().offline || Boolean(pullRequests.getState().offline) });
   const pull = async () => {
@@ -81,13 +84,15 @@ export function activate(context: vscode.ExtensionContext) {
     if (review.getState().phase === 'idle') {
       const branch = review.getState().branch;
       reminder.observe(branch);
+      attention.observe(branch?.branch ? branch.root : undefined, pullRequests.getState().items.length);
       if (branch) { void welcome.visit(branch).catch(() => output.appendLine('Could not prepare the welcome summary.')); }
     }
   };
-  pullRequests.onUpdate = () => panel.update();
+  pullRequests.onUpdate = () => { attention.observe(review.getState().branch?.root, pullRequests.getState().items.length); panel.update(); updateStatusBar(statusBar, getState()); };
+  attention.onUpdate = () => { panel.update(); updateStatusBar(statusBar, getState()); };
   leftOff.onUpdate = () => panel.update();
   welcome.onUpdate = () => panel.update();
-  focus.onUpdate = () => { panel.update(); updateStatusBar(statusBar, getState()); reminder.flush(); };
+  focus.onUpdate = () => { panel.update(); updateStatusBar(statusBar, getState()); reminder.flush(); attention.flush(); };
   chat.onUpdate = () => panel.update();
   let lastBranch: string | undefined;
   const updateReview = review.onUpdate;
@@ -96,10 +101,11 @@ export function activate(context: vscode.ExtensionContext) {
     const branch = review.getState().branch?.branch;
     if (branch !== lastBranch) { lastBranch = branch; leftOff.schedule(); focus.observeBranch(branch); }
   };
-  context.subscriptions.push(output, review, pullRequests, ...pullRequests.registerCommands(), leftOff, reminder, welcome, focus, chat, panel, statusBar,
+  context.subscriptions.push(output, review, pullRequests, ...pullRequests.registerCommands(), leftOff, reminder, attention, welcome, focus, chat, panel, statusBar,
     vscode.window.registerWebviewViewProvider('devpulse.panel', panel),
     vscode.commands.registerCommand('devpulse.openPanel', () => vscode.commands.executeCommand('devpulse.panel.focus')),
     vscode.commands.registerCommand('devpulse.pullAndSync', pull),
+    vscode.commands.registerCommand('devpulse.refreshAttention', () => attention.refresh()),
     vscode.commands.registerCommand('devpulse.toggleInlineCompletion', async () => {
       const config = vscode.workspace.getConfiguration('devpulse.assistant.inline');
       const current = config.get<boolean>('enabled', true);

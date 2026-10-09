@@ -39,7 +39,7 @@ export class PullReminder implements vscode.Disposable {
         if (this.disposed) { return; }
         if (this.watched.has(directory)) { continue; }
         this.watched.add(directory);
-        const watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(directory, '{HEAD,packed-refs,refs/**}'));
+        const watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(directory, '{HEAD,index,packed-refs,refs/**,hooks/pre-commit}'));
         const changed = () => { clearTimeout(this.debounce); this.debounce = setTimeout(() => this.check(), 2000); };
         this.listeners.push(watcher, watcher.onDidChange(changed), watcher.onDidCreate(changed), watcher.onDidDelete(changed));
       } catch { /* A non-Git workspace has no pull reminder. */ }

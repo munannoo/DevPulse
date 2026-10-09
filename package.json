@@ -26,6 +26,7 @@
       { "command": "devpulse.selectModel", "title": "DevPulse: Select Model (Review & Chat)" },
       { "command": "devpulse.generateCommitDescription", "title": "DevPulse: Generate Commit Description & Analysis" },
       { "command": "devpulse.clearAiCache", "title": "DevPulse: Clear AI Response Cache" },
+      { "command": "devpulse.refreshAttention", "title": "DevPulse: Refresh Attention" },
       { "command": "devpulse.explainSelection", "title": "DevPulse: Explain Selection" },
       { "command": "devpulse.fixSelection", "title": "DevPulse: Fix Selection" },
       { "command": "devpulse.writeTests", "title": "DevPulse: Write Tests" },
@@ -106,6 +107,8 @@
       "properties": {
         "devpulse.focus.flowMinutes": { "type": "number", "default": 30, "minimum": 1, "maximum": 240,
           "description": "Continuous active minutes before the In Flow badge appears." },
+        "devpulse.reminders.uncommittedMinutes": { "type": "number", "default": 1440, "minimum": 1, "maximum": 10080,
+          "description": "Minutes uncommitted work must remain before DevPulse shows a reminder." },
         "devpulse.focus.shield": { "type": "boolean", "default": true,
           "description": "Delay DevPulse reminder toasts during Flow. Other extensions and apps are unaffected." },
         "devpulse.llm.baseUrl": {

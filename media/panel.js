@@ -216,10 +216,11 @@ window.addEventListener('message', event => {
 
   // Attention banner
   const security = state.findings.filter(finding => finding.severity === 'security').length;
-  element('attention').hidden = !branch?.behind && !security;
+  element('attention').hidden = !branch?.behind && !security && !state.attention?.length;
   element('attention-text').textContent = [
     state.pullReminder ?? (branch?.behind ? `${branch.behind} commit(s) behind upstream${branch.fresh ? '' : ' (last fetched)'}.` : ''),
     security ? `${security} security finding(s) detected in local code.` : '',
+    ...(state.attention ?? []).map(item => item.text),
   ].filter(Boolean).join(' ');
 
   // Empty state handling

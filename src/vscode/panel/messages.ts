@@ -6,6 +6,7 @@ import type { FocusState } from '../../core/focus/tracker';
 import type { GitHubRepository } from '../../core/github/repository';
 import type { PullRequest } from '../../core/github/client';
 import type { PullReviewResult } from '../../core/review/pullRequest';
+import type { AttentionItem } from '../../core/git/reminders';
 
 export type PullRequestState = {
   phase: 'idle' | 'disconnected' | 'loading' | 'ready' | 'reviewing' | 'complete' | 'failed' | 'cancelled';
@@ -29,6 +30,7 @@ export type ReviewState = {
   reviewedFiles: number;
   leftOff?: LeftOffBanner;
   pullReminder?: string;
+  attention?: AttentionItem[];
   welcome?: WelcomeState;
   focus?: FocusState;
   chat?: ChatState;
