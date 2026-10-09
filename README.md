@@ -63,7 +63,7 @@ The watch task includes its own esbuild problem matcher. Extension security
 tests use a disposable repository in `test-repo/` and your installed VS Code;
 set `VSCODE_EXECUTABLE_PATH` if it is installed in a different location.
 
-**Run Extension** builds and opens a fresh Development Host window without an
+**Run Extension (via Script)** builds and opens a fresh Development Host window without an
 attached debugger. This avoids the Windows Extension Host crash in VS Code's
 injected debug launcher. Installed extensions are disabled in that development
 window. The launch task finishes while the window stays open; close the window
@@ -73,9 +73,15 @@ Run `npm run watch` separately for automatic rebuilds while editing.
 Open the inner `DevPulse` folder containing `package.json`, run `npm install`
 once on each machine, and use VS Code 1.103 or newer. Terminal build tools need
 Node 20.19+, 22.13+, or 24+; check `node --version` after updating PATH and
-restarting your terminal. Node 12 cannot build this project. F5 uses `node` on
-PATH for both the build and launcher. Using `Code.exe` as the Node runtime can
-stall the compile task or debugger startup on Windows.
+restarting your terminal. Node 12 cannot build this project. Press **Ctrl+Shift+B**
+to run **devpulse: compile** using VS Code's bundled runtime. F5 uses the same
+compile task; **Run Extension (via Script)** also runs its launcher with the
+bundled runtime. These tasks set ELECTRON_RUN_AS_NODE and clear debugger injection
+variables. The native **Run Extension** configuration remains available for debugging.
+Auto-detected **npm: compile** and npm watch tasks still require supported Node on
+PATH. If TypeScript fails with **Unexpected token ?**, check node --version in
+the failing terminal, upgrade Node (24+ is supported), and restart VS Code and
+its terminals before retrying npm run compile.
 F5 opens a separate
 Development Host; DevPulse is loaded there, rather than installed into your
 original editor. The launcher now waits until DevPulse activates and its panel
