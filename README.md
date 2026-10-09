@@ -252,6 +252,8 @@ dismiss. Only workspace files are eligible; environment/key files are excluded.
 DevPulse sends up to 1,500 characters before and 500 after the cursor, with
 secrets redacted before slicing. Edits, cancellation and superseding requests
 discard stale suggestions. Requests share the LLM queue and stop after eight seconds.
+Slow requests report a brief status-bar timeout and a sanitized message in the
+DevPulse Output channel; cancelled requests remain quiet.
 
 Set `devpulse.assistant.inline.model` to an exact installed smaller model for
 faster completions. On the tested server, `gemma4:e2b-it-q4_K_M` completed a

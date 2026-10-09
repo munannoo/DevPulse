@@ -19,9 +19,12 @@ const server = createServer(async (request, response) => {
   let body = '';
   for await (const chunk of request) { body += chunk; }
   const payload = JSON.parse(body);
+  if (!payload.stream && !payload.response_format && payload.messages.at(-1).content.includes('__hold_inline__')) { return; }
   if (!payload.stream && !payload.response_format) {
     response.setHeader('Content-Type', 'application/json');
-    response.end(JSON.stringify({ choices: [{ message: { content: payload.model === 'fixture-small' ? '  return a - b;\n}' : '  return a + b;\n}' } }] })); return;
+    const completion = payload.model === 'fixture-small' ? '  return a - b;\n}'
+      : payload.messages.at(-1).content.includes('Language: python') ? '    return a + b' : '  return a + b;\n}';
+    response.end(JSON.stringify({ choices: [{ message: { content: completion } }] })); return;
   }
   if (payload.stream) {
     response.setHeader('Content-Type', 'text/event-stream');

@@ -48,6 +48,31 @@ suite('Inline autocomplete in the Extension Host', () => {
       await new Promise(resolve => setTimeout(resolve, 1500));
       await vscode.commands.executeCommand('editor.action.inlineSuggest.commit');
       assert.ok(document.getText().includes('return a + b;'), 'Registered provider renders an acceptable ghost completion');
+      const pythonUri = vscode.Uri.joinPath(root, 'inline-fixture.py');
+      await writeFile(pythonUri.fsPath, 'def add(a, b):\n    \n\ndef target_level(current):\n    return current\n');
+      const pythonDocument = await vscode.workspace.openTextDocument(pythonUri);
+      const pythonEditor = await vscode.window.showTextDocument(pythonDocument);
+      pythonEditor.selection = new vscode.Selection(1, 4, 1, 4);
+      await vscode.commands.executeCommand('editor.action.inlineSuggest.trigger');
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      await vscode.commands.executeCommand('editor.action.inlineSuggest.commit');
+      assert.ok(pythonDocument.getText().includes('    return a + b\n\ndef target_level'), 'Python ghost suggestions preserve indentation and following code');
+      provider.dispose();
+      const messages: string[] = [];
+      const logger = { appendLine: (message: string) => messages.push(message) } as unknown as vscode.OutputChannel;
+      const timeoutProvider = new InlineCompletionProvider(context, logger);
+      const timeoutToken = new vscode.CancellationTokenSource();
+      const slowUri = vscode.Uri.joinPath(root, 'inline-timeout.ts');
+      await writeFile(slowUri.fsPath, '// __hold_inline__\nfunction slow() {\n');
+      const slowDocument = await vscode.workspace.openTextDocument(slowUri);
+      const slowEditor = await vscode.window.showTextDocument(slowDocument);
+      const slowPosition = slowDocument.positionAt(slowDocument.getText().length);
+      slowEditor.selection = new vscode.Selection(slowPosition, slowPosition);
+      try {
+        assert.equal((await timeoutProvider.provideInlineCompletionItems(slowDocument, slowPosition,
+          { triggerKind: vscode.InlineCompletionTriggerKind.Invoke, selectedCompletionInfo: undefined }, timeoutToken.token)).length, 0);
+        assert.ok(messages.some(message => message.includes('timed out after 8 seconds')), 'Slow inference is reported without source or endpoint details');
+      } finally { timeoutProvider.dispose(); timeoutToken.dispose(); }
     } finally { token.dispose(); provider.dispose(); output.dispose(); await settings.update('enabled', previous, vscode.ConfigurationTarget.Global); }
   });
 });

@@ -28,7 +28,8 @@ export class InlineCompletionProvider implements vscode.InlineCompletionItemProv
       || isSensitiveFile(document.fileName)) { return []; }
     const version = document.version, controller = new AbortController(); this.operation = controller;
     const cancellation = token.onCancellationRequested(() => controller.abort());
-    const timer = setTimeout(() => controller.abort(), 8000);
+    let timedOut = false;
+    const timer = setTimeout(() => { timedOut = true; controller.abort(); }, 8000);
     const current = () => !controller.signal.aborted && !token.isCancellationRequested && !this.disposed
       && !document.isClosed && document.version === version && settings.get<boolean>('enabled', false);
     try {
@@ -57,8 +58,12 @@ export class InlineCompletionProvider implements vscode.InlineCompletionItemProv
       this.reported = false;
       return code.trim() ? [new vscode.InlineCompletionItem(code, new vscode.Range(position, position))] : [];
     } catch {
-      if (!controller.signal.aborted && !this.reported) {
-        this.reported = true; this.output.appendLine('Inline completion unavailable. Check Gemma configuration; other features remain available.');
+      if (!this.reported && (timedOut && !token.isCancellationRequested && !this.disposed && document.version === version || !controller.signal.aborted)) {
+        this.reported = true;
+        const message = timedOut ? 'Inline completion timed out after 8 seconds. Check the selected model and Gemma server load.'
+          : 'Inline completion unavailable. Check Gemma configuration; other features remain available.';
+        this.output.appendLine(message);
+        if (timedOut) { vscode.window.setStatusBarMessage('DevPulse autocomplete: request timed out (8s)', 5000); }
       }
       return [];
     } finally {
