@@ -57,7 +57,8 @@ export class CodeReview implements vscode.Disposable {
       this.update({ phase: 'failed', message: 'Trust this workspace to run Git and review code.' }); return undefined;
     }
     const active = vscode.window.activeTextEditor?.document.uri;
-    if (active?.scheme === 'file' && vscode.workspace.getWorkspaceFolder(active)) { return dirname(active.fsPath); }
+    const activeFolder = active?.scheme === 'file' ? vscode.workspace.getWorkspaceFolder(active) : undefined;
+    if (activeFolder) { return activeFolder.uri.fsPath; }
     const folders = vscode.workspace.workspaceFolders ?? [];
     if (!folders.length) { this.update({ phase: 'failed', message: 'Open a Git repository folder first.' }); return undefined; }
     const folder = folders.length === 1 ? folders[0] : await vscode.window.showWorkspaceFolderPick({ placeHolder: 'Choose a repository to review' });
@@ -96,6 +97,10 @@ export class CodeReview implements vscode.Disposable {
         const cancellation = token.onCancellationRequested(() => operation.abort());
         try {
           const branch = await getBranchStatus(cwd, true, operation.signal);
+          if (!branch.branch) {
+            this.update({ phase: 'failed', message: branch.note ?? 'Open a Git repository to review code.' });
+            return;
+          }
           this.update({ branch, message: branch.behind ? `Branch is ${branch.behind} commit(s) behind. Reviewing local changes against HEAD.` : 'Branch checked. Collecting changes…' });
           let inputs: ReviewInput[];
           let skipped: string[] = [];

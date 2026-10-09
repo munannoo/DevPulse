@@ -1,0 +1,75 @@
+import { test } from 'node:test';
+import * as assert from 'node:assert/strict';
+import { createServer } from 'node:http';
+import { once } from 'node:events';
+import { createLlm, cleanCompletionText } from '../../core/llm/client';
+import { autocompletePrompt } from '../../core/llm/prompts';
+
+test('cleanCompletionText strips think blocks and markdown code fences', () => {
+  const withThink = '<think>I should complete this function.</think>return a + b;';
+  assert.equal(cleanCompletionText(withThink), 'return a + b;');
+
+  const withFences = '```typescript\nconst result = true;\n```';
+  assert.equal(cleanCompletionText(withFences), 'const result = true;');
+
+  const plain = '  console.log("hello");';
+  assert.equal(cleanCompletionText(plain), '  console.log("hello");');
+});
+
+test('createLlm complete performs low-temp completion with caching and redaction', async () => {
+  let calls = 0;
+  const payloads: string[] = [];
+  const server = createServer((request, response) => {
+    calls++;
+    let body = '';
+    request.on('data', chunk => { body += chunk; });
+    request.on('end', () => {
+      payloads.push(body);
+      response.writeHead(200, { 'Content-Type': 'application/json' });
+      response.end(JSON.stringify({
+        choices: [{ message: { content: 'return x * 2;\n' } }],
+      }));
+    });
+  });
+  server.listen(0, '127.0.0.1');
+  await once(server, 'listening');
+  const address = server.address();
+  assert.ok(address && typeof address !== 'string');
+
+  const llm = createLlm({
+    baseUrl: `http://127.0.0.1:${address.port}/v1`,
+    model: 'gemma4:e4b',
+    apiKey: 'secret-token',
+    jsonMode: false,
+  });
+
+  try {
+    const result = await llm.complete({
+      system: autocompletePrompt,
+      user: 'const token = "sk_test_FAKEKEY0000000000";\nfunction double(x) { ',
+      model: 'gemma4:e2b',
+      maxTokens: 64,
+      timeoutMs: 4000,
+    });
+
+    assert.equal(result, 'return x * 2;');
+    assert.equal(calls, 1);
+    // Secret must be redacted in payload sent over HTTP
+    assert.ok(!payloads[0].includes('FAKEKEY'));
+    assert.ok(payloads[0].includes('<REDACTED_SECRET>'));
+    assert.ok(payloads[0].includes('gemma4:e2b'));
+
+    // Second identical request must hit cache and NOT invoke server again
+    const cachedResult = await llm.complete({
+      system: autocompletePrompt,
+      user: 'const token = "sk_test_FAKEKEY0000000000";\nfunction double(x) { ',
+      model: 'gemma4:e2b',
+      maxTokens: 64,
+    });
+    assert.equal(cachedResult, 'return x * 2;');
+    assert.equal(calls, 1);
+  } finally {
+    server.closeAllConnections();
+    await new Promise<void>(resolve => server.close(() => resolve()));
+  }
+});

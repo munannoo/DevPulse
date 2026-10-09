@@ -26,7 +26,9 @@
       "type": "extensionHost",
       "request": "launch",
       "args": [
+        "${workspaceFolder}",
         "--extensionDevelopmentPath=${workspaceFolder}",
+        "--user-data-dir=${workspaceFolder}/.vscode-test/dev-hosts/active-host",
         "--disable-extensions",
         "--disable-workspace-trust"
       ],

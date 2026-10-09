@@ -69,9 +69,10 @@ export async function main() {
   { detached: true, stdio: 'ignore', windowsHide: false, env });
   await new Promise((resolve, reject) => { child.once('spawn', resolve); child.once('error', reject); });
   await writeFile(path.join(project, '.vscode-test', 'last-dev-host.json'), JSON.stringify({ profile, pid: child.pid }));
-  child.unref();
   await waitForReady(readyFile, project, child);
-  console.log('DevPulse loaded and its panel is visible in the Development Host window. The window stays open after this task finishes.');
+  console.log('DevPulse loaded and its panel is visible in the Development Host window.');
+  // Keep the task active so Windows Job Object does not terminate the child window
+  await new Promise(resolve => { child.on('exit', resolve); child.on('close', resolve); });
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
