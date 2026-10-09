@@ -112,6 +112,12 @@ window. The launch task finishes while the window stays open; close the window
 when finished. Each launch uses a separate profile under `.vscode-test/dev-hosts`.
 Run `npm run watch` separately for automatic rebuilds while editing.
 
+F5, Ctrl+Shift+B and `npm run compile` use a fast development bundle. They do
+not wait for type checking or linting; the editor and `npm run watch` can show
+type diagnostics while you work. `npm run build` and `npm run package` run full
+type and lint checks in parallel before producing the production bundle. Run
+those checks before committing or packaging.
+
 Open the inner `DevPulse` folder containing `package.json`, run `npm install`
 once on each machine, and use VS Code 1.103 or newer. Terminal build tools need
 Node 20.19+, 22.13+, or 24+; check `node --version` after updating PATH and
