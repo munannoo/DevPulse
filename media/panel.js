@@ -9,9 +9,12 @@ const element = id => document.getElementById(id);
 const send = message => vscode.postMessage(message);
 
 function selectTab(tab) {
+  document.body.classList.toggle('chat-open', tab === 'chat');
+  document.body.classList.toggle('focus-open', tab === 'focus');
   element('overview').hidden = tab !== 'overview';
   element('code').hidden = tab !== 'code';
   element('focus').hidden = tab !== 'focus';
+  element('chat').hidden = tab !== 'chat';
   document.querySelectorAll('[data-tab]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.tab === tab)));
 }
 document.querySelectorAll('[data-tab]').forEach(button => button.addEventListener('click', () => selectTab(button.dataset.tab)));
@@ -21,11 +24,20 @@ element('refresh').addEventListener('click', () => send({ type: 'refreshBranch' 
 element('cancel').addEventListener('click', () => send({ type: 'cancelReview' }));
 element('resume').addEventListener('click', () => send({ type: 'resumeWork' }));
 element('pull').addEventListener('click', () => send({ type: 'pullAndSync' }));
+element('chat-form').addEventListener('submit', event => {
+  event.preventDefault();
+  const text = element('chat-question').value.trim(); if (!text || element('chat-send').disabled) { return; }
+  send({ type: 'chatSend', text, includeFile: element('chat-file').checked, includeSelection: element('chat-selection').checked });
+  element('chat-send').disabled = true;
+});
+element('chat-stop').addEventListener('click', () => send({ type: 'chatCancel' }));
+element('chat-clear').addEventListener('click', () => send({ type: 'chatClear' }));
 
 /** @param {MessageEvent<ExtensionMessage>} event */
 window.addEventListener('message', event => {
   if (event.data?.type !== 'state') { return; }
   const state = event.data.state;
+  renderChat(state, send);
   const focus = state.focus;
   element('focus-time').textContent = `${Math.floor((focus?.milliseconds ?? 0) / 60000)} minutes today`;
   element('focus-switches').textContent = `${focus?.switches ?? 0} context switches`;
