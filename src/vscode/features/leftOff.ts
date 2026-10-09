@@ -20,6 +20,17 @@ export class LeftOff implements vscode.Disposable {
   private readonly abort = new AbortController();
   private commands: string[] = [];
   private readonly listeners: vscode.Disposable[] = [];
+  private readonly resumeDecoration = vscode.window.createTextEditorDecorationType({
+    isWholeLine: true,
+    backgroundColor: new vscode.ThemeColor('editor.rangeHighlightBackground'),
+    borderWidth: '0 0 0 4px',
+    borderStyle: 'solid',
+    borderColor: new vscode.ThemeColor('focusBorder'),
+    overviewRulerColor: new vscode.ThemeColor('focusBorder'),
+    overviewRulerLane: vscode.OverviewRulerLane.Center,
+  });
+  private resumeTimer?: ReturnType<typeof setTimeout>;
+  private resumeClearSubscriptions: vscode.Disposable[] = [];
   onUpdate: () => void = () => {};
   constructor(private readonly context: vscode.ExtensionContext, private readonly output: vscode.OutputChannel) {
     const saved = context.workspaceState.get<SavedContext>(key);
@@ -96,13 +107,56 @@ export class LeftOff implements vscode.Disposable {
       if (!folder || isSensitiveFile(this.saved.file)) { throw new Error('Missing workspace.'); }
       const document = await vscode.workspace.openTextDocument(await safeFile(folder.uri.fsPath, this.saved.file));
       const editor = await vscode.window.showTextDocument(document);
-      const position = new vscode.Position(Math.min(document.lineCount - 1, this.saved.line - 1), 0);
+      const targetLine = Math.max(0, Math.min(document.lineCount - 1, this.saved.line - 1));
+      const position = new vscode.Position(targetLine, 0);
       editor.selection = new vscode.Selection(position, position);
       editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenter);
+      this.highlightResume(editor, targetLine);
     } catch {
       this.output.appendLine('Saved file is unavailable. It may have moved or been deleted.');
       if (this.banner) { this.banner = { ...this.banner, summary: 'Saved file is unavailable. It may have moved or been deleted.' }; this.onUpdate(); }
     }
   }
-  dispose(): void { this.disposed = true; clearTimeout(this.timer); this.abort.abort(); this.listeners.forEach(item => item.dispose()); }
+  private highlightResume(editor: vscode.TextEditor, line: number): void {
+    if (this.disposed) { return; }
+    this.clearResumeHighlight(editor);
+    const lineRange = new vscode.Range(line, 0, line, editor.document.lineAt(line).text.length);
+    editor.setDecorations(this.resumeDecoration, [lineRange]);
+
+    const clear = () => {
+      this.clearResumeHighlight(editor);
+    };
+
+    this.resumeClearSubscriptions = [
+      vscode.workspace.onDidChangeTextDocument(e => {
+        if (e.document.uri.toString() === editor.document.uri.toString() && e.contentChanges.length) {
+          clear();
+        }
+      }),
+      vscode.window.onDidChangeTextEditorSelection(e => {
+        if (e.textEditor === editor && e.selections[0]?.active.line !== line) {
+          clear();
+        }
+      }),
+    ];
+
+    this.resumeTimer = setTimeout(clear, 4000);
+  }
+  private clearResumeHighlight(editor?: vscode.TextEditor): void {
+    clearTimeout(this.resumeTimer);
+    this.resumeTimer = undefined;
+    this.resumeClearSubscriptions.forEach(d => d.dispose());
+    this.resumeClearSubscriptions = [];
+    if (editor && !this.disposed) {
+      editor.setDecorations(this.resumeDecoration, []);
+    }
+  }
+  dispose(): void {
+    this.disposed = true;
+    clearTimeout(this.timer);
+    this.clearResumeHighlight();
+    this.resumeDecoration.dispose();
+    this.abort.abort();
+    this.listeners.forEach(item => item.dispose());
+  }
 }
