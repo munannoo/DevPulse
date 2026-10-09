@@ -6,6 +6,7 @@ import { contentHash } from '../llm/cache';
 export type LineRange = { start: number; end: number };
 export type ReviewInput = {
   file: string; content: string; lineCount: number; changedRanges?: LineRange[]; sourceHash?: string;
+  kind?: 'code' | 'diff';
 };
 export function changedRanges(diff: string, lineCount: number): LineRange[] {
   const ranges: LineRange[] = [];
@@ -26,7 +27,13 @@ export function changedRanges(diff: string, lineCount: number): LineRange[] {
     }
   }
   anchor();
-  return ranges.filter(range => range.start >= 1 && range.start <= lineCount);
+  const merged: LineRange[] = [];
+  for (const range of ranges.filter(range => range.start >= 1 && range.start <= lineCount)) {
+    const previous = merged.at(-1);
+    if (previous && range.start <= previous.end + 1) { previous.end = Math.max(previous.end, range.end); }
+    else { merged.push({ ...range }); }
+  }
+  return merged;
 }
 export function isSensitiveFile(file: string): boolean {
   const name = basename(file).toLowerCase();
@@ -48,7 +55,6 @@ export async function collectChanges(root: string, hasHead: boolean, signal?: Ab
   const files = [...new Set((tracked + untracked).split('\0').filter(Boolean))];
   const inputs: ReviewInput[] = [];
   const skipped: string[] = [];
-  let total = 0;
   for (const file of files) {
     signal?.throwIfAborted();
     if (isSensitiveFile(file) || /(^|\/)(?:node_modules|dist|\.git)\//.test(file) || /(?:^|\/)(?:package-lock\.json|yarn\.lock|pnpm-lock\.yaml)$/.test(file)) {
@@ -57,20 +63,17 @@ export async function collectChanges(root: string, hasHead: boolean, signal?: Ab
     if (inputs.length >= 20) { skipped.push(`${file}: 20-file limit`); continue; }
     try {
       const info = await lstat(resolve(root, file));
-      if (!info.isFile() || info.isSymbolicLink() || info.size > 64_000) {
-        skipped.push(`${file}: not a regular text file or exceeds 64 KB`); continue;
+      if (!info.isFile() || info.isSymbolicLink() || info.size > 1_000_000) {
+        skipped.push(`${file}: not a regular text file or exceeds 1 MB`); continue;
       }
       const text = await readFile(await safeFile(root, file), 'utf8');
       if (text.includes('\0') || text.includes('\uFFFD')) { skipped.push(`${file}: binary file`); continue; }
       const lineCount = Math.max(1, text.split('\n').length);
       let content = hasHead ? await git(root, ['diff', '--no-color', '--no-ext-diff', '--no-textconv', '--unified=3', 'HEAD', '--', file], signal) : '';
       const ranges = content ? changedRanges(content, lineCount) : [{ start: 1, end: lineCount }];
+      const kind = content ? 'diff' : 'code';
       if (!content) { content = text; }
-      if (content.length > 24_000 || total + content.length > 80_000) {
-        skipped.push(`${file}: review size limit`); continue;
-      }
-      inputs.push({ file: file.replace(/\\/g, '/'), content, lineCount, changedRanges: ranges, sourceHash: contentHash(text) });
-      total += content.length;
+      inputs.push({ file: file.replace(/\\/g, '/'), content, kind, lineCount, changedRanges: ranges, sourceHash: contentHash(text) });
     } catch (error) {
       signal?.throwIfAborted();
       skipped.push(`${file}: deleted, unreadable, or unavailable`);

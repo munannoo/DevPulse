@@ -8,43 +8,163 @@
   <title>DevPulse</title>
 </head>
 <body>
-  <header><img src="{{MASCOT}}" alt="" width="28" height="28"><strong>DevPulse</strong><span id="offline" class="badge" hidden>Gemma offline</span></header>
-  <nav aria-label="DevPulse tabs">
-    <button data-tab="overview" aria-pressed="true">Overview</button>
-    <button data-tab="code" aria-pressed="false">Code</button>
-    <button disabled title="Not implemented yet">Focus</button>
-    <button disabled title="Not implemented yet">Chat</button>
-  </nav>
-  <p id="message" role="status" aria-live="polite">Loading repository status…</p>
-  <div class="actions">
-    <button id="review" class="primary">Review My Changes</button>
-    <button id="cancel" hidden>Cancel</button>
-  </div>
-  <section id="overview">
-    <details id="attention" open hidden><summary>Attention</summary><p id="attention-text"></p></details>
-    <details open><summary>Branch status</summary>
-      <p id="branch">Checking repository…</p><p id="branch-note" class="muted"></p>
-      <button id="refresh">Refresh status</button>
-    </details>
-    <details open id="pull-requests"><summary>Pull Requests</summary>
+  <div class="panel-layout">
+    <!-- Header -->
+    <header class="panel-header">
+      <div class="brand">
+        <div class="mascot-wrapper">
+          <img src="{{MASCOT}}" alt="DevPulse Mascot" class="mascot-img" width="34" height="34">
+        </div>
+        <div class="brand-info">
+          <span class="brand-name">DevPulse</span>
+          <span class="brand-tag">local-first</span>
+        </div>
+      </div>
+      <div class="header-status">
+        <span id="offline" class="badge badge-offline" hidden>Gemma offline</span>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs" aria-label="DevPulse tabs">
+      <button class="tab-btn" data-tab="overview" aria-pressed="true">
+        <svg class="tab-icon" viewBox="0 0 16 16" width="13" height="13" fill="currentColor">
+          <path d="M1.5 2.5A1 1 0 0 1 2.5 1.5h11a1 1 0 0 1 1 1.5v11a1 1 0 0 1-1 1.5h-11a1 1 0 0 1-1-1.5v-11zm1 0v11h11v-11h-11zM4 4.5h8v1H4v-1zm0 3h8v1H4v-1zm0 3h5v1H4v-1z"/>
+        </svg>
+        <span>Overview</span>
+      </button>
+      <button class="tab-btn" data-tab="code" aria-pressed="false">
+        <svg class="tab-icon" viewBox="0 0 16 16" width="13" height="13" fill="currentColor">
+          <path d="M4.72 3.22a.75.75 0 0 1 1.06 1.06L2.06 8l3.72 3.72a.75.75 0 1 1-1.06 1.06L.47 8.53a.75.75 0 0 1 0-1.06l4.25-4.25zm6.56 0a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L14.94 8l-3.72-3.72a.75.75 0 0 1 0-1.06z"/>
+        </svg>
+        <span>Code</span>
+      </button>
+      <button class="tab-btn tab-disabled" disabled title="Focus tracking coming soon">
+        <span>Focus</span>
+      </button>
+      <button class="tab-btn tab-disabled" disabled title="Assistant chat coming soon">
+        <span>Chat</span>
+      </button>
+    </nav>
+
+    <!-- Status Bar / Activity Notification -->
+    <div class="status-strip">
+      <div class="status-content">
+        <span id="status-dot" class="status-dot"></span>
+        <span id="message" class="status-message" role="status" aria-live="polite">Loading repository status…</span>
+      </div>
+      <button id="cancel" class="btn-cancel" hidden>Cancel</button>
+    </div>
+
+    <!-- Overview Section -->
+    <section id="overview" class="tab-pane">
+      <!-- Mascot Companion Hero Banner -->
+      <div id="companion-banner" class="card card-companion">
+        <div class="companion-avatar-wrap">
+          <img src="{{MASCOT}}" alt="DevPulse Companion" class="companion-mascot-img" width="52" height="52">
+        </div>
+        <div class="companion-content">
+          <div class="companion-header">
+            <span class="companion-title">DevPulse Companion</span>
+            <span id="companion-badge" class="companion-pill">Active</span>
+          </div>
+          <p id="companion-desc" class="companion-desc">Local-first code guard powered by Gemma. Standing by for reviews.</p>
+        </div>
+      </div>
+
+      <!-- Attention Banner (when behind or security findings exist) -->
+      <div id="attention" class="card card-attention" hidden>
+        <div class="card-header attention-header">
+          <svg class="alert-icon" viewBox="0 0 16 16" width="14" height="14" fill="currentColor">
+            <path d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575L6.457 1.047zM8 5a.75.75 0 0 0-.75.75v3.5a.75.75 0 0 0 1.5 0v-3.5A.75.75 0 0 0 8 5zm0 7a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
+          </svg>
+          <span class="card-title">Attention Required</span>
+        </div>
+        <p id="attention-text" class="attention-body"></p>
+      </div>
+
+      <!-- Main Action Callout -->
+      <div class="primary-action-wrap">
+        <button id="review" class="btn-primary">
+          <svg class="btn-icon" viewBox="0 0 16 16" width="14" height="14" fill="currentColor">
+            <path d="M8 1.5a6.5 6.5 0 1 0 6.5 6.5A6.5 6.5 0 0 0 8 1.5zM0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8.5-3.25a.75.75 0 0 0-1.5 0v3.5a.75.75 0 0 0 .324.614l2.5 1.75a.75.75 0 1 0 .852-1.228L8.5 7.91z"/>
+          </svg>
+          <span>Review My Changes</span>
+        </button>
+      </div>
+
+      <!-- Git Branch Status Card -->
+      <div class="card branch-card">
+        <div class="card-header branch-header">
+          <div class="branch-title-group">
+            <svg class="branch-icon" viewBox="0 0 16 16" width="14" height="14" fill="currentColor">
+              <path d="M11.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5zm-2.25.75a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.492 2.492 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25zM4.25 12a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5zM3.5 3.25a.75.75 0 1 1 1.5 0 .75.75 0 0 1-1.5 0z"/>
+            </svg>
+            <span class="card-title">Branch Status</span>
+          </div>
+          <button id="refresh" class="btn-icon-action" title="Refresh branch status" aria-label="Refresh branch status">
+            <svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor">
+              <path d="M1.705 8.005a.75.75 0 0 1 .834.656 5.5 5.5 0 0 0 9.592 2.97l-1.204-1.204a.25.25 0 0 1 .177-.427h3.646a.25.25 0 0 1 .25.25v3.646a.25.25 0 0 1-.427.177l-1.38-1.38A7 7 0 0 1 1.05 8.84a.75.75 0 0 1 .655-.835zm11.956-.01a.75.75 0 0 1-.834-.656A5.5 5.5 0 0 0 3.235 4.37l1.204 1.204a.25.25 0 0 1-.177.427H.616a.25.25 0 0 1-.25-.25V2.105a.25.25 0 0 1 .427-.177l1.38 1.38A7 7 0 0 1 14.31 7.16a.75.75 0 0 1-.655.835z"/>
+            </svg>
+          </button>
+        </div>
+        <div class="branch-body">
+          <div id="branch" class="branch-metrics">Checking repository…</div>
+          <p id="branch-note" class="muted-note"></p>
+        </div>
+      </div>
+
+    <details open id="pull-requests" class="card"><summary class="card-header">Pull Requests</summary>
       <p id="pr-message" role="status" aria-live="polite">Connect GitHub to view requested PR reviews.</p>
-      <div class="actions">
-        <button id="pr-connect">Connect GitHub</button>
-        <button id="pr-refresh">Refresh PRs</button>
-        <button id="pr-cancel" hidden>Cancel PR review</button>
+      <div class="code-actions">
+        <button class="btn-secondary" id="pr-connect">Connect GitHub</button>
+        <button class="btn-secondary" id="pr-refresh">Refresh PRs</button>
+        <button class="btn-secondary" id="pr-cancel" hidden>Cancel PR review</button>
       </div>
       <div id="pr-list"></div>
       <div id="pr-result"></div>
     </details>
-    <p class="muted">Review checks upstream status, then analyzes saved local changes. New files are included. Git pull stays under your control.</p>
-  </section>
-  <section id="code" hidden>
-    <button id="analyze">Analyze Active File</button>
-    <p id="empty" class="muted">Run a review to see summaries and findings.</p>
-    <div id="summaries"></div>
-    <div id="findings"></div>
-  </section>
-  <details id="skipped" hidden><summary>Skipped files</summary><ul id="skipped-list"></ul></details>
+
+      <!-- Local First Guarantee Info -->
+      <footer class="overview-footer">
+        <p class="footer-note">Reviews are performed through your configured Gemma endpoint. Git pull stays strictly under your control.</p>
+      </footer>
+    </section>
+
+    <!-- Code Section -->
+    <section id="code" class="tab-pane" hidden>
+      <div class="code-actions">
+        <button id="analyze" class="btn-secondary">
+          <svg class="btn-icon" viewBox="0 0 16 16" width="14" height="14" fill="currentColor">
+            <path d="M2.5 1.75C2.5 1.336 2.836 1 3.25 1h7.5c.199 0 .389.079.53.22l3.5 3.5c.141.141.22.331.22.53v8.5a1.25 1.25 0 0 1-1.25 1.25h-10.5A1.25 1.25 0 0 1 1.5 13.75v-12zm8 1.06V4.5a.25.25 0 0 0 .25.25h1.69L10.5 2.81zM3 2v11.75c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V5.5H10.75A1.25 1.25 0 0 1 9.5 4.25V2H3z"/>
+          </svg>
+          <span>Analyze Active File</span>
+        </button>
+      </div>
+
+      <!-- Empty / Idle State -->
+      <div id="empty" class="empty-state">
+        <div class="empty-art">
+          <img src="{{MASCOT}}" alt="DevPulse Mascot" class="empty-mascot-img" width="52" height="52">
+        </div>
+        <p class="empty-message">Run a review to see summaries and findings.</p>
+      </div>
+
+      <!-- File Summaries -->
+      <div id="summaries" class="summaries-group"></div>
+
+      <!-- Findings List -->
+      <div id="findings" class="findings-group"></div>
+
+      <!-- Skipped Files -->
+      <details id="skipped" class="card skipped-card" hidden>
+        <summary class="skipped-header">
+          <span>Skipped Files</span>
+        </summary>
+        <ul id="skipped-list" class="skipped-list"></ul>
+      </details>
+    </section>
+  </div>
   <script nonce="{{NONCE}}" src="{{JS}}"></script>
 </body>
 </html>

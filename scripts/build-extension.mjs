@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import * as path from 'node:path';
 
 const project = fileURLToPath(new URL('../', import.meta.url));
-// F5 runs this with VS Code's bundled Node, bypassing an outdated node on PATH.
+// F5 runs each build tool with the same Node runtime as this script.
 for (const [script, args] of [
   ['node_modules/typescript/bin/tsc', ['--noEmit']],
   ['node_modules/eslint/bin/eslint.js', ['src']],

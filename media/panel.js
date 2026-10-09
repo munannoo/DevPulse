@@ -11,11 +11,25 @@ const send = message => vscode.postMessage(message);
 function selectTab(tab) {
   element('overview').hidden = tab !== 'overview';
   element('code').hidden = tab !== 'code';
-  document.querySelectorAll('[data-tab]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.tab === tab)));
+  document.querySelectorAll('[data-tab]').forEach(button => {
+    button.setAttribute('aria-pressed', String(button.dataset.tab === tab));
+  });
 }
-document.querySelectorAll('[data-tab]').forEach(button => button.addEventListener('click', () => selectTab(button.dataset.tab)));
-element('review').addEventListener('click', () => { selectTab('code'); send({ type: 'reviewChanges' }); });
-element('analyze').addEventListener('click', () => { selectTab('code'); send({ type: 'analyzeFile' }); });
+
+document.querySelectorAll('[data-tab]').forEach(button => {
+  button.addEventListener('click', () => selectTab(button.dataset.tab));
+});
+
+element('review').addEventListener('click', () => {
+  selectTab('code');
+  send({ type: 'reviewChanges' });
+});
+
+element('analyze').addEventListener('click', () => {
+  selectTab('code');
+  send({ type: 'analyzeFile' });
+});
+
 element('refresh').addEventListener('click', () => send({ type: 'refreshBranch' }));
 element('cancel').addEventListener('click', () => send({ type: 'cancelReview' }));
 element('pr-connect').addEventListener('click', () => send({ type: 'connectGitHub' }));
@@ -53,9 +67,9 @@ function renderPullRequests(state) {
     section.append(title, text); element('pr-result').append(section);
   }
   result.findings.forEach((finding, index) => {
-    const card = document.createElement('article'); card.className = `finding ${finding.severity}`;
+    const card = document.createElement('article'); card.className = `finding-card ${finding.severity}`;
     const title = document.createElement('strong'); title.textContent = finding.title;
-    const location = document.createElement('button'); location.className = 'location';
+    const location = document.createElement('button'); location.className = 'location-link';
     location.textContent = `${finding.file}:${finding.startLine} · ${finding.severity} · Open reviewed revision on GitHub`;
     location.addEventListener('click', () => send({ type: 'openPullFinding', index }));
     const explanation = document.createElement('p'); explanation.textContent = finding.explanation;
@@ -78,53 +92,192 @@ window.addEventListener('message', event => {
   const state = event.data.state;
   renderPullRequests(state.pullRequests);
   const busy = state.phase === 'checking' || state.phase === 'reviewing';
+
+  // Status strip updates
   element('message').textContent = state.message;
   element('message').classList.toggle('loading', busy);
+
+  const statusDot = element('status-dot');
+  if (statusDot) {
+    if (busy) {
+      statusDot.className = 'status-dot busy';
+    } else if (state.phase === 'complete') {
+      statusDot.className = 'status-dot complete';
+    } else if (state.phase === 'failed') {
+      statusDot.className = 'status-dot failed';
+    } else {
+      statusDot.className = 'status-dot idle';
+    }
+  }
+
   element('offline').hidden = !state.offline && !state.pullRequests?.offline;
-  for (const id of ['review', 'refresh', 'analyze']) { element(id).disabled = busy; }
+  for (const id of ['review', 'refresh', 'analyze']) {
+    element(id).disabled = busy;
+  }
   element('cancel').hidden = !busy;
+
+  // Companion hero banner status
+  const companionBadge = element('companion-badge');
+  const companionDesc = element('companion-desc');
+  if (companionBadge && companionDesc) {
+    if (state.offline || state.pullRequests?.offline) {
+      companionBadge.className = 'companion-pill offline';
+      companionBadge.textContent = 'Offline';
+      companionDesc.textContent = 'Gemma endpoint unreachable. Local Git and secret scanning guards remain active.';
+    } else if (busy) {
+      companionBadge.className = 'companion-pill busy';
+      companionBadge.textContent = 'Reviewing…';
+      companionDesc.textContent = 'Analyzing repository changes through your local Gemma endpoint…';
+    } else if (state.phase === 'complete') {
+      companionBadge.className = 'companion-pill complete';
+      companionBadge.textContent = state.findings.length || state.skipped.length ? 'Review Complete' : 'All Clear';
+      companionDesc.textContent = state.findings.length || state.skipped.length ? state.message : 'Review complete. No issues found in reviewed changes.';
+    } else {
+      companionBadge.className = 'companion-pill';
+      companionBadge.textContent = 'Active';
+      companionDesc.textContent = 'Local-first code guard powered by Gemma. Standing by for reviews.';
+    }
+  }
+
+  // Branch status formatting
   const branch = state.branch;
-  element('branch').textContent = branch
-    ? `${branch.branch}${branch.upstream ? ` · ↓${branch.behind ?? '?'} behind · ↑${branch.ahead ?? '?'} ahead · ${branch.upstream}` : ' · no upstream'}`
-    : 'Open a Git repository to check branch status.';
-  element('branch-note').textContent = branch?.note ?? (branch?.fresh ? 'Fetched upstream status.' : '');
+  element('branch').replaceChildren();
+  if (branch) {
+    const branchChip = document.createElement('span');
+    branchChip.className = 'branch-pill';
+    branchChip.textContent = branch.branch;
+    element('branch').append(branchChip);
+
+    if (branch.upstream) {
+      if (branch.behind) {
+        const behind = document.createElement('span');
+        behind.className = 'metric-pill behind';
+        behind.textContent = `↓${branch.behind} behind`;
+        element('branch').append(behind);
+      }
+      if (branch.ahead) {
+        const ahead = document.createElement('span');
+        ahead.className = 'metric-pill ahead';
+        ahead.textContent = `↑${branch.ahead} ahead`;
+        element('branch').append(ahead);
+      }
+      if (!branch.behind && !branch.ahead) {
+        const synced = document.createElement('span');
+        synced.className = 'metric-pill synced';
+        synced.textContent = '✓ Synced';
+        element('branch').append(synced);
+      }
+      const remote = document.createElement('span');
+      remote.className = 'remote-pill';
+      remote.textContent = branch.upstream;
+      element('branch').append(remote);
+    } else {
+      const noUpstream = document.createElement('span');
+      noUpstream.className = 'metric-pill muted';
+      noUpstream.textContent = 'no upstream';
+      element('branch').append(noUpstream);
+    }
+  } else {
+    element('branch').textContent = 'Open a Git repository to check branch status.';
+  }
+
+  element('branch-note').textContent = branch?.note ?? (branch?.fresh ? 'Upstream status is up to date.' : '');
+
+  // Attention banner
   const security = state.findings.filter(finding => finding.severity === 'security').length;
   element('attention').hidden = !branch?.behind && !security;
   element('attention-text').textContent = [
     branch?.behind ? `${branch.behind} commit(s) behind upstream${branch.fresh ? '' : ' (last fetched)'}.` : '',
-    security ? `${security} security finding(s) to check.` : '',
+    security ? `${security} security finding(s) detected in local code.` : '',
   ].filter(Boolean).join(' ');
-  element('empty').hidden = state.findings.length > 0 || (state.summaries.length > 0 && state.phase !== 'complete');
-  element('empty').textContent = state.phase === 'complete' && state.reviewedFiles && !state.skipped.length
-    ? 'All clear: no findings in the reviewed changes.' : 'Run a review to see summaries and findings.';
+
+  // Empty state handling
+  const hasContent = state.findings.length > 0 || (state.summaries.length > 0 && state.phase !== 'complete');
+  element('empty').hidden = hasContent;
+  const emptyMsg = element('empty').querySelector('.empty-message');
+  if (emptyMsg) {
+    emptyMsg.textContent = state.phase === 'complete' && state.reviewedFiles && !state.skipped.length
+      ? `All clear: No findings in ${state.reviewedFiles} reviewed file(s).`
+      : 'Run a review to see summaries and findings.';
+  }
+
+  // Summaries rendering
   element('summaries').replaceChildren();
   for (const summary of state.summaries) {
-    const details = document.createElement('details'); details.open = true;
-    const title = document.createElement('summary'); title.textContent = summary.file;
-    const text = document.createElement('p'); text.textContent = summary.text;
-    details.append(title, text); element('summaries').append(details);
+    const details = document.createElement('details');
+    details.className = 'summary-card';
+    details.open = true;
+
+    const title = document.createElement('summary');
+    title.className = 'summary-header';
+    title.textContent = summary.file;
+
+    const text = document.createElement('p');
+    text.className = 'summary-text';
+    text.textContent = summary.text;
+
+    details.append(title, text);
+    element('summaries').append(details);
   }
+
+  // Findings rendering
   element('findings').replaceChildren();
   state.findings.forEach((finding, index) => {
-    const card = document.createElement('article'); card.className = `finding ${finding.severity}`;
-    const title = document.createElement('strong'); title.textContent = finding.title;
-    const location = document.createElement('button'); location.className = 'location';
-    location.textContent = `${finding.file}:${finding.startLine} · ${finding.severity}`;
+    const card = document.createElement('article');
+    card.className = `finding-card ${finding.severity}`;
+
+    const meta = document.createElement('div');
+    meta.className = 'finding-meta';
+
+    const severity = document.createElement('span');
+    severity.className = 'severity-pill';
+    severity.textContent = finding.severity;
+
+    const location = document.createElement('button');
+    location.className = 'location-link';
+    location.title = `Jump to ${finding.file}:${finding.startLine}`;
+    location.textContent = `${finding.file}:${finding.startLine} ↗`;
     location.addEventListener('click', () => send({ type: 'openFinding', index }));
-    const explanation = document.createElement('p'); explanation.textContent = finding.explanation;
-    card.append(title, location, explanation);
+
+    meta.append(severity, location);
+
+    const title = document.createElement('h4');
+    title.className = 'finding-title';
+    title.textContent = finding.title;
+
+    const explanation = document.createElement('p');
+    explanation.className = 'finding-explanation';
+    explanation.textContent = finding.explanation;
+
+    card.append(meta, title, explanation);
+
     if (finding.suggestion) {
       const details = document.createElement('details');
-      const label = document.createElement('summary'); label.textContent = 'Suggestion';
-      const suggestion = document.createElement('pre'); suggestion.textContent = finding.suggestion;
-      details.append(label, suggestion); card.append(details);
+      details.className = 'suggestion-box';
+
+      const label = document.createElement('summary');
+      label.className = 'suggestion-summary';
+      label.textContent = 'Suggested Fix';
+
+      const suggestion = document.createElement('pre');
+      suggestion.className = 'suggestion-code';
+      suggestion.textContent = finding.suggestion;
+
+      details.append(label, suggestion);
+      card.append(details);
     }
+
     element('findings').append(card);
   });
+
+  // Skipped files
   element('skipped').hidden = !state.skipped.length;
   element('skipped-list').replaceChildren();
   for (const file of state.skipped) {
-    const item = document.createElement('li'); item.textContent = file; element('skipped-list').append(item);
+    const item = document.createElement('li');
+    item.textContent = file;
+    element('skipped-list').append(item);
   }
 });
+
 send({ type: 'ready' });

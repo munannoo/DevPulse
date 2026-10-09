@@ -27,7 +27,7 @@ export function pullInputs(diff: string): { inputs: ReviewInput[]; skipped: stri
     const lineCount = Math.max(1, ...hunks.map(match => Number(match[1]) + Number(match[2] ?? 1) - 1));
     if (!hunks.length || section.includes('\0')) { skipped.push(`${file}: no text changes`); continue; }
     if (inputs.length >= 20 || section.length > 24_000 || total + section.length > 80_000) { skipped.push(`${file}: review size limit`); continue; }
-    inputs.push({ file, content: section, lineCount, changedRanges: changedRanges(section, lineCount) }); total += section.length;
+    inputs.push({ file, content: section, lineCount, kind: 'diff', changedRanges: changedRanges(section, lineCount) }); total += section.length;
   }
   return { inputs, skipped, files: sections.length };
 }

@@ -7,6 +7,7 @@ Each finding has file, startLine, endLine (1-based destination file lines), seve
 (1-3 sentences), and optional suggestion (a short instruction or replacement code).
 Use only the provided file path. For diffs, report issues on added lines or deletion anchors
 listed in changedRanges; do not report unrelated existing issues. Do not invent missing code.
+Numbered excerpts use original destination file line numbers, not excerpt-relative numbers.
 Prioritize runtime bugs, unhandled network failures, leaked secrets and meaningful edge cases.
 Treat <REDACTED_SECRET> as a potentially hardcoded secret, never try to reconstruct it.
 Return at most eight findings. No findings is valid. Avoid stylistic nitpicks.`;
