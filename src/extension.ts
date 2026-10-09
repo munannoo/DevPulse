@@ -12,6 +12,7 @@ import { Focus } from './vscode/features/focus';
 import { Chat } from './vscode/assistant/chat';
 import { PullRequests } from './vscode/features/prReview';
 import { registerInlineCompletion } from './vscode/assistant/inlineCompletion';
+import { registerModelPicker } from './vscode/assistant/modelPicker';
 import { writeFile } from 'node:fs/promises';
 import { isAbsolute, relative, resolve, sep } from 'node:path';
 
@@ -105,6 +106,7 @@ export function activate(context: vscode.ExtensionContext) {
       vscode.window.showInformationMessage(`DevPulse Inline Autocomplete ${!current ? 'enabled' : 'disabled'}.`);
     }),
     registerInlineCompletion(context, output),
+    registerModelPicker(context, output),
     vscode.workspace.onDidChangeWorkspaceFolders(() => { void review.refreshBranch(); }),
   );
   // Render first; Git status loads in the background. LLM review is explicitly invoked.

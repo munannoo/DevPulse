@@ -75,9 +75,9 @@ export class LeftOff implements vscode.Disposable {
   async restore(): Promise<void> {
     if (!this.saved || !this.banner) { return; }
     try {
-      const settings = vscode.workspace.getConfiguration('devpulse.llm');
+      const settings = vscode.workspace.getConfiguration('devpulse.llm', vscode.Uri.parse(this.saved.folder));
       const config = await loadConfig({ scriptDirectory: this.context.extensionPath + '/dist',
-        settings: { baseUrl: settings.get<string>('baseUrl'), model: settings.get<string>('model'), jsonMode: settings.get<boolean>('jsonMode') },
+        settings: { baseUrl: settings.get<string>('baseUrl'), model: settings.get<string>('model'), modelOverride: settings.get<string>('modelOverride'), jsonMode: settings.get<boolean>('jsonMode') },
         secretApiKey: await this.context.secrets.get('devpulse.llm.apiKey') });
       const summary = await createLlm(config).chat({ system: leftOffPrompt, signal: this.abort.signal,
         user: JSON.stringify({ file: this.saved.file, line: this.saved.line, branch: this.saved.branch, digest: this.saved.digest }),

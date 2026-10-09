@@ -22,6 +22,8 @@
       { "command": "devpulse.cancelPullReview", "title": "DevPulse: Cancel PR Review" },
       { "command": "devpulse.openPanel", "title": "DevPulse: Open Panel" },
       { "command": "devpulse.openChat", "title": "DevPulse: Open Chat" },
+      { "command": "devpulse.selectInlineModel", "title": "DevPulse: Select Autocomplete Model" },
+      { "command": "devpulse.selectModel", "title": "DevPulse: Select Model (Review & Chat)" },
       { "command": "devpulse.explainSelection", "title": "DevPulse: Explain Selection" },
       { "command": "devpulse.fixSelection", "title": "DevPulse: Fix Selection" },
       { "command": "devpulse.writeTests", "title": "DevPulse: Write Tests" },
@@ -116,6 +118,12 @@
           "scope": "machine",
           "description": "Exact model identifier installed on your self-hosted server."
         },
+        "devpulse.llm.modelOverride": {
+          "type": "string",
+          "default": "",
+          "scope": "resource",
+          "description": "Explicit editor model selection, overriding the environment and .env model. Empty restores normal configuration. CLI commands still use environment/.env."
+        },
         "devpulse.llm.jsonMode": {
           "type": "boolean",
           "default": true,
@@ -132,7 +140,7 @@
           "type": "string",
           "default": "",
           "scope": "resource",
-          "description": "Optional model override for inline completion (e.g. gemma4:e2b). If omitted, devpulse.llm.model is used."
+          "description": "Optional model override for inline completion (e.g. gemma4:e2b). Empty uses the effective review/chat model."
         }
       }
     }

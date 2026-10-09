@@ -48,7 +48,7 @@ export class Chat implements vscode.Disposable {
       const context = await chatContext(this.editor, message.includeFile, message.includeSelection);
       const settings = vscode.workspace.getConfiguration('devpulse.llm', this.editor?.document.uri);
       const config = await loadConfig({ scriptDirectory: this.context.extensionPath + '/dist',
-        settings: { baseUrl: settings.get<string>('baseUrl'), model: settings.get<string>('model') },
+        settings: { baseUrl: settings.get<string>('baseUrl'), model: settings.get<string>('model'), modelOverride: settings.get<string>('modelOverride') },
         secretApiKey: await this.context.secrets.get('devpulse.llm.apiKey') });
       operation.signal.throwIfAborted();
       const history = this.state.messages.filter(item => item.complete).slice(-6).map(item => ({ role: item.role, content: item.text }));

@@ -42,7 +42,7 @@ export class Welcome implements vscode.Disposable {
             try {
               const settings = vscode.workspace.getConfiguration('devpulse.llm', vscode.Uri.file(branch.root));
               const config = await loadConfig({ scriptDirectory: this.context.extensionPath + '/dist',
-                settings: { baseUrl: settings.get<string>('baseUrl'), model: settings.get<string>('model'), jsonMode: settings.get<boolean>('jsonMode') },
+                settings: { baseUrl: settings.get<string>('baseUrl'), model: settings.get<string>('model'), modelOverride: settings.get<string>('modelOverride'), jsonMode: settings.get<boolean>('jsonMode') },
                 secretApiKey: await this.context.secrets.get('devpulse.llm.apiKey') });
               const summary = await createLlm(config).chat({ system: welcomePrompt, user: redact(changes.metadata),
                 signal: operation.signal, timeoutMs: 15_000, maxTokens: 250, json: value => {

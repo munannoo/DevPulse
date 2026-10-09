@@ -12,16 +12,20 @@ await mkdir(fixtures, { recursive: true });
 const root = await mkdtemp(path.join(fixtures, '.security-check-'));
 const execute = promisify(execFile);
 const server = createServer(async (request, response) => {
+  if (request.method === 'GET' && request.url === '/v1/models') {
+    response.setHeader('Content-Type', 'application/json');
+    response.end(JSON.stringify({ data: [{ id: 'fixture-small' }, { id: 'fixture-review' }] })); return;
+  }
   let body = '';
   for await (const chunk of request) { body += chunk; }
   const payload = JSON.parse(body);
   if (!payload.stream && !payload.response_format) {
     response.setHeader('Content-Type', 'application/json');
-    response.end(JSON.stringify({ choices: [{ message: { content: '  return a + b;\n}' } }] })); return;
+    response.end(JSON.stringify({ choices: [{ message: { content: payload.model === 'fixture-small' ? '  return a - b;\n}' : '  return a + b;\n}' } }] })); return;
   }
   if (payload.stream) {
     response.setHeader('Content-Type', 'text/event-stream');
-    response.write('data: ' + JSON.stringify({ choices: [{ delta: { content: 'Fixture answer.\n' } }] }) + '\n\n');
+    response.write('data: ' + JSON.stringify({ choices: [{ delta: { content: payload.model === 'fixture-review' ? 'Selected model answer.\n' : 'Fixture answer.\n' } }] }) + '\n\n');
     if (payload.messages.at(-1).content.includes('__hold_chat__')) { return; }
     response.write('data: ' + JSON.stringify({ choices: [{ delta: { content: '```ts\n// fixture reply\n```' } }] }) + '\n\n');
     response.end('data: [DONE]\n\n'); return;
@@ -55,7 +59,7 @@ try {
     extensionTestsEnv: { DEVPULSE_SECURITY_FIXTURE: '1',
       DEVPULSE_LLM_BASE_URL: `http://127.0.0.1:${server.address().port}/v1`, DEVPULSE_LLM_MODEL: 'fixture',
       VSCODE_TEST_OPTIONS: JSON.stringify({ mochaOpts: { ui: 'tdd', timeout: 30_000 },
-        files: ['security', 'suggestion', 'highlights', 'focus', 'chat-context', 'chat', 'inlineCompletion'].map(name => path.join(project, `out/test/${name}.test.js`)), preload: [] }) },
+        files: ['security', 'suggestion', 'highlights', 'focus', 'chat-context', 'chat', 'inlineCompletion', 'modelPicker'].map(name => path.join(project, `out/test/${name}.test.js`)), preload: [] }) },
     launchArgs: [root, '--disable-extensions', '--skip-welcome', '--skip-release-notes', '--disable-workspace-trust', '--user-data-dir', path.join(root, '.profile')],
   });
 } finally {

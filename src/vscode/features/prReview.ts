@@ -32,7 +32,7 @@ export class PullRequests implements vscode.Disposable {
       config: async root => {
         const settings = vscode.workspace.getConfiguration('devpulse.llm', root);
         return loadConfig({ scriptDirectory: context.extensionPath + '/dist', settings: {
-          baseUrl: settings.get<string>('baseUrl'), model: settings.get<string>('model'), jsonMode: settings.get<boolean>('jsonMode'),
+          baseUrl: settings.get<string>('baseUrl'), model: settings.get<string>('model'), modelOverride: settings.get<string>('modelOverride'), jsonMode: settings.get<boolean>('jsonMode'),
         }, secretApiKey: await context.secrets.get('devpulse.llm.apiKey') });
       }, ...services,
     };

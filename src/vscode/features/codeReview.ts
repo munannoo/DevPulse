@@ -135,7 +135,7 @@ export class CodeReview implements vscode.Disposable {
           try {
             const settings = vscode.workspace.getConfiguration('devpulse.llm', vscode.Uri.file(branch.root));
             config = await loadConfig({ scriptDirectory: this.context.extensionPath + '/dist',
-              settings: { baseUrl: settings.get<string>('baseUrl'), model: settings.get<string>('model'), jsonMode: settings.get<boolean>('jsonMode') },
+              settings: { baseUrl: settings.get<string>('baseUrl'), model: settings.get<string>('model'), modelOverride: settings.get<string>('modelOverride'), jsonMode: settings.get<boolean>('jsonMode') },
               secretApiKey: await this.context.secrets.get('devpulse.llm.apiKey') });
           } catch { throw new LlmError('Could not load LLM configuration. Check your DevPulse .env or settings.'); }
           this.update({ phase: 'reviewing', message: `Reviewing ${inputs.length} file(s)…` });

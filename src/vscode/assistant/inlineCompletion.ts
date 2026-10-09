@@ -40,7 +40,7 @@ export class InlineCompletionProvider implements vscode.InlineCompletionItemProv
       if (!snippet?.prefix.trim()) { return []; }
       const llmSettings = vscode.workspace.getConfiguration('devpulse.llm', document.uri);
       const config = await loadConfig({ scriptDirectory: join(this.context.extensionPath, 'dist'),
-        settings: { baseUrl: llmSettings.get<string>('baseUrl'), model: llmSettings.get<string>('model'), jsonMode: false },
+        settings: { baseUrl: llmSettings.get<string>('baseUrl'), model: llmSettings.get<string>('model'), modelOverride: llmSettings.get<string>('modelOverride'), jsonMode: false },
         secretApiKey: await this.context.secrets.get('devpulse.llm.apiKey') });
       if (!current()) { return []; }
       const raw = await createLlm(config).complete({ system: autocompletePrompt,
