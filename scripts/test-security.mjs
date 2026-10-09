@@ -83,5 +83,7 @@ try {
   await assert.rejects(planFix(root, nextId), /Untrack/);
   console.log('Security tests passed: categories, added lines, redaction, hook chaining, blocked commit, safe fix, clean commit, stale/partial staging and tracked .env protections.');
 } finally {
+  assert.equal(path.dirname(path.resolve(temporary)), path.resolve(tmpdir()));
+  assert.ok(path.basename(temporary).startsWith('devpulse-security-'));
   await rm(temporary, { recursive: true, force: true });
 }

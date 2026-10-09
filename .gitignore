@@ -7,3 +7,4 @@ out/
 !.env.example
 *.vsix
 *.tsbuildinfo
+test-repo/.security-check-*/
