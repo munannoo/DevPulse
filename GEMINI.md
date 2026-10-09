@@ -39,6 +39,7 @@ Use acquireVsCodeApi().postMessage() and the existing types in src/vscode/panel/
 
 - Main panel requests currently include ready, reviewChanges, analyzeFile, refreshBranch, cancelReview and openFinding with an index. Host updates use type: "state" with ReviewState.
 - Security requests currently use scan, install and fix with a finding ID. Security updates use type: "security".
+- PR requests use connectGitHub, refreshPullRequests, reviewPullRequest with a PR number, cancelPullReview and openPullFinding with an index. PR state is included in the main state update; finding links open the reviewed GitHub revision.
 - Inspect the actual types before changing either side. Validate incoming requests in the host; ignore unknown types safely, with development logging.
 - Send the main panel's ready message after installing its handlers. Preserve the host readiness callback used by development launch checks.
 - Render consolidated host state rather than requesting many small data fragments. Future feature state may include welcome, leftOff, pullRequests, focus and chat; add fields only for assigned work.

@@ -87,7 +87,7 @@ if you move the extension or Node installation.
 Generated using the official `yo code` TypeScript/esbuild template and extended
 with the folder structure from `AGENTS.md`. Branch checks, LLM code review, the
 sidebar, and editor findings are implemented. The pre-commit secret guard and
-Security view are also implemented; other features remain placeholders.
+Security view and requested PR reviews are also implemented; other features remain placeholders.
 
 ```powershell
 npm install
@@ -95,6 +95,7 @@ npm run build
 npm run test:core
 npm run test:security
 npm run test:extension-security
+npm run test:pr
 node dist/cli.js --help
 ```
 
@@ -104,7 +105,7 @@ The watch task includes its own esbuild problem matcher. Extension security
 tests use a disposable repository in `test-repo/` and your installed VS Code;
 set `VSCODE_EXECUTABLE_PATH` if it is installed in a different location.
 
-**Run Extension** builds and opens a fresh Development Host window without an
+**Run Extension (via Script)** builds and opens a fresh Development Host window without an
 attached debugger. This avoids the Windows Extension Host crash in VS Code's
 injected debug launcher. Installed extensions are disabled in that development
 window. The launch task finishes while the window stays open; close the window
@@ -114,9 +115,15 @@ Run `npm run watch` separately for automatic rebuilds while editing.
 Open the inner `DevPulse` folder containing `package.json`, run `npm install`
 once on each machine, and use VS Code 1.103 or newer. Terminal build tools need
 Node 20.19+, 22.13+, or 24+; check `node --version` after updating PATH and
-restarting your terminal. Node 12 cannot build this project. F5 uses `node` on
-PATH for both the build and launcher. Using `Code.exe` as the Node runtime can
-stall the compile task or debugger startup on Windows.
+restarting your terminal. Node 12 cannot build this project. Press **Ctrl+Shift+B**
+to run **devpulse: compile** using VS Code's bundled runtime. F5 uses the same
+compile task; **Run Extension (via Script)** also runs its launcher with the
+bundled runtime. These tasks set ELECTRON_RUN_AS_NODE and clear debugger injection
+variables. The native **Run Extension** configuration remains available for debugging.
+Auto-detected **npm: compile** and npm watch tasks still require supported Node on
+PATH. If TypeScript fails with **Unexpected token ?**, check node --version in
+the failing terminal, upgrade Node (24+ is supported), and restart VS Code and
+its terminals before retrying npm run compile.
 F5 opens a separate
 Development Host; DevPulse is loaded there, rather than installed into your
 original editor. The launcher now waits until DevPulse activates and its panel
@@ -134,6 +141,7 @@ src/
   core/                  Shared logic; no vscode imports
     llm/                 Configuration, client, prompts, schemas, queue, cache
     git/                 Repository status and diff parsing
+    github/              Requested PRs, revisions and authenticated diff fetching
     security/            Secret scanning, redaction, and fixes
     review/              Shared findings engine
   vscode/
@@ -196,3 +204,34 @@ Run `npm run test:core` for temporary local-Git and mock-HTTP tests covering
 behind status, change collection, configuration, redaction, validation, retries,
 caching, cancellation, and timeout handling. These do not contact your server.
 Interactive Extension Development Host acceptance checks remain pending.
+
+## Pull request reviews
+
+Open a repository with a github.com HTTPS or SSH remote. In DevPulse's Overview
+tab, choose **Connect GitHub** and use VS Code's GitHub sign-in. **Refresh PRs**
+lists open PRs requesting your review in that repository (including team review
+requests). Choose **Review with Gemma** on a PR to see per-file summaries,
+severity-based risk and findings. Configure Gemma as described under Code review.
+You can also run **DevPulse: Connect GitHub** or **DevPulse: Refresh Requested PRs**.
+
+PR review uses the remote diff without checking out the branch or changing local
+files. Finding links open the reviewed head revision on GitHub, so they do not
+point at unrelated local code. No comments or reviews are posted to GitHub.
+Reviews are cancellable; local code review and security remain available when
+GitHub or Gemma is unavailable.
+
+Results are cached in memory for up to 20 PR revisions, keyed by repository,
+PR number, head/base SHAs and model configuration. Changed revisions are reviewed
+again. Private/generated files, binaries, deletions and oversized files are
+reported as skipped; partial reviews never imply the entire PR is safe. Limits
+are 20 reviewable files, 24,000 characters per file, 80,000 total and 4 MB for the
+GitHub response. PRs changing during analysis require another review.
+
+GitHub Enterprise and remotes containing embedded credentials are not supported.
+Use an ordinary github.com remote and VS Code authentication. The review list
+is limited to GitHub Search's first 1,000 results and reports incomplete results.
+
+Run **npm run test:pr** for an Extension Development Host fixture test of sign-in
+states, requested PR loading, review results, cancellation and safe panel rendering.
+It uses injected GitHub/model fixtures; live GitHub/Gemma verification requires
+your account and a PR requesting your review.

@@ -84,7 +84,7 @@ export async function collectChanges(root: string, hasHead: boolean, signal?: Ab
 
 export type AddedLine = { file: string; line: number; text: string };
 
-function diffPath(header: string): string {
+export function diffPath(header: string): string {
   // Git quotes names containing tabs, newlines, quotes or backslashes even with quotepath=false.
   const value = header.startsWith('"') ? header.slice(1, -1).replace(/\\([0-7]{1,3}|[abfnrtv\\"])/g, (_, code: string) => {
     const escapes: Record<string, string> = { a: '\x07', b: '\b', f: '\f', n: '\n', r: '\r', t: '\t', v: '\v', '\\': '\\', '"': '"' };

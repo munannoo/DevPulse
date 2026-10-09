@@ -3,6 +3,16 @@ import type { Finding } from '../../core/llm/schemas';
 import type { LeftOffBanner } from '../features/leftOff';
 import type { WelcomeState } from '../features/welcome';
 import type { FocusState } from '../../core/focus/tracker';
+import type { GitHubRepository } from '../../core/github/repository';
+import type { PullRequest } from '../../core/github/client';
+import type { PullReviewResult } from '../../core/review/pullRequest';
+
+export type PullRequestState = {
+  phase: 'idle' | 'disconnected' | 'loading' | 'ready' | 'reviewing' | 'complete' | 'failed' | 'cancelled';
+  message: string; repository?: GitHubRepository; items: PullRequest[]; truncated: boolean;
+  selected?: number; result?: PullReviewResult; offline?: boolean;
+};
+
 export type PanelFinding = Finding & { suggestionId?: string };
 export type ChatMessage = { id: string; role: 'user' | 'assistant'; text: string; complete: boolean };
 export type ChatState = { messages: ChatMessage[]; busy: boolean; offline: boolean; status: string;
@@ -22,6 +32,7 @@ export type ReviewState = {
   welcome?: WelcomeState;
   focus?: FocusState;
   chat?: ChatState;
+  pullRequests?: PullRequestState;
 };
 export type PanelMessage =
   | { type: 'ready' | 'reviewChanges' | 'analyzeFile' | 'refreshBranch' | 'cancelReview' | 'resumeWork' | 'pullAndSync' }
@@ -29,7 +40,13 @@ export type PanelMessage =
   | { type: 'applySuggestion'; id: string }
   | { type: 'chatSend'; text: string; includeFile: boolean; includeSelection: boolean }
   | { type: 'chatCancel' | 'chatClear' }
-  | { type: 'chatCopy' | 'chatInsert'; id: string };
+  | { type: 'chatCopy' | 'chatInsert'; id: string }
+  | PullPanelMessage;
+export type PullPanelMessage =
+  | { type: 'connectGitHub' | 'refreshPullRequests' | 'cancelPullReview' }
+  | { type: 'reviewPullRequest'; number: number }
+  | { type: 'openPullFinding'; index: number };
+
 export type ExtensionMessage = { type: 'state'; state: ReviewState };
 
 export function isPanelMessage(value: unknown): value is PanelMessage {
@@ -46,10 +63,11 @@ export function isPanelMessage(value: unknown): value is PanelMessage {
   if (message.type === 'applySuggestion') {
     return typeof message.id === 'string' && /^[a-f0-9-]{36}$/.test(message.id);
   }
-  if (message.type === 'openFinding') {
+  if (message.type === 'openFinding' || message.type === 'openPullFinding') {
     return Number.isInteger(message.index) && Number(message.index) >= 0;
   }
-  return ['ready', 'reviewChanges', 'analyzeFile', 'refreshBranch', 'cancelReview', 'resumeWork', 'pullAndSync'].includes(String(message.type));
+  if (message.type === 'reviewPullRequest') { return Number.isSafeInteger(message.number) && Number(message.number) > 0; }
+  return ['ready', 'reviewChanges', 'analyzeFile', 'refreshBranch', 'cancelReview', 'resumeWork', 'pullAndSync', 'connectGitHub', 'refreshPullRequests', 'cancelPullReview'].includes(String(message.type));
 }
 import type { SecretFinding } from '../../core/security/secretScan';
 

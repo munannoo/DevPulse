@@ -16,6 +16,10 @@
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
+      { "command": "devpulse.connectGitHub", "title": "DevPulse: Connect GitHub" },
+      { "command": "devpulse.refreshPullRequests", "title": "DevPulse: Refresh Requested PRs" },
+      { "command": "devpulse.reviewPullRequest", "title": "DevPulse: Review Pull Request", "enablement": "false" },
+      { "command": "devpulse.cancelPullReview", "title": "DevPulse: Cancel PR Review" },
       { "command": "devpulse.openPanel", "title": "DevPulse: Open Panel" },
       { "command": "devpulse.openChat", "title": "DevPulse: Open Chat" },
       { "command": "devpulse.explainSelection", "title": "DevPulse: Explain Selection" },
@@ -143,7 +147,8 @@
     "build": "npm run package",
     "test:core": "npm run compile-tests && node --test out/test/core/*.test.js",
     "test:security": "node scripts/test-security.mjs",
-    "test:extension-security": "npm run compile-tests && node scripts/run-extension-security.mjs"
+    "test:extension-security": "npm run compile-tests && node scripts/run-extension-security.mjs",
+    "test:pr": "npm run compile-tests && npm run compile && node scripts/test-pr.mjs"
   },
   "devDependencies": {
     "@types/vscode": "^1.103.0",

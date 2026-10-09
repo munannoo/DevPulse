@@ -7,11 +7,25 @@
 	"configurations": [
 		{
 			"name": "Run Extension",
+			"type": "extensionHost",
+			"request": "launch",
+			"args": [
+				"--extensionDevelopmentPath=${workspaceFolder}",
+				"--disable-extensions",
+				"--disable-workspace-trust"
+			],
+			"outFiles": [
+				"${workspaceFolder}/dist/**/*.js"
+			],
+			"preLaunchTask": "devpulse: compile"
+		},
+		{
+			"name": "Run Extension (via Script)",
 			"type": "node",
 			"request": "launch",
 			"noDebug": true,
-			"runtimeExecutable": "node",
-			"env": { "NODE_OPTIONS": "", "VSCODE_INSPECTOR_OPTIONS": "" },
+			"runtimeExecutable": "${execPath}",
+			"env": { "ELECTRON_RUN_AS_NODE": "1", "NODE_OPTIONS": "", "VSCODE_INSPECTOR_OPTIONS": "" },
 			"program": "${workspaceFolder}/scripts/launch-extension.mjs",
 			"args": ["${execPath}", "${workspaceFolder}"],
 			"outFiles": [
