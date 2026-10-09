@@ -43,7 +43,7 @@ try {
     extensionTestsEnv: { DEVPULSE_SECURITY_FIXTURE: '1',
       DEVPULSE_LLM_BASE_URL: `http://127.0.0.1:${server.address().port}/v1`, DEVPULSE_LLM_MODEL: 'fixture',
       VSCODE_TEST_OPTIONS: JSON.stringify({ mochaOpts: { ui: 'tdd', timeout: 30_000 },
-        files: ['security', 'suggestion', 'highlights', 'focus'].map(name => path.join(project, `out/test/${name}.test.js`)), preload: [] }) },
+        files: ['security', 'suggestion', 'highlights', 'focus', 'chat-context'].map(name => path.join(project, `out/test/${name}.test.js`)), preload: [] }) },
     launchArgs: [root, '--disable-extensions', '--skip-welcome', '--skip-release-notes', '--disable-workspace-trust', '--user-data-dir', path.join(root, '.profile')],
   });
 } finally {
