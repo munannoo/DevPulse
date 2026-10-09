@@ -5,7 +5,7 @@ export type LlmConfig = { baseUrl: string; model: string; apiKey?: string; jsonM
 export type ConfigOptions = {
   scriptDirectory?: string;
   env?: NodeJS.ProcessEnv;
-  settings?: { baseUrl?: string; model?: string; jsonMode?: boolean };
+  settings?: { baseUrl?: string; model?: string; modelOverride?: string; jsonMode?: boolean };
   secretApiKey?: string;
 };
 
@@ -52,7 +52,8 @@ export async function loadConfig(options: ConfigOptions = {}): Promise<LlmConfig
   if (parsed.pathname === '/') { parsed.pathname = '/v1'; }
   return {
     baseUrl: parsed.toString().replace(/\/+$/, ''),
-    model: first(env.DEVPULSE_LLM_MODEL, dotenv.DEVPULSE_LLM_MODEL, options.settings?.model, 'gemma4:e4b')!,
+    // An explicit editor selection overrides the default; CLI callers keep env/.env precedence.
+    model: first(options.settings?.modelOverride, env.DEVPULSE_LLM_MODEL, dotenv.DEVPULSE_LLM_MODEL, options.settings?.model, 'gemma4:e4b')!,
     apiKey: first(env.DEVPULSE_LLM_API_KEY, dotenv.DEVPULSE_LLM_API_KEY, options.secretApiKey),
     jsonMode: options.settings?.jsonMode ?? true,
   };
