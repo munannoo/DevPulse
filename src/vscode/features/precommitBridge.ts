@@ -20,7 +20,11 @@ export function registerPrecommit(context: vscode.ExtensionContext): void {
     gutterIconPath: vscode.Uri.joinPath(context.extensionUri, 'media', 'icons', 'security.svg'),
     gutterIconSize: 'contain', isWholeLine: true,
     backgroundColor: new vscode.ThemeColor('inputValidation.errorBackground'),
+    borderWidth: '0 0 0 3px',
+    borderStyle: 'solid',
+    borderColor: new vscode.ThemeColor('editorError.foreground'),
     overviewRulerColor: new vscode.ThemeColor('editorError.foreground'),
+    overviewRulerLane: vscode.OverviewRulerLane.Right,
   });
   const diagnostics = vscode.languages.createDiagnosticCollection('DevPulse Security');
   const panel = new SecurityPanelProvider(context, message => {
@@ -128,6 +132,7 @@ export function registerPrecommit(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('devpulse.installPrecommitHook', () => run(install)),
     vscode.commands.registerCommand('devpulse.fixSecret', (id: unknown) => typeof id === 'string' && /^[a-f0-9]{64}$/.test(id) ? run(() => fix(id)) : undefined),
     vscode.window.onDidChangeVisibleTextEditors(paint),
+    vscode.window.onDidChangeActiveTextEditor(paint),
     vscode.workspace.onDidChangeTextDocument(paint),
     vscode.window.onDidChangeWindowState(state => { if (state.focused) { void run(scan); } }),
   );

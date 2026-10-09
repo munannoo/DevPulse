@@ -6,16 +6,31 @@ export class Highlights implements vscode.Disposable {
   private readonly findings = new Map<string, PanelFinding[]>();
   private readonly diagnostics = vscode.languages.createDiagnosticCollection('devpulse');
   private readonly decorations: Record<Finding['severity'], vscode.TextEditorDecorationType>;
+  private readonly focusDecoration = vscode.window.createTextEditorDecorationType({
+    isWholeLine: true,
+    backgroundColor: new vscode.ThemeColor('editor.rangeHighlightBackground'),
+    borderWidth: '0 0 0 4px',
+    borderStyle: 'solid',
+    borderColor: new vscode.ThemeColor('focusBorder'),
+  });
+  private focusTimer?: ReturnType<typeof setTimeout>;
   private readonly listeners: vscode.Disposable[];
   constructor(extensionUri: vscode.Uri, onStale: (uri: vscode.Uri) => void) {
     const create = (severity: Finding['severity'], color: string) => vscode.window.createTextEditorDecorationType({
       gutterIconPath: vscode.Uri.joinPath(extensionUri, 'media', 'icons', `${severity}.svg`),
-      gutterIconSize: 'contain', isWholeLine: true, backgroundColor: `${color}12`,
-      overviewRulerColor: color, overviewRulerLane: vscode.OverviewRulerLane.Right,
+      gutterIconSize: 'contain',
+      isWholeLine: true,
+      backgroundColor: `${color}1a`,
+      borderWidth: '0 0 0 3px',
+      borderStyle: 'solid',
+      borderColor: color,
+      overviewRulerColor: color,
+      overviewRulerLane: vscode.OverviewRulerLane.Right,
     });
     this.decorations = { warning: create('warning', '#eab308'), security: create('security', '#ef4444'), context: create('context', '#3b82f6') };
     this.listeners = [
       vscode.window.onDidChangeVisibleTextEditors(editors => editors.forEach(editor => this.render(editor))),
+      vscode.window.onDidChangeActiveTextEditor(editor => { if (editor) { this.render(editor); } }),
       vscode.workspace.onDidChangeTextDocument(event => {
         if (!event.contentChanges.length || !this.findings.has(event.document.uri.toString())) { return; }
         this.clearFile(event.document.uri); onStale(event.document.uri);
@@ -26,6 +41,8 @@ export class Highlights implements vscode.Disposable {
           if (!items?.length) { return undefined; }
           return new vscode.Hover(items.map(finding => {
             const markdown = new vscode.MarkdownString();
+            const badge = finding.severity === 'security' ? 'Security' : finding.severity === 'warning' ? 'Warning' : 'Context';
+            markdown.appendMarkdown(`**DevPulse** · **${badge}**\n\n`);
             markdown.appendText(`${finding.title}\n\n${finding.explanation}`);
             if (finding.suggestion) { markdown.appendText(`\n\nSuggestion: ${finding.suggestion}`); }
             if (finding.replacement) { markdown.appendCodeblock(finding.replacement, document.languageId); }
@@ -49,13 +66,24 @@ export class Highlights implements vscode.Disposable {
     }));
     vscode.window.visibleTextEditors.forEach(editor => this.render(editor));
   }
-  private range(finding: Finding): vscode.Range {
-    return new vscode.Range(finding.startLine - 1, 0, finding.endLine - 1, 100_000);
+  pulseFinding(editor: vscode.TextEditor, finding: Finding): void {
+    clearTimeout(this.focusTimer);
+    const range = this.range(finding, editor.document.lineCount);
+    editor.setDecorations(this.focusDecoration, [range]);
+    this.focusTimer = setTimeout(() => {
+      editor.setDecorations(this.focusDecoration, []);
+    }, 3000);
+  }
+  private range(finding: Finding, lineCount?: number): vscode.Range {
+    const maxLine = lineCount !== undefined ? Math.max(0, lineCount - 1) : 100_000;
+    const start = Math.max(0, Math.min(maxLine, finding.startLine - 1));
+    const end = Math.max(start, Math.min(maxLine, finding.endLine - 1));
+    return new vscode.Range(start, 0, end, 100_000);
   }
   private render(editor: vscode.TextEditor): void {
     const findings = this.findings.get(editor.document.uri.toString()) ?? [];
     for (const severity of ['warning', 'security', 'context'] as const) {
-      editor.setDecorations(this.decorations[severity], findings.filter(finding => finding.severity === severity).map(finding => this.range(finding)));
+      editor.setDecorations(this.decorations[severity], findings.filter(finding => finding.severity === severity).map(finding => this.range(finding, editor.document.lineCount)));
     }
   }
   clearFile(uri: vscode.Uri): void {
@@ -67,6 +95,8 @@ export class Highlights implements vscode.Disposable {
     vscode.window.visibleTextEditors.forEach(editor => this.render(editor));
   }
   dispose(): void {
+    clearTimeout(this.focusTimer);
+    this.focusDecoration.dispose();
     this.listeners.forEach(listener => listener.dispose()); this.diagnostics.dispose();
     Object.values(this.decorations).forEach(decoration => decoration.dispose());
   }
