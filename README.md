@@ -1,6 +1,19 @@
 # Gemma DevPulse
 A local-first, self-hostable VS Code extension and Git pre-commit guard.
 
+## Saved context and pull reminders
+
+DevPulse saves editing context after about two seconds of inactivity. Reopening
+the workspace shows a brief **Where You Left Off** banner; **Resume editing**
+opens the saved file and line. Gemma can summarize the context, with a file/line
+fallback when unavailable. To test in a Development Host, use **Developer: Reload
+Window**: each new F5 launch uses a fresh profile with separate saved state.
+
+If the branch is behind its upstream, **Attention** and the status bar explain
+that a pull is needed. Checks run every minute, on window focus and after Git ref
+changes. The reminder clears after catching up; diverged branches and failed
+fetches receive distinct messages. Pulling remains an explicit user action.
+
 ## Pre-commit secret verification
 
 Open your Git repository in the Extension Development Host (F5), then open
