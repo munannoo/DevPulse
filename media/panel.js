@@ -24,6 +24,8 @@ element('resume').addEventListener('click', () => send({ type: 'resumeWork' }));
 window.addEventListener('message', event => {
   if (event.data?.type !== 'state') { return; }
   const state = event.data.state;
+  element('welcome-summary').textContent = state.welcome?.summary ?? 'Loading welcome…';
+  element('welcome-summary').classList.toggle('loading', Boolean(state.welcome?.loading));
   element('left-off').hidden = !state.leftOff;
   element('left-off-summary').textContent = state.leftOff?.summary ?? '';
   element('resume').textContent = state.leftOff ? `Resume ${state.leftOff.file}:${state.leftOff.line}` : 'Resume editing';

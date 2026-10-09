@@ -1,5 +1,6 @@
 import { execFile } from 'node:child_process';
 import { resolve } from 'node:path';
+import { redact } from '../security/redact';
 
 export class GitError extends Error {
   constructor(public readonly operation: string) { super(`Git ${operation} failed or timed out.`); }
@@ -58,5 +59,5 @@ export async function getCommitsSince(root: string, previous: string, head: stri
   const count = Number((await git(root, ['rev-list', '--count', range], signal)).trim());
   if (!Number.isSafeInteger(count) || count < 0) { throw new GitError('commit count'); }
   const metadata = await git(root, ['log', '--max-count=20', '--format=Author: %an%nSubject: %s', '--name-only', range, '--'], signal);
-  return { count, metadata: metadata.slice(0, 8000) };
+  return { count, metadata: redact(metadata).slice(0, 8000) };
 }

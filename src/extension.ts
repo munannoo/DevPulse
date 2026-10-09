@@ -7,6 +7,7 @@ import { createStatusBar, updateStatusBar } from './vscode/statusBar';
 import { registerPrecommit } from './vscode/features/precommitBridge';
 import { LeftOff } from './vscode/features/leftOff';
 import { PullReminder, pullReminder } from './vscode/features/reminder';
+import { Welcome } from './vscode/features/welcome';
 import { writeFile } from 'node:fs/promises';
 import { isAbsolute, relative, resolve, sep } from 'node:path';
 
@@ -36,7 +37,9 @@ export function activate(context: vscode.ExtensionContext) {
   const review = new CodeReview(context, output);
   const leftOff = new LeftOff(context, output);
   const reminder = new PullReminder(() => review.refreshBranch(), output);
-  const getState = () => ({ ...review.getState(), leftOff: leftOff.getState(), pullReminder: pullReminder(review.getState().branch) });
+  const welcome = new Welcome(context, output);
+  const getState = () => ({ ...review.getState(), leftOff: leftOff.getState(), pullReminder: pullReminder(review.getState().branch),
+    welcome: welcome.getState(), offline: review.getState().offline || welcome.getState().offline });
   const reportReady = async () => {
     if (context.extensionMode !== vscode.ExtensionMode.Development) { return; }
     const readyFile = process.env.DEVPULSE_DEV_HOST_READY_FILE;
@@ -50,9 +53,14 @@ export function activate(context: vscode.ExtensionContext) {
   const statusBar = createStatusBar();
   review.onUpdate = () => {
     panel.update(); updateStatusBar(statusBar, getState());
-    if (review.getState().phase === 'idle') { reminder.observe(review.getState().branch); }
+    if (review.getState().phase === 'idle') {
+      const branch = review.getState().branch;
+      reminder.observe(branch);
+      if (branch) { void welcome.visit(branch).catch(() => output.appendLine('Could not prepare the welcome summary.')); }
+    }
   };
   leftOff.onUpdate = () => panel.update();
+  welcome.onUpdate = () => panel.update();
   let lastBranch: string | undefined;
   const updateReview = review.onUpdate;
   review.onUpdate = () => {
@@ -60,7 +68,7 @@ export function activate(context: vscode.ExtensionContext) {
     const branch = review.getState().branch?.branch;
     if (branch !== lastBranch) { lastBranch = branch; leftOff.schedule(); }
   };
-  context.subscriptions.push(output, review, leftOff, reminder, panel, statusBar,
+  context.subscriptions.push(output, review, leftOff, reminder, welcome, panel, statusBar,
     vscode.window.registerWebviewViewProvider('devpulse.panel', panel),
     vscode.commands.registerCommand('devpulse.openPanel', () => vscode.commands.executeCommand('devpulse.panel.focus')),
     vscode.workspace.onDidChangeWorkspaceFolders(() => { void review.refreshBranch(); }),

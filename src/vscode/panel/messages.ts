@@ -1,6 +1,7 @@
 import type { BranchStatus } from '../../core/git/repo';
 import type { Finding } from '../../core/llm/schemas';
 import type { LeftOffBanner } from '../features/leftOff';
+import type { WelcomeState } from '../features/welcome';
 
 export type ReviewState = {
   phase: 'idle' | 'checking' | 'reviewing' | 'complete' | 'failed' | 'cancelled';
@@ -13,6 +14,7 @@ export type ReviewState = {
   reviewedFiles: number;
   leftOff?: LeftOffBanner;
   pullReminder?: string;
+  welcome?: WelcomeState;
 };
 export type PanelMessage =
   | { type: 'ready' | 'reviewChanges' | 'analyzeFile' | 'refreshBranch' | 'cancelReview' | 'resumeWork' }

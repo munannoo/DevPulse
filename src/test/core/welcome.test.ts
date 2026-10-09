@@ -11,10 +11,11 @@ test('welcome history is bounded, names authors and files, and rejects missing o
     for (const args of [['init'], ['config', 'user.name', 'Welcome Author'], ['config', 'user.email', 'test@example.invalid']]) { await git(root, args); }
     await writeFile(path.join(root, 'file.ts'), 'initial'); await git(root, ['add', 'file.ts']); await git(root, ['commit', '-m', 'initial']);
     const previous = (await git(root, ['rev-parse', 'HEAD'])).trim();
-    await writeFile(path.join(root, 'file.ts'), 'changed'); await git(root, ['commit', '-am', 'fix logic']);
+    await writeFile(path.join(root, 'file.ts'), 'changed'); await git(root, ['commit', '-am', 'fix logic sk_test_FAKEKEY0000000000']);
     const head = (await git(root, ['rev-parse', 'HEAD'])).trim();
     const result = await getCommitsSince(root, previous, head);
     assert.equal(result.count, 1); assert.match(result.metadata, /Welcome Author/); assert.match(result.metadata, /fix logic/); assert.match(result.metadata, /file.ts/);
+    assert.ok(!result.metadata.includes('sk_test_FAKEKEY0000000000'));
     assert.equal((await getCommitsSince(root, head, head)).count, 0);
     await assert.rejects(getCommitsSince(root, '--all', head));
     await assert.rejects(getCommitsSince(root, '0'.repeat(40), head));
