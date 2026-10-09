@@ -24,7 +24,7 @@ export class SecurityPanelProvider implements vscode.WebviewViewProvider {
         <header class="security-header">
           <div class="brand">
             <div class="mascot-wrapper">
-              <img src="${mascot}" width="22" height="22" alt="" class="mascot-img">
+              <img src="${mascot}" width="34" height="34" alt="DevPulse Mascot" class="mascot-img">
             </div>
             <div class="brand-info">
               <span class="brand-name">DevPulse</span>

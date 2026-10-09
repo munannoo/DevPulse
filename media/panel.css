@@ -46,22 +46,35 @@ body {
 .brand {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .mascot-wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: var(--radius-md);
-  background: var(--vscode-editorWidget-background, rgba(127, 127, 127, 0.1));
-  border: 1px solid var(--vscode-widget-border, transparent);
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.16), rgba(126, 34, 206, 0.06));
+  border: 1px solid rgba(168, 85, 247, 0.28);
+  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.12);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.mascot-wrapper:hover {
+  transform: scale(1.08) rotate(-2deg);
+  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.24);
 }
 
 .mascot-img {
   display: block;
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
 }
 
 .brand-info {
@@ -319,6 +332,102 @@ body {
   color: var(--vscode-foreground);
 }
 
+/* Companion Card */
+.card-companion {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.12), rgba(126, 34, 206, 0.04));
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.08);
+}
+
+.companion-avatar-wrap {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, rgba(216, 180, 254, 0.35), rgba(147, 51, 234, 0.12));
+  border: 1.5px solid rgba(168, 85, 247, 0.35);
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.18);
+}
+
+.companion-mascot-img {
+  display: block;
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.2));
+  animation: gentle-float 3.5s ease-in-out infinite;
+}
+
+@keyframes gentle-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+.companion-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.companion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.companion-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--vscode-foreground);
+  letter-spacing: -0.01em;
+}
+
+.companion-pill {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  background: rgba(168, 85, 247, 0.18);
+  color: #c084fc;
+  border: 1px solid rgba(168, 85, 247, 0.32);
+}
+
+.companion-pill.offline {
+  background: rgba(234, 179, 8, 0.15);
+  color: var(--vscode-editorWarning-foreground, #eab308);
+  border-color: rgba(234, 179, 8, 0.3);
+}
+
+.companion-pill.busy {
+  background: rgba(168, 85, 247, 0.25);
+  color: #c084fc;
+  border-color: rgba(168, 85, 247, 0.45);
+}
+
+.companion-pill.complete {
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--vscode-testing-iconPassed, #22c55e);
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.companion-desc {
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--vscode-descriptionForeground);
+}
+
 /* Attention Card */
 .card-attention {
   background: rgba(234, 179, 8, 0.08);
@@ -481,11 +590,20 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
-  background: rgba(127, 127, 127, 0.1);
-  color: var(--vscode-descriptionForeground);
+  background: radial-gradient(circle at 40% 35%, rgba(168, 85, 247, 0.18), rgba(126, 34, 206, 0.05));
+  border: 1px solid rgba(168, 85, 247, 0.22);
+}
+
+.empty-mascot-img {
+  display: block;
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.16));
+  animation: gentle-float 3.5s ease-in-out infinite;
 }
 
 .empty-message {

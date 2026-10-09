@@ -1,69 +1,131 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
   <defs>
-    <!-- Soft Plush Body Gradient -->
-    <linearGradient id="bodyGrad" x1="20%" y1="0%" x2="80%" y2="100%">
-      <stop offset="0%" stop-color="#c084fc"/>
-      <stop offset="55%" stop-color="#a855f7"/>
-      <stop offset="100%" stop-color="#7e22ce"/>
-    </linearGradient>
-    <!-- Top Highlight -->
-    <linearGradient id="softLight" x1="50%" y1="0%" x2="50%" y2="100%">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.4"/>
+    <!-- 3D Ground Contact Shadow -->
+    <radialGradient id="groundShadow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1e1035" stop-opacity="0.35"/>
+      <stop offset="60%" stop-color="#1e1035" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#1e1035" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Volumetric Plush Body Shading (Meta Muse Style) -->
+    <radialGradient id="plushBody" cx="42%" cy="36%" r="62%">
+      <stop offset="0%" stop-color="#f3e8ff"/>
+      <stop offset="20%" stop-color="#d8b4fe"/>
+      <stop offset="55%" stop-color="#c084fc"/>
+      <stop offset="82%" stop-color="#9333ea"/>
+      <stop offset="100%" stop-color="#6b21a8"/>
+    </radialGradient>
+
+    <!-- Forehead Specular Rim Light -->
+    <linearGradient id="headHighlight" x1="30%" y1="0%" x2="70%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.75"/>
       <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
     </linearGradient>
-    <!-- Belly Patch -->
-    <linearGradient id="bellyGrad" x1="50%" y1="0%" x2="50%" y2="100%">
-      <stop offset="0%" stop-color="#f3e8ff"/>
-      <stop offset="100%" stop-color="#e9d5ff"/>
+
+    <!-- Creamy Belly Gradient -->
+    <linearGradient id="bellyGlow" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="45%" stop-color="#faf5ff"/>
+      <stop offset="100%" stop-color="#f3e8ff"/>
     </linearGradient>
-    <!-- Spark / Antenna Gradient -->
-    <linearGradient id="sparkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#fef08a"/>
-      <stop offset="100%" stop-color="#f59e0b"/>
+
+    <!-- Golden Magic Star Gradient -->
+    <linearGradient id="starGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fffbeb"/>
+      <stop offset="35%" stop-color="#fef08a"/>
+      <stop offset="75%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#d97706"/>
     </linearGradient>
-    <!-- Blush Glow -->
+
+    <!-- Star Aura Glow -->
+    <radialGradient id="starGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fde047" stop-opacity="0.8"/>
+      <stop offset="50%" stop-color="#f59e0b" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Rosy Cheek Blush Glow -->
     <radialGradient id="blushGrad" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#fb7185" stop-opacity="0.6"/>
+      <stop offset="0%" stop-color="#fb7185" stop-opacity="0.75"/>
+      <stop offset="65%" stop-color="#fb7185" stop-opacity="0.25"/>
       <stop offset="100%" stop-color="#fb7185" stop-opacity="0"/>
     </radialGradient>
+
+    <!-- Deep Anime Eye Gradient -->
+    <linearGradient id="eyePupilGrad" x1="30%" y1="0%" x2="70%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="80%" stop-color="#1e1b4b"/>
+      <stop offset="100%" stop-color="#312e81"/>
+    </linearGradient>
   </defs>
 
-  <!-- Antenna with Spark -->
-  <path d="M 32 17 Q 30 10 35.5 5.5" fill="none" stroke="#a855f7" stroke-width="2.8" stroke-linecap="round"/>
-  <circle cx="36" cy="5" r="3.5" fill="url(#sparkGrad)"/>
-  <polygon points="36,1.5 37.2,3.8 39.5,5 37.2,6.2 36,8.5 34.8,6.2 32.5,5 34.8,3.8" fill="#fbbf24"/>
+  <!-- 1. Ground Drop Shadow -->
+  <ellipse cx="50" cy="92.5" rx="28" ry="5.5" fill="url(#groundShadow)"/>
 
-  <!-- Little Nubbly Arms -->
-  <circle cx="13.5" cy="38" r="4.5" fill="#9333ea"/>
-  <circle cx="50.5" cy="38" r="4.5" fill="#9333ea"/>
+  <!-- 2. Stubby Rounded Paws/Feet -->
+  <ellipse cx="37" cy="88" rx="8" ry="4.5" fill="#6b21a8"/>
+  <ellipse cx="37" cy="87.5" rx="5.5" ry="2.5" fill="#a855f7" opacity="0.6"/>
+  <ellipse cx="63" cy="88" rx="8" ry="4.5" fill="#6b21a8"/>
+  <ellipse cx="63" cy="87.5" rx="5.5" ry="2.5" fill="#a855f7" opacity="0.6"/>
 
-  <!-- Chubby Egg/Pear Mascot Body -->
-  <path d="M 32 15 C 44 15 51.5 24 51.5 37.5 C 51.5 50.5 43.5 58 32 58 C 20.5 58 12.5 50.5 12.5 37.5 C 12.5 24 20 15 32 15 Z" fill="url(#bodyGrad)"/>
+  <!-- 3. Left Little Resting Arm -->
+  <ellipse cx="19" cy="61" rx="5.5" ry="4.5" transform="rotate(25 19 61)" fill="#7e22ce"/>
+  <ellipse cx="18.5" cy="60.5" rx="4" ry="3" transform="rotate(25 19 61)" fill="#a855f7"/>
 
-  <!-- Top Head Soft Glow -->
-  <ellipse cx="32" cy="21" rx="11" ry="4" fill="url(#softLight)"/>
+  <!-- 4. Right Raised Cheerful Waving Arm -->
+  <ellipse cx="81" cy="51" rx="6.5" ry="5" transform="rotate(-30 81 51)" fill="#9333ea"/>
+  <ellipse cx="81.5" cy="50" rx="4.8" ry="3.5" transform="rotate(-30 81 50)" fill="#c084fc"/>
 
-  <!-- Chubby Belly Patch -->
-  <path d="M 32 35 C 39.5 35 43.5 41 43.5 48 C 43.5 54 38.5 56 32 56 C 25.5 56 20.5 54 20.5 48 C 20.5 41 24.5 35 32 35 Z" fill="url(#bellyGrad)"/>
+  <!-- Waving Motion Sparkle -->
+  <path d="M 88 41 L 89 43.5 L 91.5 44.5 L 89 45.5 L 88 48 L 87 45.5 L 84.5 44.5 L 87 43.5 Z" fill="#fde047"/>
 
-  <!-- Rosy Blushing Cheeks -->
-  <circle cx="21" cy="36" r="4.5" fill="url(#blushGrad)"/>
-  <circle cx="43" cy="36" r="4.5" fill="url(#blushGrad)"/>
+  <!-- 5. Main Chubby Mascot Body -->
+  <path d="M 50 20 C 69 20, 80 34, 80 55 C 80 73, 73 89, 50 89 C 27 89, 20 73, 20 55 C 20 34, 31 20, 50 20 Z" fill="url(#plushBody)"/>
 
-  <!-- Big Sparkly Eyes (Meta Muse / Jolly Style) -->
+  <!-- 6. Soft 3D Head Highlight -->
+  <ellipse cx="44" cy="27" rx="14" ry="5.5" transform="rotate(-12 44 27)" fill="#ffffff" opacity="0.35"/>
+
+  <!-- 7. Chubby Creamy Belly Patch -->
+  <path d="M 50 51 C 65 51, 68 62, 66 76 C 64 85, 59 87, 50 87 C 41 87, 36 85, 34 76 C 32 62, 35 51, 50 51 Z" fill="url(#bellyGlow)"/>
+  <ellipse cx="50" cy="55" rx="10" ry="3" fill="#ffffff" opacity="0.5"/>
+
+  <!-- 8. Antenna with Star Tip -->
+  <path d="M 50 21 C 49 13, 58 9, 56 5" fill="none" stroke="#9333ea" stroke-width="3.2" stroke-linecap="round"/>
+  
+  <!-- Magic Star Aura -->
+  <circle cx="56.5" cy="5" r="7.5" fill="url(#starGlow)"/>
+
+  <!-- Golden 4-Point Star -->
+  <path d="M 56.5 -2 Q 57 3.5 63.5 5 Q 58 5.5 56.5 12 Q 55 5.5 49.5 5 Q 56 3.5 56.5 -2 Z" fill="url(#starGrad)"/>
+  <circle cx="56.5" cy="5" r="1.3" fill="#ffffff"/>
+
+  <!-- Tiny Magic Star Floating Nearby -->
+  <path d="M 68 12 Q 68.5 14 70.5 14.5 Q 68.5 15 68 17 Q 67.5 15 65.5 14.5 Q 67.5 14 68 12 Z" fill="#fde047"/>
+
+  <!-- 9. Kawaii Blushing Rosy Cheeks -->
+  <ellipse cx="29" cy="49" rx="6.5" ry="4" fill="url(#blushGrad)"/>
+  <ellipse cx="71" cy="49" rx="6.5" ry="4" fill="url(#blushGrad)"/>
+
+  <!-- 10. Large Sparkly Anime Eyes (Meta Muse Style) -->
   <!-- Left Eye -->
-  <ellipse cx="25" cy="31" rx="3.2" ry="4.2" fill="#0f172a"/>
-  <circle cx="23.9" cy="29.4" r="1.6" fill="#ffffff"/>
-  <circle cx="26.3" cy="32.8" r="0.75" fill="#ffffff"/>
+  <ellipse cx="38" cy="42" rx="6.2" ry="7.6" fill="url(#eyePupilGrad)"/>
+  <ellipse cx="36" cy="38.5" rx="2.8" ry="3.5" transform="rotate(-15 36 38.5)" fill="#ffffff"/>
+  <circle cx="41.5" cy="45" r="1.6" fill="#ffffff"/>
+  <circle cx="36.5" cy="45.5" r="0.9" fill="#ffffff" opacity="0.85"/>
 
   <!-- Right Eye -->
-  <ellipse cx="39" cy="31" rx="3.2" ry="4.2" fill="#0f172a"/>
-  <circle cx="37.9" cy="29.4" r="1.6" fill="#ffffff"/>
-  <circle cx="40.3" cy="32.8" r="0.75" fill="#ffffff"/>
+  <ellipse cx="62" cy="42" rx="6.2" ry="7.6" fill="url(#eyePupilGrad)"/>
+  <ellipse cx="60" cy="38.5" rx="2.8" ry="3.5" transform="rotate(-15 60 38.5)" fill="#ffffff"/>
+  <circle cx="65.5" cy="45" r="1.6" fill="#ffffff"/>
+  <circle cx="60.5" cy="45.5" r="0.9" fill="#ffffff" opacity="0.85"/>
 
-  <!-- Sweet Cheerful Smile -->
-  <path d="M 29.5 37 Q 32 40.2 34.5 37" fill="none" stroke="#0f172a" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- 11. Adorable Happy Open Smile with Little Tongue -->
+  <path d="M 46 48 Q 50 50 54 48 Q 55 55.5 50 55.5 Q 45 55.5 46 48 Z" fill="#4a044e"/>
+  <path d="M 47.5 52 Q 50 50 52.5 52 Q 50 55.5 47.5 52 Z" fill="#fb7185"/>
+  <path d="M 45 47.5 Q 46 48.5 46.5 48" stroke="#4a044e" stroke-width="1.2" stroke-linecap="round"/>
+  <path d="M 55 47.5 Q 54 48.5 53.5 48" stroke="#4a044e" stroke-width="1.2" stroke-linecap="round"/>
 
-  <!-- Cute DevPulse heart line on tummy -->
-  <path d="M 27 48.5 H 29.5 L 30.5 46.5 L 32 50.5 L 33.5 48.5 H 37" fill="none" stroke="#a855f7" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" opacity="0.75"/>
+  <!-- 12. DevPulse Heartbeat Wave on Belly -->
+  <path d="M 39 72 H 44 L 46.5 67 L 50 76 L 53.5 69 L 56 72 H 61" fill="none" stroke="#e9d5ff" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/>
+  <path d="M 39 72 H 44 L 46.5 67 L 50 76 L 53.5 69 L 56 72 H 61" fill="none" stroke="#9333ea" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

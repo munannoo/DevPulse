@@ -1,18 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Antenna with Spark -->
-  <path d="M 12 5.5 C 11.2 3.8 12.2 2.5 13.8 1.8" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-  <circle cx="14" cy="1.8" r="1.1" fill="currentColor"/>
+  <!-- Antenna with 4-Point Magic Star -->
+  <path d="M 12 5.5 C 11.2 3.8 12.5 2.2 13.5 1.8" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+  <polygon points="14.2,0.6 14.8,1.8 16,2.2 14.8,2.8 14.2,4 13.6,2.8 12.4,2.2 13.6,1.8" fill="currentColor"/>
 
   <!-- Chubby Mascot Body Silhouette -->
-  <path d="M 12 5.5 C 17 5.5 19.5 9 19.5 14 C 19.5 19 16.2 22 12 22 C 7.8 22 4.5 19 4.5 14 C 4.5 9 7 5.5 12 5.5 Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 12 5.2 C 16.8 5.2 19.5 8.8 19.5 13.8 C 19.5 18.8 16.5 22 12 22 C 7.5 22 4.5 18.8 4.5 13.8 C 4.5 8.8 7.2 5.2 12 5.2 Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 
-  <!-- Cute Eyes -->
-  <circle cx="9.2" cy="11.2" r="1.15" fill="currentColor"/>
-  <circle cx="14.8" cy="11.2" r="1.15" fill="currentColor"/>
+  <!-- Adorable Eyes -->
+  <ellipse cx="9" cy="11" rx="1.2" ry="1.5" fill="currentColor"/>
+  <ellipse cx="15" cy="11" rx="1.2" ry="1.5" fill="currentColor"/>
 
-  <!-- Happy Smile -->
-  <path d="M 11 13.8 C 11.5 14.8 12.5 14.8 13 13.8" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+  <!-- Sweet Happy Smile -->
+  <path d="M 10.8 13.4 Q 12 14.7 13.2 13.4" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
 
   <!-- DevPulse Heartbeat Wave -->
-  <path d="M 7.5 17.8 H 10 L 11 16 L 12.5 19.5 L 13.5 17.8 H 16.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 7 18 H 9.5 L 10.8 16.2 L 12.2 19.8 L 13.5 18 H 17" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

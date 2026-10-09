@@ -62,6 +62,29 @@ window.addEventListener('message', event => {
   }
   element('cancel').hidden = !busy;
 
+  // Companion hero banner status
+  const companionBadge = element('companion-badge');
+  const companionDesc = element('companion-desc');
+  if (companionBadge && companionDesc) {
+    if (state.offline) {
+      companionBadge.className = 'companion-pill offline';
+      companionBadge.textContent = 'Offline';
+      companionDesc.textContent = 'Gemma endpoint unreachable. Local Git and secret scanning guards remain active.';
+    } else if (busy) {
+      companionBadge.className = 'companion-pill busy';
+      companionBadge.textContent = 'Reviewing…';
+      companionDesc.textContent = 'Analyzing repository changes through your local Gemma endpoint…';
+    } else if (state.phase === 'complete') {
+      companionBadge.className = 'companion-pill complete';
+      companionBadge.textContent = 'All Clear';
+      companionDesc.textContent = 'Review complete. No issues found in reviewed changes.';
+    } else {
+      companionBadge.className = 'companion-pill';
+      companionBadge.textContent = 'Active';
+      companionDesc.textContent = 'Local-first code guard powered by Gemma. Standing by for reviews.';
+    }
+  }
+
   // Branch status formatting
   const branch = state.branch;
   element('branch').replaceChildren();

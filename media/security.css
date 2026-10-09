@@ -45,22 +45,35 @@ body {
 .brand {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .mascot-wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: var(--radius-md);
-  background: var(--vscode-editorWidget-background, rgba(127, 127, 127, 0.1));
-  border: 1px solid var(--vscode-widget-border, transparent);
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.16), rgba(126, 34, 206, 0.06));
+  border: 1px solid rgba(168, 85, 247, 0.28);
+  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.12);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.mascot-wrapper:hover {
+  transform: scale(1.08) rotate(-2deg);
+  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.24);
 }
 
 .mascot-img {
   display: block;
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
 }
 
 .brand-info {

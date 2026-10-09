@@ -13,7 +13,7 @@
     <header class="panel-header">
       <div class="brand">
         <div class="mascot-wrapper">
-          <img src="{{MASCOT}}" alt="DevPulse Mascot" class="mascot-img" width="22" height="22">
+          <img src="{{MASCOT}}" alt="DevPulse Mascot" class="mascot-img" width="34" height="34">
         </div>
         <div class="brand-info">
           <span class="brand-name">DevPulse</span>
@@ -58,6 +58,20 @@
 
     <!-- Overview Section -->
     <section id="overview" class="tab-pane">
+      <!-- Mascot Companion Hero Banner -->
+      <div id="companion-banner" class="card card-companion">
+        <div class="companion-avatar-wrap">
+          <img src="{{MASCOT}}" alt="DevPulse Companion" class="companion-mascot-img" width="52" height="52">
+        </div>
+        <div class="companion-content">
+          <div class="companion-header">
+            <span class="companion-title">DevPulse Companion</span>
+            <span id="companion-badge" class="companion-pill">Active</span>
+          </div>
+          <p id="companion-desc" class="companion-desc">Local-first code guard powered by Gemma. Standing by for reviews.</p>
+        </div>
+      </div>
+
       <!-- Attention Banner (when behind or security findings exist) -->
       <div id="attention" class="card card-attention" hidden>
         <div class="card-header attention-header">
@@ -120,13 +134,7 @@
       <!-- Empty / Idle State -->
       <div id="empty" class="empty-state">
         <div class="empty-art">
-          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-            <polyline points="14 2 14 8 20 8"></polyline>
-            <line x1="16" y1="13" x2="8" y2="13"></line>
-            <line x1="16" y1="17" x2="8" y2="17"></line>
-            <line x1="10" y1="9" x2="8" y2="9"></line>
-          </svg>
+          <img src="{{MASCOT}}" alt="DevPulse Mascot" class="empty-mascot-img" width="52" height="52">
         </div>
         <p class="empty-message">Run a review to see summaries and findings.</p>
       </div>
