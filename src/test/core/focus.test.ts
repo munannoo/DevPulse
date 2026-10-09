@@ -30,3 +30,10 @@ test('daily totals split across local midnight and restore without restoring Flo
   assert.equal(restored.state(start + 60_000, 1000, false).inFlow, false);
   assert.equal(new FocusTracker(start, true, { invalid: { milliseconds: Infinity } }).state(start, 1000, false).milliseconds, 0);
 });
+test('regular heartbeats reach the default thirty-minute Flow threshold', () => {
+  const tracker = new FocusTracker(0, true);
+  for (let minute = 0; minute <= 30; minute++) { tracker.heartbeat(minute * 60_000); }
+  assert.equal(tracker.state(30 * 60_000, 30 * 60_000, true).inFlow, true);
+  tracker.windowFocus(false, 30 * 60_000);
+  assert.equal(tracker.state(30 * 60_000, 30 * 60_000, true).inFlow, false);
+});

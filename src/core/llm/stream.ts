@@ -35,9 +35,10 @@ export async function streamChat(config: LlmConfig, request: StreamRequest): Pro
       }
       let raw = '', published = '';
       for await (const data of streamEvents(response)) {
-        let event: { choices?: Array<{ delta?: { content?: unknown } }> };
+        let event: { choices?: Array<{ delta?: { content?: unknown }; finish_reason?: unknown }> };
         try { event = JSON.parse(data); } catch { throw new StreamError('Gemma returned an invalid chat event.'); }
         if (!event || !Array.isArray(event.choices)) { throw new StreamError('Gemma returned an invalid chat event.'); }
+        if (event.choices[0]?.finish_reason === 'length') { throw new StreamError('Gemma chat reply was cut off. Ask for a shorter answer.'); }
         const content = event.choices[0]?.delta?.content;
         if (content === undefined || content === null) { continue; }
         if (typeof content !== 'string') { throw new StreamError('Gemma returned an invalid chat event.'); }

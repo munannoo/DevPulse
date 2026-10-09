@@ -11,6 +11,8 @@ export class Focus implements vscode.Disposable {
   onUpdate: () => void = () => {};
   constructor(private readonly context: vscode.ExtensionContext, private readonly output: vscode.OutputChannel) {
     this.tracker = new FocusTracker(Date.now(), vscode.window.state.focused, context.globalState.get('focus.days'));
+    const active = vscode.window.activeTextEditor?.document.uri;
+    this.file = active?.scheme === 'file' ? active.toString() : undefined;
     const heartbeat = () => { this.tracker.heartbeat(Date.now()); this.onUpdate(); };
     this.listeners.push(
       vscode.workspace.onDidChangeTextDocument(event => { if (event.contentChanges.length && event.document.uri.scheme === 'file') { heartbeat(); } }),

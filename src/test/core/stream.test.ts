@@ -13,6 +13,9 @@ test('chat streams redacted text, falls back on unsupported thinking and honors 
     const payload = JSON.parse(body);
     if (payload.reasoning_effort) { response.writeHead(422); response.end(); return; }
     response.setHeader('Content-Type', 'text/event-stream');
+    if (payload.messages.at(-1).content === 'truncated-fixture') {
+      response.end('data: ' + JSON.stringify({ choices: [{ delta: { content: 'Partial reply' }, finish_reason: 'length' }] }) + '\n\ndata: [DONE]\n\n'); return;
+    }
     for (const content of ['Hello\n', fake.slice(0, 8), fake.slice(8) + '\n', 'Done']) {
       response.write('data: ' + JSON.stringify({ choices: [{ delta: { content } }] }) + '\n\n');
     }
@@ -27,6 +30,7 @@ test('chat streams redacted text, falls back on unsupported thinking and honors 
     assert.ok(received.every(body => !body.includes(fake)));
     assert.ok(published.every(text => !text.includes(fake.slice(0, 8))));
     assert.ok(published.length >= 2);
+    await assert.rejects(llm.stream({ system: 'Help', user: 'truncated-fixture', onText: () => {} }), /cut off/);
     const controller = new AbortController(); controller.abort();
     await assert.rejects(llm.stream({ system: 'Help', user: 'Hi', signal: controller.signal, onText: () => {} }), /cancelled/);
   } finally { server.closeAllConnections(); await new Promise<void>(resolve => server.close(() => resolve())); }
