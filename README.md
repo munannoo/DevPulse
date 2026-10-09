@@ -69,6 +69,21 @@ window. The launch task finishes while the window stays open; close the window
 when finished. Each launch uses a separate profile under `.vscode-test/dev-hosts`.
 Run `npm run watch` separately for automatic rebuilds while editing.
 
+Open the inner `DevPulse` folder containing `package.json`, run `npm install`
+once on each machine, and use VS Code 1.103 or newer. Terminal build tools need
+Node 20.19+, 22.13+, or 24+; check `node --version` after updating PATH and
+restarting your terminal. Node 12 cannot build this project. F5 uses VS Code's
+bundled Node for both the build and launcher, avoiding an old system Node.
+F5 opens a separate
+Development Host; DevPulse is loaded there, rather than installed into your
+original editor. The launcher now waits until DevPulse activates and its panel
+is visible. If startup fails, the launch output includes the host's log folder.
+Do not close the launch task while it is still waiting for readiness. You can
+also open the panel with **DevPulse: Open Panel** in the Development Host.
+
+Run `node --test scripts/launch-extension.test.mjs` to check launcher validation
+and startup failure handling without opening VS Code.
+
 ```text
 .vscode/                 Debug launch configuration and build tasks
 src/

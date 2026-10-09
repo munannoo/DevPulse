@@ -5,6 +5,8 @@ import { CodeReview } from './vscode/features/codeReview';
 import { PanelProvider } from './vscode/panel/PanelProvider';
 import { createStatusBar, updateStatusBar } from './vscode/statusBar';
 import { registerPrecommit } from './vscode/features/precommitBridge';
+import { writeFile } from 'node:fs/promises';
+import { isAbsolute, relative, resolve, sep } from 'node:path';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -30,7 +32,16 @@ export function activate(context: vscode.ExtensionContext) {
 
   const output = vscode.window.createOutputChannel('DevPulse');
   const review = new CodeReview(context, output);
-  const panel = new PanelProvider(context.extensionUri, () => review.getState(), message => review.handle(message), output);
+  const reportReady = async () => {
+    if (context.extensionMode !== vscode.ExtensionMode.Development) { return; }
+    const readyFile = process.env.DEVPULSE_DEV_HOST_READY_FILE;
+    if (!readyFile) { return; }
+    const profiles = resolve(context.extensionPath, '.vscode-test', 'dev-hosts');
+    const target = relative(profiles, resolve(readyFile));
+    if (target.startsWith(`..${sep}`) || target === '..' || isAbsolute(target) || !target.endsWith(`${sep}devpulse-ready.json`)) { return; }
+    await writeFile(readyFile, JSON.stringify({ extensionPath: context.extensionPath, panelVisible: true }), 'utf8');
+  };
+  const panel = new PanelProvider(context.extensionUri, () => review.getState(), message => review.handle(message), output, reportReady);
   const statusBar = createStatusBar();
   review.onUpdate = () => { panel.update(); updateStatusBar(statusBar, review.getState()); };
   context.subscriptions.push(output, review, panel, statusBar,
