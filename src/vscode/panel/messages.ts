@@ -17,7 +17,7 @@ export type ReviewState = {
   welcome?: WelcomeState;
 };
 export type PanelMessage =
-  | { type: 'ready' | 'reviewChanges' | 'analyzeFile' | 'refreshBranch' | 'cancelReview' | 'resumeWork' }
+  | { type: 'ready' | 'reviewChanges' | 'analyzeFile' | 'refreshBranch' | 'cancelReview' | 'resumeWork' | 'pullAndSync' }
   | { type: 'openFinding'; index: number };
 export type ExtensionMessage = { type: 'state'; state: ReviewState };
 
@@ -27,7 +27,7 @@ export function isPanelMessage(value: unknown): value is PanelMessage {
   if (message.type === 'openFinding') {
     return Number.isInteger(message.index) && Number(message.index) >= 0;
   }
-  return ['ready', 'reviewChanges', 'analyzeFile', 'refreshBranch', 'cancelReview', 'resumeWork'].includes(String(message.type));
+  return ['ready', 'reviewChanges', 'analyzeFile', 'refreshBranch', 'cancelReview', 'resumeWork', 'pullAndSync'].includes(String(message.type));
 }
 import type { SecretFinding } from '../../core/security/secretScan';
 

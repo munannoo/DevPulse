@@ -19,6 +19,7 @@ element('analyze').addEventListener('click', () => { selectTab('code'); send({ t
 element('refresh').addEventListener('click', () => send({ type: 'refreshBranch' }));
 element('cancel').addEventListener('click', () => send({ type: 'cancelReview' }));
 element('resume').addEventListener('click', () => send({ type: 'resumeWork' }));
+element('pull').addEventListener('click', () => send({ type: 'pullAndSync' }));
 
 /** @param {MessageEvent<ExtensionMessage>} event */
 window.addEventListener('message', event => {
@@ -29,13 +30,16 @@ window.addEventListener('message', event => {
   element('left-off').hidden = !state.leftOff;
   element('left-off-summary').textContent = state.leftOff?.summary ?? '';
   element('resume').textContent = state.leftOff ? `Resume ${state.leftOff.file}:${state.leftOff.line}` : 'Resume editing';
-  const busy = state.phase === 'checking' || state.phase === 'reviewing';
+  const busy = state.phase === 'checking' || state.phase === 'reviewing' || Boolean(state.welcome?.pulling);
   element('message').textContent = state.message;
   element('message').classList.toggle('loading', busy);
   element('offline').hidden = !state.offline;
   for (const id of ['review', 'refresh', 'analyze']) { element(id).disabled = busy; }
-  element('cancel').hidden = !busy;
+  element('cancel').hidden = state.phase !== 'checking' && state.phase !== 'reviewing';
   const branch = state.branch;
+  element('pull').disabled = busy || !branch?.upstream || !branch.behind || Boolean(branch.ahead);
+  element('pull-message').hidden = !state.welcome?.pullMessage;
+  element('pull-message').textContent = state.welcome?.pullMessage ?? '';
   element('branch').textContent = branch
     ? `${branch.branch}${branch.upstream ? ` · ↓${branch.behind ?? '?'} behind · ↑${branch.ahead ?? '?'} ahead · ${branch.upstream}` : ' · no upstream'}`
     : 'Open a Git repository to check branch status.';

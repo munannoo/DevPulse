@@ -40,6 +40,18 @@ export function activate(context: vscode.ExtensionContext) {
   const welcome = new Welcome(context, output);
   const getState = () => ({ ...review.getState(), leftOff: leftOff.getState(), pullReminder: pullReminder(review.getState().branch),
     welcome: welcome.getState(), offline: review.getState().offline || welcome.getState().offline });
+  const pull = async () => {
+    const state = review.getState();
+    if (state.phase === 'checking' || state.phase === 'reviewing' || !state.branch) { return; }
+    await welcome.pull(state.branch, async () => {
+      const deadline = Date.now() + 20_000;
+      while (review.getState().phase === 'checking' && Date.now() < deadline) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+      await review.refreshBranch();
+      return review.getState().phase === 'idle' ? review.getState().branch : undefined;
+    });
+  };
   const reportReady = async () => {
     if (context.extensionMode !== vscode.ExtensionMode.Development) { return; }
     const readyFile = process.env.DEVPULSE_DEV_HOST_READY_FILE;
@@ -49,7 +61,8 @@ export function activate(context: vscode.ExtensionContext) {
     if (target.startsWith(`..${sep}`) || target === '..' || isAbsolute(target) || !target.endsWith(`${sep}devpulse-ready.json`)) { return; }
     await writeFile(readyFile, JSON.stringify({ extensionPath: context.extensionPath, panelVisible: true }), 'utf8');
   };
-  const panel = new PanelProvider(context.extensionUri, getState, message => message.type === 'resumeWork' ? leftOff.resume() : review.handle(message), output, reportReady);
+  const panel = new PanelProvider(context.extensionUri, getState, message => message.type === 'resumeWork' ? leftOff.resume()
+    : message.type === 'pullAndSync' ? pull() : review.handle(message), output, reportReady);
   const statusBar = createStatusBar();
   review.onUpdate = () => {
     panel.update(); updateStatusBar(statusBar, getState());
@@ -71,6 +84,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(output, review, leftOff, reminder, welcome, panel, statusBar,
     vscode.window.registerWebviewViewProvider('devpulse.panel', panel),
     vscode.commands.registerCommand('devpulse.openPanel', () => vscode.commands.executeCommand('devpulse.panel.focus')),
+    vscode.commands.registerCommand('devpulse.pullAndSync', pull),
     vscode.workspace.onDidChangeWorkspaceFolders(() => { void review.refreshBranch(); }),
   );
   // Render first; Git status loads in the background. LLM review is explicitly invoked.
