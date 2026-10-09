@@ -11,16 +11,23 @@ export class PanelProvider implements vscode.WebviewViewProvider, vscode.Disposa
     private readonly getState: () => ReviewState,
     private readonly handle: (message: PanelMessage) => Promise<void>,
     private readonly output: vscode.OutputChannel,
+    private readonly onReady: () => Promise<void> = async () => {},
   ) {}
   async resolveWebviewView(view: vscode.WebviewView): Promise<void> {
     this.view = view;
+    let frontendReady = false;
+    const notifyReady = () => {
+      if (frontendReady && view.visible) {
+        void this.onReady().catch(() => this.output.appendLine('Could not report development host readiness.'));
+      }
+    };
     const media = vscode.Uri.joinPath(this.extensionUri, 'media');
     view.webview.options = { enableScripts: true, localResourceRoots: [media] };
     this.listeners.push(view.webview.onDidReceiveMessage((message: unknown) => {
       if (!isPanelMessage(message)) { return; }
-      if (message.type === 'ready') { this.update(); return; }
+      if (message.type === 'ready') { frontendReady = true; this.update(); notifyReady(); return; }
       void this.handle(message).catch(() => this.output.appendLine('Panel action could not complete.'));
-    }), view.onDidDispose(() => { if (this.view === view) { this.view = undefined; } }));
+    }), view.onDidChangeVisibility(notifyReady), view.onDidDispose(() => { if (this.view === view) { this.view = undefined; } }));
     try {
       let html = await readFile(vscode.Uri.joinPath(media, 'panel.html').fsPath, 'utf8');
       const resources: Record<string, string> = {
