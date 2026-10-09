@@ -27,6 +27,22 @@ that a pull is needed. Checks run every minute, on window focus and after Git re
 changes. The reminder clears after catching up; diverged branches and failed
 fetches receive distinct messages. Pulling remains an explicit user action.
 
+## Editor highlights and suggestions
+
+Run **DevPulse: Analyze File** on a saved file. Yellow, red and blue gutters
+mark logic, security and context findings. Hover for the explanation, or open
+the **Code** tab. **Apply Suggestion** appears when Gemma provides a precise
+code replacement; the command palette also lets you choose one.
+
+Review the redacted diff and confirm before applying. The edit supports Undo
+and stays unsaved and unstaged. Changing the file clears its findings; changed
+files and branches are checked again after confirmation. Save and re-analyze
+to get current suggestions. Instruction-only suggestions and selection reviews
+remain read-only. Use the Security view's **Fix** action for hardcoded credentials.
+
+Gemma requests have a 30-second timeout. A reachable server can still be too
+busy to finish analysis; Git status and regex secret verification keep working.
+
 ## Pre-commit secret verification
 
 Open your Git repository in the Extension Development Host (F5), then open
