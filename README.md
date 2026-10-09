@@ -258,3 +258,17 @@ faster completions. On the tested server, `gemma4:e2b-it-q4_K_M` completed a
 function signature in about 146 ms; the `gemma4:e2b` alias timed out. An empty
 override uses the configured review/chat model. Server failure yields no
 suggestion and leaves the editor and other features usable.
+
+To pick models without editing JSON, reload the Development Host and open the
+Command Palette (Ctrl+Shift+P):
+
+- **DevPulse: Select Autocomplete Model** lists installed models. Choose
+  `gemma4:e2b-it-q4_K_M` if available for the faster suggestions tested above.
+- **DevPulse: Select Model (Review & Chat)** selects the model for other editor
+  features. This explicit selection overrides the environment/.env model in
+  VS Code; pre-commit CLI commands keep their usual configuration.
+- Choose **Use configured model** to clear either override. Choices are saved
+  per workspace, or in user settings when no workspace is open.
+
+Selecting a model does not enable autocomplete: run **DevPulse: Toggle Inline
+Autocomplete** to opt in, then type a function signature in a saved workspace file.

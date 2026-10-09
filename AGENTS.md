@@ -49,6 +49,8 @@ Configuration precedence, first match wins:
 3. VS Code settings, extension only: devpulse.llm.baseUrl and devpulse.llm.model.
 4. Defaults: http://localhost:11434/v1 and gemma4:e4b.
 
+An explicit editor selection (`devpulse.llm.modelOverride`) takes precedence for extension features only. Clearing it restores this order; CLI commands retain environment/.env precedence. `devpulse.assistant.inline.model` independently overrides the effective editor model for autocomplete.
+
 Use a small built-in .env parser. Store user-entered API keys in ExtensionContext.secrets through DevPulse: Set API Key, never settings or workspace/global state. Commit only placeholder configuration in .env.example; ignore .env, node_modules, dist and *.vsix. Never commit real endpoint credentials or expose tokens, sensitive URLs, secret values or unredacted source/diffs in logs or panel state.
 
 Request pipeline:
