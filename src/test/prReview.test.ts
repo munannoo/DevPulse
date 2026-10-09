@@ -16,18 +16,20 @@ suite('PR review in Extension Development Host', () => {
     const output = vscode.window.createOutputChannel('DevPulse PR test');
     const extension = vscode.extensions.all.find(item => item.packageJSON.name === 'devpulse');
     assert.ok(extension);
-    let signedIn = false; let analysisCalls = 0;
+    let signedIn = false; let analysisCalls = 0; let now = 1000; let listCalls = 0;
     const interactive: boolean[] = [];
     // Only extensionPath is consumed because the config service is explicitly injected.
     const context = { extensionPath: extension.extensionPath } as vscode.ExtensionContext;
     const client = new GitHubClient('fixture-token', (async (url, init) => {
       if (String(url).includes('/search/issues?')) {
+        listCalls++;
         return new Response(JSON.stringify({ total_count: 1, items: [{ number: 7, title: '<script>unsafe title</script>', user: { login: 'teammate' } }] }));
       }
       if ((init?.headers as Record<string, string>).Accept === 'application/vnd.github.diff') { return new Response(diff); }
       return new Response(JSON.stringify({ head: { sha }, base: { sha: base }, changed_files: 1 }));
     }) as typeof fetch);
     const prs = new PullRequests(context, output, {
+      now: () => now,
         session: async requested => { interactive.push(requested); if (requested) { signedIn = true; } return signedIn ? { accessToken: ['fixture', 'token'].join('-') } : undefined; },
       repository: async () => ({ owner: 'team', name: 'project' }), client: () => client,
       config: async () => ({ baseUrl: 'http://localhost:11434/v1', model: 'fixture', jsonMode: true }),
@@ -42,6 +44,11 @@ suite('PR review in Extension Development Host', () => {
       await prs.review(999); assert.equal(analysisCalls, 0);
       await prs.review(7); assert.equal(prs.getState().phase, 'complete'); assert.equal(prs.getState().result?.risk, 'warning');
       await prs.review(7); assert.equal(analysisCalls, 1, 'Revision cache is reused');
+      const lists = listCalls;
+      await prs.refreshAutomatically(); assert.equal(listCalls, lists, 'Focus refresh is throttled');
+      now += 30_000; await prs.refreshAutomatically(); assert.equal(listCalls, lists + 1);
+      assert.ok(prs.getState().result, 'Background refresh preserves the reviewed revision');
+      assert.equal(interactive.at(-1), false, 'Automatic refresh never prompts for login');
       assert.equal(isPanelMessage({ type: 'reviewPullRequest', number: '../outside' }), false);
       assert.equal(isPanelMessage({ type: 'openPullFinding', index: -1 }), false);
       assert.equal(isPanelMessage({ type: 'reviewPullRequest', number: 7 }), true);
@@ -93,6 +100,28 @@ suite('PR review in Extension Development Host', () => {
       }
       finally { fresh.dispose(); }
       signedIn = false; await prs.refresh(); assert.equal(prs.getState().phase, 'disconnected'); assert.equal(prs.getState().result, undefined);
+    } finally { prs.dispose(); output.dispose(); }
+  });
+});
+
+suite('Automatic PR refresh policy', () => {
+  test('failed background refresh backs off and disposal stops new requests', async function () {
+    if (process.env.DEVPULSE_PR_FIXTURE !== '1') { this.skip(); }
+    const extension = vscode.extensions.all.find(item => item.packageJSON.name === 'devpulse')!;
+    const output = vscode.window.createOutputChannel('PR refresh fixture');
+    let now = 1000, calls = 0, fail = true;
+    const prs = new PullRequests({ extensionPath: extension.extensionPath } as vscode.ExtensionContext, output, {
+      now: () => now, session: async interactive => { assert.equal(interactive, false); return { accessToken: 'fixture' }; },
+      repository: async () => ({ owner: 'team', name: 'project' }),
+      client: () => new GitHubClient('fixture', (async () => {
+        calls++; return fail ? new Response('', { status: 503 }) : new Response(JSON.stringify({ total_count: 0, items: [] }));
+      }) as typeof fetch),
+    });
+    try {
+      await prs.refreshAutomatically(); assert.equal(prs.getState().phase, 'failed');
+      const attempts = calls; now += 30_000; await prs.refreshAutomatically(); assert.equal(calls, attempts);
+      fail = false; now += 300_000; await prs.refreshAutomatically(); assert.equal(prs.getState().phase, 'ready');
+      prs.dispose(); const completed = calls; now += 300_000; await prs.refreshAutomatically(); assert.equal(calls, completed);
     } finally { prs.dispose(); output.dispose(); }
   });
 });
