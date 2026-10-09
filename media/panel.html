@@ -26,6 +26,16 @@
       <p id="branch">Checking repository…</p><p id="branch-note" class="muted"></p>
       <button id="refresh">Refresh status</button>
     </details>
+    <details open id="pull-requests"><summary>Pull Requests</summary>
+      <p id="pr-message" role="status" aria-live="polite">Connect GitHub to view requested PR reviews.</p>
+      <div class="actions">
+        <button id="pr-connect">Connect GitHub</button>
+        <button id="pr-refresh">Refresh PRs</button>
+        <button id="pr-cancel" hidden>Cancel PR review</button>
+      </div>
+      <div id="pr-list"></div>
+      <div id="pr-result"></div>
+    </details>
     <p class="muted">Review checks upstream status, then analyzes saved local changes. New files are included. Git pull stays under your control.</p>
   </section>
   <section id="code" hidden>

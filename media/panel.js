@@ -18,15 +18,69 @@ element('review').addEventListener('click', () => { selectTab('code'); send({ ty
 element('analyze').addEventListener('click', () => { selectTab('code'); send({ type: 'analyzeFile' }); });
 element('refresh').addEventListener('click', () => send({ type: 'refreshBranch' }));
 element('cancel').addEventListener('click', () => send({ type: 'cancelReview' }));
+element('pr-connect').addEventListener('click', () => send({ type: 'connectGitHub' }));
+element('pr-refresh').addEventListener('click', () => send({ type: 'refreshPullRequests' }));
+element('pr-cancel').addEventListener('click', () => send({ type: 'cancelPullReview' }));
+
+/** @param {import('../src/vscode/panel/messages').PullRequestState | undefined} state */
+function renderPullRequests(state) {
+  if (!state) { return; }
+  const busy = state.phase === 'loading' || state.phase === 'reviewing';
+  element('pr-message').textContent = state.message;
+  element('pr-message').classList.toggle('loading', busy);
+  element('pr-connect').hidden = !['idle', 'disconnected', 'failed'].includes(state.phase);
+  element('pr-connect').disabled = busy;
+  element('pr-refresh').disabled = busy;
+  element('pr-cancel').hidden = !busy;
+  element('pr-list').replaceChildren();
+  for (const pr of state.items) {
+    const card = document.createElement('article');
+    const title = document.createElement('p'); title.textContent = `#${pr.number} · ${pr.title} — ${pr.author}`;
+    const button = document.createElement('button'); button.textContent = 'Review with Gemma'; button.disabled = busy;
+    button.addEventListener('click', () => send({ type: 'reviewPullRequest', number: pr.number }));
+    card.append(title, button); element('pr-list').append(card);
+  }
+  element('pr-result').replaceChildren();
+  const result = state.result;
+  if (!result) { return; }
+  const heading = document.createElement('p');
+  heading.textContent = `PR #${state.selected} · ${result.head.slice(0, 8)} · Risk: ${result.risk === 'none' ? 'no risks detected in reviewed files' : result.risk}${result.skipped.length ? ' · Partial review' : ''}`;
+  element('pr-result').append(heading);
+  for (const summary of result.summaries) {
+    const section = document.createElement('details'); section.open = true;
+    const title = document.createElement('summary'); title.textContent = summary.file;
+    const text = document.createElement('p'); text.textContent = summary.text;
+    section.append(title, text); element('pr-result').append(section);
+  }
+  result.findings.forEach((finding, index) => {
+    const card = document.createElement('article'); card.className = `finding ${finding.severity}`;
+    const title = document.createElement('strong'); title.textContent = finding.title;
+    const location = document.createElement('button'); location.className = 'location';
+    location.textContent = `${finding.file}:${finding.startLine} · ${finding.severity} · Open reviewed revision on GitHub`;
+    location.addEventListener('click', () => send({ type: 'openPullFinding', index }));
+    const explanation = document.createElement('p'); explanation.textContent = finding.explanation;
+    card.append(title, location, explanation);
+    if (finding.suggestion) { const suggestion = document.createElement('pre'); suggestion.textContent = finding.suggestion; card.append(suggestion); }
+    element('pr-result').append(card);
+  });
+  if (result.skipped.length) {
+    const skipped = document.createElement('details');
+    const title = document.createElement('summary'); title.textContent = 'Skipped PR files';
+    const list = document.createElement('ul');
+    for (const reason of result.skipped) { const item = document.createElement('li'); item.textContent = reason; list.append(item); }
+    skipped.append(title, list); element('pr-result').append(skipped);
+  }
+}
 
 /** @param {MessageEvent<ExtensionMessage>} event */
 window.addEventListener('message', event => {
   if (event.data?.type !== 'state') { return; }
   const state = event.data.state;
+  renderPullRequests(state.pullRequests);
   const busy = state.phase === 'checking' || state.phase === 'reviewing';
   element('message').textContent = state.message;
   element('message').classList.toggle('loading', busy);
-  element('offline').hidden = !state.offline;
+  element('offline').hidden = !state.offline && !state.pullRequests?.offline;
   for (const id of ['review', 'refresh', 'analyze']) { element(id).disabled = busy; }
   element('cancel').hidden = !busy;
   const branch = state.branch;

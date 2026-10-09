@@ -45,7 +45,7 @@ if you move the extension or Node installation.
 Generated using the official `yo code` TypeScript/esbuild template and extended
 with the folder structure from `AGENTS.md`. Branch checks, LLM code review, the
 sidebar, and editor findings are implemented. The pre-commit secret guard and
-Security view are also implemented; other features remain placeholders.
+Security view and requested PR reviews are also implemented; other features remain placeholders.
 
 ```powershell
 npm install
@@ -53,6 +53,7 @@ npm run build
 npm run test:core
 npm run test:security
 npm run test:extension-security
+npm run test:pr
 node dist/cli.js --help
 ```
 
@@ -91,6 +92,7 @@ src/
   core/                  Shared logic; no vscode imports
     llm/                 Configuration, client, prompts, schemas, queue, cache
     git/                 Repository status and diff parsing
+    github/              Requested PRs, revisions and authenticated diff fetching
     security/            Secret scanning, redaction, and fixes
     review/              Shared findings engine
   vscode/
@@ -147,3 +149,34 @@ Run `npm run test:core` for temporary local-Git and mock-HTTP tests covering
 behind status, change collection, configuration, redaction, validation, retries,
 caching, cancellation, and timeout handling. These do not contact your server.
 Interactive Extension Development Host acceptance checks remain pending.
+
+## Pull request reviews
+
+Open a repository with a github.com HTTPS or SSH remote. In DevPulse's Overview
+tab, choose **Connect GitHub** and use VS Code's GitHub sign-in. **Refresh PRs**
+lists open PRs requesting your review in that repository (including team review
+requests). Choose **Review with Gemma** on a PR to see per-file summaries,
+severity-based risk and findings. Configure Gemma as described under Code review.
+You can also run **DevPulse: Connect GitHub** or **DevPulse: Refresh Requested PRs**.
+
+PR review uses the remote diff without checking out the branch or changing local
+files. Finding links open the reviewed head revision on GitHub, so they do not
+point at unrelated local code. No comments or reviews are posted to GitHub.
+Reviews are cancellable; local code review and security remain available when
+GitHub or Gemma is unavailable.
+
+Results are cached in memory for up to 20 PR revisions, keyed by repository,
+PR number, head/base SHAs and model configuration. Changed revisions are reviewed
+again. Private/generated files, binaries, deletions and oversized files are
+reported as skipped; partial reviews never imply the entire PR is safe. Limits
+are 20 reviewable files, 24,000 characters per file, 80,000 total and 4 MB for the
+GitHub response. PRs changing during analysis require another review.
+
+GitHub Enterprise and remotes containing embedded credentials are not supported.
+Use an ordinary github.com remote and VS Code authentication. The review list
+is limited to GitHub Search's first 1,000 results and reports incomplete results.
+
+Run **npm run test:pr** for an Extension Development Host fixture test of sign-in
+states, requested PR loading, review results, cancellation and safe panel rendering.
+It uses injected GitHub/model fixtures; live GitHub/Gemma verification requires
+your account and a PR requesting your review.
