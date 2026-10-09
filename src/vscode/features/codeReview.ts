@@ -144,7 +144,7 @@ export class CodeReview implements vscode.Disposable {
               this.update({ findings: [...this.state.findings, ...result.findings], reviewedFiles: this.state.reviewedFiles + 1,
                 summaries: [...this.state.summaries, { file: input.file, text: result.summary || `${result.findings.length} finding(s).` }] });
             } catch (error) {
-              if (operation.signal.aborted || (error instanceof LlmError && error.offline)) { throw error; }
+              if (operation.signal.aborted || (error instanceof LlmError && (error.offline || error.configuration))) { throw error; }
               const message = this.failure(error);
               this.output.appendLine(message);
               this.update({ skipped: [...this.state.skipped, `${input.file}: ${message}`] });

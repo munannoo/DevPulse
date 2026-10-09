@@ -43,6 +43,10 @@ test('config resolves each value from env, nearest dotenv, settings, then defaul
   assert.equal(config.baseUrl, 'http://localhost:1234/v1');
   const fallback = await loadConfig({ scriptDirectory: directory, env: {} });
   assert.equal(fallback.model, 'fixture-model');
+  const origin = await loadConfig({ scriptDirectory: directory, env: { DEVPULSE_LLM_BASE_URL: 'http://localhost:1234/' } });
+  assert.equal(origin.baseUrl, 'http://localhost:1234/v1');
+  const custom = await loadConfig({ scriptDirectory: directory, env: { DEVPULSE_LLM_BASE_URL: 'http://localhost:1234/custom/v1/' } });
+  assert.equal(custom.baseUrl, 'http://localhost:1234/custom/v1');
   await assert.rejects(loadConfig({ scriptDirectory: directory, env: { DEVPULSE_LLM_BASE_URL: 'file:///tmp' } }));
 }));
 
@@ -136,4 +140,20 @@ test('queued requests cancel immediately without disturbing the active request',
   const second = queue.run(async () => assert.fail('Cancelled work ran'), cancellation.signal);
   cancellation.abort();
   await assert.rejects(second, /cancelled/); finish(); await first;
+});
+
+test('LLM route and authentication errors are fatal configuration failures without retry', async () => {
+  let calls = 0;
+  const server = createServer((_request, response) => { calls++; response.writeHead(404); response.end('private server details'); });
+  server.listen(0, '127.0.0.1'); await once(server, 'listening');
+  const address = server.address(); assert.ok(address && typeof address !== 'string');
+  try {
+    const llm = createLlm({ baseUrl: `http://127.0.0.1:${address.port}/v1`, model: 'missing', jsonMode: true });
+    await assert.rejects(llm.chat({ system: 'JSON only', user: 'ping', json: value => value }), (error: unknown) => {
+      assert.ok(error instanceof Error && 'configuration' in error && error.configuration === true);
+      assert.ok(!error.message.includes('private server details'));
+      return true;
+    });
+    assert.equal(calls, 1);
+  } finally { server.closeAllConnections(); await new Promise<void>(resolve => server.close(() => resolve())); }
 });
