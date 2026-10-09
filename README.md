@@ -59,6 +59,12 @@ open the DevPulse Security view. The watch task includes its own esbuild problem
 matcher. Extension security tests use a disposable Git repository inside
 `test-repo/` and your installed VS Code; set `VSCODE_EXECUTABLE_PATH` if needed.
 
+**Run Extension** builds, opens an isolated Development Host, and attaches on
+port 9333. This avoids the Windows Extension Host crash in VS Code's injected
+debug launcher. Installed extensions are disabled in that development window.
+Stopping the debugger detaches; close the Development Host window when finished.
+Run `npm run watch` separately for automatic rebuilds while editing.
+
 ```text
 .vscode/                 Debug launch configuration and build tasks
 src/

@@ -3,6 +3,21 @@
 {
 	"version": "2.0.0",
 	"tasks": [
+        {
+            "label": "devpulse: compile",
+            "type": "npm",
+            "script": "compile",
+            "problemMatcher": "$tsc"
+        },
+        {
+            "label": "devpulse: launch",
+            "type": "process",
+            "command": "node",
+            "args": ["${workspaceFolder}/scripts/launch-extension.mjs", "${execPath}", "${workspaceFolder}"],
+            "dependsOn": "devpulse: compile",
+            "problemMatcher": [],
+            "presentation": { "reveal": "always", "panel": "dedicated" }
+        },
 		{
             "label": "watch",
             "dependsOn": [
