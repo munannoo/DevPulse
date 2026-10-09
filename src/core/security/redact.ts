@@ -1,9 +1,9 @@
-import { scanSecrets } from './secretScan';
+import { scanSecretSpans } from './secretPatterns';
 
 export function redact(text: string): string {
   let result = '';
   let cursor = 0;
-  for (const match of scanSecrets(text)) {
+  for (const match of scanSecretSpans(text)) {
     if (match.end <= cursor) { continue; }
     const start = Math.max(match.start, cursor);
     result += text.slice(cursor, start);

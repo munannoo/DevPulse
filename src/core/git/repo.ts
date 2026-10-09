@@ -1,7 +1,14 @@
 import { execFile } from 'node:child_process';
+import { resolve } from 'node:path';
 
 export class GitError extends Error {
   constructor(public readonly operation: string) { super(`Git ${operation} failed or timed out.`); }
+}
+export async function repository(cwd: string): Promise<string> {
+  return (await git(cwd, ['rev-parse', '--show-toplevel'])).trim();
+}
+export async function gitPath(root: string, name: string): Promise<string> {
+  return resolve(root, (await git(root, ['rev-parse', '--git-path', name])).trim());
 }
 export function git(cwd: string, args: string[], signal?: AbortSignal, timeout = 15_000): Promise<string> {
   return new Promise((resolve, reject) => {

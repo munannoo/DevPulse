@@ -28,6 +28,10 @@ test('redaction removes secrets, credentials and multiline keys while preserving
   assert.ok(!output.includes('FAKEKEY') && !output.includes('password') && !output.includes('abc'));
   assert.equal(output.split('\n').length, raw.split('\n').length);
   assert.ok(output.includes('<REDACTED_SECRET>'));
+  for (const value of ['sk-' + 'FAKE0000000000000000', 'AIza' + 'FAKE0000000000000000000000000000']) {
+    assert.equal(redact(`const value = "${value}";`).includes(value), false);
+  }
+  assert.equal(redact('const appKey = "fake-generic-key";').includes('fake-generic-key'), false);
 });
 
 test('config resolves each value from env, nearest dotenv, settings, then defaults', async () => temporary(async directory => {

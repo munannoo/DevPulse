@@ -24,3 +24,15 @@ export function isPanelMessage(value: unknown): value is PanelMessage {
   }
   return ['ready', 'reviewChanges', 'analyzeFile', 'refreshBranch', 'cancelReview'].includes(String(message.type));
 }
+import type { SecretFinding } from '../../core/security/secretScan';
+
+export type SecurityPanelMessage = { type: 'scan' } | { type: 'install' } | { type: 'fix'; id: string };
+export type SecurityState = { type: 'security'; findings: SecretFinding[]; message: string };
+
+export function securityPanelMessage(value: unknown): SecurityPanelMessage | undefined {
+  if (!value || typeof value !== 'object') { return undefined; }
+  const item = value as Record<string, unknown>;
+  if (item.type === 'scan' || item.type === 'install') { return { type: item.type }; }
+  if (item.type === 'fix' && typeof item.id === 'string' && /^[a-f0-9]{64}$/.test(item.id)) { return { type: 'fix', id: item.id }; }
+  return undefined;
+}
