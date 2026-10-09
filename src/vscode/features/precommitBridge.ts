@@ -4,7 +4,8 @@ import { readFile } from 'node:fs/promises';
 import { repository, gitPath } from '../../core/git/repo';
 import { installHook } from '../../core/git/hook';
 import { verifyStaged } from '../../core/security/precommit';
-import { planFix, validatePlan, stageFix, safeFile } from '../../core/security/autofix';
+import { planFix, safeFile } from '../../core/security/autofix';
+import { applySecretFix } from './applySecretFix';
 import { SecretFinding } from '../../core/security/secretScan';
 import { PanelProvider } from '../panel/PanelProvider';
 
@@ -97,28 +98,8 @@ export function registerPrecommit(context: vscode.ExtensionContext): void {
       const preview = await vscode.workspace.openTextDocument({ content: plan.preview, language: 'diff' });
       await vscode.window.showTextDocument(preview, { preview: true });
       if (await vscode.window.showInformationMessage('Apply the previewed fix and re-stage it? Set the value in your local .env afterward.', { modal: true }, 'Apply fix') !== 'Apply fix') { return; }
-      await validatePlan(base, plan);
       if (dirty()) { throw new Error('Files changed while previewing. Scan and preview again.'); }
-      const edit = new vscode.WorkspaceEdit();
-      for (const [file, content] of [[plan.file, plan.replacement], ['.env', plan.env], ['.gitignore', plan.ignore]]) {
-        const uri = vscode.Uri.file(path.join(base, file));
-        let exists = true;
-        try { await vscode.workspace.fs.stat(uri); } catch { exists = false; edit.createFile(uri, { overwrite: false }); }
-        let range = new vscode.Range(0, 0, 0, 0);
-        if (exists) {
-          await safeFile(base, file);
-          const document = await vscode.workspace.openTextDocument(uri);
-          if (document.isDirty) { throw new Error('Files changed while previewing. Scan and preview again.'); }
-          range = new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length));
-        }
-        edit.replace(uri, range, content);
-      }
-      if (!await vscode.workspace.applyEdit(edit)) { throw new Error('Could not apply edit.'); }
-      for (const file of files) {
-        const document = await vscode.workspace.openTextDocument(vscode.Uri.file(path.join(base, file)));
-        if (!await document.save()) { throw new Error('Could not save fix.'); }
-      }
-      await stageFix(base, plan);
+      await applySecretFix(base, plan);
       findings = (await verifyStaged(base)).findings;
       show('Fix saved and re-staged. Configure the value in your local .env, then commit again.');
     } finally { fixing = false; if (pending) { pending = false; void run(scan); } }
