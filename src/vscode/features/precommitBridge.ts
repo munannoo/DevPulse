@@ -8,6 +8,9 @@ import { planFix, safeFile } from '../../core/security/autofix';
 import { applySecretFix } from './applySecretFix';
 import { SecretFinding } from '../../core/security/secretScan';
 import { SecurityPanelProvider } from '../panel/SecurityPanelProvider';
+import { validateReview } from '../../core/llm/schemas';
+import { contentHash } from '../../core/llm/cache';
+import { stagedFingerprint } from '../../core/review/commit';
 
 export function registerPrecommit(context: vscode.ExtensionContext): void {
   const output = vscode.window.createOutputChannel('DevPulse');
@@ -54,7 +57,7 @@ export function registerPrecommit(context: vscode.ExtensionContext): void {
   }
 
   function show(message?: string): void {
-    panel.update({ type: 'security', findings, message: message ?? (findings.length ? `${findings.length} possible credential(s). Commit blocked.` : 'All clear. No secrets found in staged additions.') });
+    panel.update({ type: 'security', findings, message: message ?? (findings.length ? `${findings.length} staged issue(s). Commit blocked.` : 'All clear. No secrets found in staged additions.') });
     paint();
   }
 
@@ -81,13 +84,18 @@ export function registerPrecommit(context: vscode.ExtensionContext): void {
   async function scan(): Promise<void> {
     if (scanning || fixing) { pending = true; return; }
     scanning = true;
-    try { findings = (await verifyStaged(await requireRoot())).findings; show(); }
+    try {
+      const base = await requireRoot();
+      findings = (await verifyStaged(base, undefined, false)).findings;
+      if (!findings.length && await loadScan(await gitPath(base, 'devpulse/last-scan.json'), true)) { return; }
+      show();
+    }
     finally { scanning = false; if (pending && !fixing) { pending = false; void run(scan); } }
   }
 
-  async function install(): Promise<void> {
-    await installHook(await requireRoot(), vscode.Uri.joinPath(context.extensionUri, 'dist', 'cli.js').fsPath);
-    show('Pre-commit guard installed. Staged secrets will block commits.');
+  async function install(ai?: boolean): Promise<void> {
+    await installHook(await requireRoot(), vscode.Uri.joinPath(context.extensionUri, 'dist', 'cli.js').fsPath, ai);
+    show(ai ? 'Pre-commit guard installed with optional AI risk review.' : 'Pre-commit guard installed. Staged secrets will block commits.');
   }
 
   async function fix(id: string): Promise<void> {
@@ -109,10 +117,13 @@ export function registerPrecommit(context: vscode.ExtensionContext): void {
     } finally { fixing = false; if (pending) { pending = false; void run(scan); } }
   }
 
-  async function loadScan(target: string): Promise<void> {
+  async function loadScan(target: string, onlyAi = false): Promise<boolean> {
     try {
       const value: unknown = JSON.parse(await readFile(target, 'utf8'));
-      if (!value || typeof value !== 'object' || !Array.isArray((value as { findings?: unknown }).findings)) { return; }
+      if (!value || typeof value !== 'object' || !Array.isArray((value as { findings?: unknown }).findings)) { return false; }
+      const metadata = value as { ai?: { warning?: unknown }; fingerprint?: unknown };
+      if (onlyAi && (!metadata.ai || typeof metadata.fingerprint !== 'string')) { return false; }
+      if (metadata.ai && metadata.fingerprint !== await stagedFingerprint(root)) { return false; }
       const items = (value as { findings: unknown[] }).findings;
       const valid: SecretFinding[] = [];
       for (const value of items.slice(0, 1000)) {
@@ -122,19 +133,38 @@ export function registerPrecommit(context: vscode.ExtensionContext): void {
         try { await safeFile(root, item.file); } catch { continue; }
         valid.push({ id: item.id, file: item.file, startLine: Number(item.startLine), endLine: Number(item.startLine), severity: 'security', title: 'Possible hardcoded credential', explanation: 'Move this possible secret to an environment variable before committing.', canFix: item.canFix === true });
       }
+      const ai = (value as { ai?: { findings?: unknown } }).ai?.findings;
+      if (Array.isArray(ai)) {
+        for (const raw of ai.slice(0, 100)) {
+          if (!raw || typeof raw !== 'object' || typeof raw.file !== 'string') { continue; }
+          try {
+            await safeFile(root, raw.file);
+            const report = validateReview({ summary: 'Pre-commit risk', findings: [raw] }, { file: raw.file, content: '', lineCount: 100_000 });
+            for (const item of report.findings.filter(item => item.severity !== 'context')) {
+              valid.push({ ...item, severity: 'security', id: contentHash(JSON.stringify(item)), canFix: false });
+            }
+          } catch { /* Reject malformed or out-of-repository scan findings. */ }
+        }
+      }
       findings = valid;
-      show();
-    } catch { output.appendLine('Security scan report unavailable; verify staged changes again.'); }
+      show(!findings.length && metadata.ai?.warning ? 'AI review was skipped or partial. Regex verification remains available.' : undefined);
+      return true;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') { output.appendLine('Security scan report unavailable; verify staged changes again.'); }
+      return false;
+    }
   }
 
   context.subscriptions.push(
     vscode.commands.registerCommand('devpulse.verifyStaged', () => run(scan)),
     vscode.commands.registerCommand('devpulse.installPrecommitHook', () => run(install)),
+    vscode.commands.registerCommand('devpulse.installPrecommitAiHook', () => run(() => install(true))),
+    vscode.commands.registerCommand('devpulse.disablePrecommitAi', () => run(() => install(false))),
     vscode.commands.registerCommand('devpulse.fixSecret', (id: unknown) => typeof id === 'string' && /^[a-f0-9]{64}$/.test(id) ? run(() => fix(id)) : undefined),
     vscode.window.onDidChangeVisibleTextEditors(paint),
     vscode.window.onDidChangeActiveTextEditor(paint),
     vscode.workspace.onDidChangeTextDocument(paint),
-    vscode.window.onDidChangeWindowState(state => { if (state.focused) { void run(scan); } }),
+    vscode.window.onDidChangeWindowState(state => { if (state.focused) { void run(async () => { const base = await requireRoot(); await loadScan(await gitPath(base, 'devpulse/last-scan.json')); }); } }),
   );
   void run(async () => {
     const base = await requireRoot();

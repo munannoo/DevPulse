@@ -27,6 +27,8 @@
       { "command": "devpulse.generateCommitDescription", "title": "DevPulse: Generate Commit Description & Analysis" },
       { "command": "devpulse.clearAiCache", "title": "DevPulse: Clear AI Response Cache" },
       { "command": "devpulse.refreshAttention", "title": "DevPulse: Refresh Attention" },
+      { "command": "devpulse.installPrecommitAiHook", "title": "DevPulse: Install Pre-Commit Hook with AI Review" },
+      { "command": "devpulse.disablePrecommitAi", "title": "DevPulse: Disable AI Pre-Commit Review" },
       { "command": "devpulse.explainSelection", "title": "DevPulse: Explain Selection" },
       { "command": "devpulse.fixSelection", "title": "DevPulse: Fix Selection" },
       { "command": "devpulse.writeTests", "title": "DevPulse: Write Tests" },
