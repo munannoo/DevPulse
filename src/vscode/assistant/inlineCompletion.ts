@@ -132,7 +132,7 @@ export function registerInlineCompletion(
 ): vscode.Disposable {
   const provider = new InlineCompletionProvider(context, output);
   const registration = vscode.languages.registerInlineCompletionItemProvider(
-    { pattern: '**' },
+    [{ scheme: 'file' }, { scheme: 'untitled' }],
     provider,
   );
   return vscode.Disposable.from(provider, registration);
