@@ -72,8 +72,9 @@ Run `npm run watch` separately for automatic rebuilds while editing.
 Open the inner `DevPulse` folder containing `package.json`, run `npm install`
 once on each machine, and use VS Code 1.103 or newer. Terminal build tools need
 Node 20.19+, 22.13+, or 24+; check `node --version` after updating PATH and
-restarting your terminal. Node 12 cannot build this project. F5 uses VS Code's
-bundled Node for both the build and launcher, avoiding an old system Node.
+restarting your terminal. Node 12 cannot build this project. F5 uses `node` on
+PATH for both the build and launcher. Using `Code.exe` as the Node runtime can
+stall the compile task or debugger startup on Windows.
 F5 opens a separate
 Development Host; DevPulse is loaded there, rather than installed into your
 original editor. The launcher now waits until DevPulse activates and its panel
