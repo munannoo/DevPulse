@@ -5,6 +5,9 @@ Return valid JSON only: {"summary":"one short paragraph describing the change an
 Each finding has file, startLine, endLine (1-based destination file lines), severity
 ("warning", "security", or "context"), title (at most 60 characters), explanation
 (1-3 sentences), and optional suggestion (a short instruction or replacement code).
+For a precise fix, also provide replacement: raw complete code replacing exactly startLine
+through endLine, preserving indentation, without markdown fences or surrounding prose.
+Omit replacement when context is insufficient or the range contains a redacted secret.
 Use only the provided file path. For diffs, report issues on added lines or deletion anchors
 listed in changedRanges; do not report unrelated existing issues. Do not invent missing code.
 Numbered excerpts use original destination file line numbers, not excerpt-relative numbers.
