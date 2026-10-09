@@ -6,6 +6,7 @@ import { contentHash } from '../llm/cache';
 export type LineRange = { start: number; end: number };
 export type ReviewInput = {
   file: string; content: string; lineCount: number; changedRanges?: LineRange[]; sourceHash?: string;
+  kind?: 'code' | 'diff';
 };
 export function changedRanges(diff: string, lineCount: number): LineRange[] {
   const ranges: LineRange[] = [];
