@@ -18,7 +18,6 @@ async function inspectorReady() {
 
 async function main() {
   if (!executable) { throw new Error('VS Code executable was not provided by the launch task.'); }
-  if (await inspectorReady()) { console.log('DevPulse Extension Host is ready; attaching to the existing session.'); return; }
   const profile = path.join(project, '.vscode-test', 'dev-host');
   await mkdir(profile, { recursive: true });
   // Launch without js-debug bootstrap injection, then attach using the Node inspector.
@@ -26,6 +25,16 @@ async function main() {
   delete env.ELECTRON_RUN_AS_NODE;
   delete env.VSCODE_INSPECTOR_OPTIONS;
   delete env.NODE_OPTIONS;
+  if (await inspectorReady()) {
+    // A stopped attach session leaves its host running. Ask its dedicated VS Code
+    // instance to reveal the window instead of silently returning from the task.
+    const reveal = spawn(executable, [project, '--reuse-window', `--user-data-dir=${profile}`],
+      { detached: true, stdio: 'ignore', windowsHide: true, env });
+    await new Promise((resolve, reject) => { reveal.once('spawn', resolve); reveal.once('error', reject); });
+    reveal.unref();
+    console.log('Opened the existing DevPulse Development Host window; ready to attach.');
+    return;
+  }
   const child = spawn(executable, [project, '--new-window', `--extensionDevelopmentPath=${project}`,
     `--inspect-extensions=${port}`, `--user-data-dir=${profile}`, '--disable-extensions', '--skip-welcome', '--skip-release-notes'],
   { detached: true, stdio: 'ignore', windowsHide: true, env });
