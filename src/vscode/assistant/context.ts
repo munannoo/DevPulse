@@ -2,25 +2,26 @@ import * as vscode from 'vscode';
 import { relative } from 'node:path';
 import { safeFile, isSensitiveFile } from '../../core/git/diff';
 import { redact } from '../../core/security/redact';
+export class ChatContextError extends Error {}
 
 export async function chatContext(editor: vscode.TextEditor | undefined, includeFile: boolean, includeSelection: boolean): Promise<string> {
   if (!includeFile && !includeSelection) { return ''; }
-  if (!editor || editor.document.uri.scheme !== 'file' || editor.document.isClosed) { throw new Error('Open a workspace file to include context.'); }
+  if (!editor || editor.document.uri.scheme !== 'file' || editor.document.isClosed) { throw new ChatContextError('Open a workspace file to include context.'); }
   const folder = vscode.workspace.getWorkspaceFolder(editor.document.uri);
-  if (!folder) { throw new Error('Choose a file inside this workspace.'); }
+  if (!folder) { throw new ChatContextError('Choose a file inside this workspace.'); }
   const file = relative(folder.uri.fsPath, editor.document.uri.fsPath).replace(/\\/g, '/');
-  if (isSensitiveFile(file)) { throw new Error('Private environment and key files are excluded from chat.'); }
-  try { await safeFile(folder.uri.fsPath, file); } catch { throw new Error('Chat context must stay inside the workspace.'); }
+  if (isSensitiveFile(file)) { throw new ChatContextError('Private environment and key files are excluded from chat.'); }
+  try { await safeFile(folder.uri.fsPath, file); } catch { throw new ChatContextError('Chat context must stay inside the workspace.'); }
   const parts: string[] = [];
   if (includeFile) {
     const text = editor.document.getText();
-    if (text.length > 24_000) { throw new Error('This file is too large for chat. Include a selection instead.'); }
+    if (text.length > 24_000) { throw new ChatContextError('This file is too large for chat. Include a selection instead.'); }
     parts.push(`Current file: ${file}\n${text}`);
   }
   if (includeSelection) {
-    if (editor.selection.isEmpty) { throw new Error('Select code before including a selection.'); }
+    if (editor.selection.isEmpty) { throw new ChatContextError('Select code before including a selection.'); }
     const text = editor.document.getText(editor.selection);
-    if (text.length > 12_000) { throw new Error('Selection is too large. Choose a smaller section.'); }
+    if (text.length > 12_000) { throw new ChatContextError('Selection is too large. Choose a smaller section.'); }
     parts.push(`Selection: ${file}:${editor.selection.start.line + 1}\n${text}`);
   }
   return redact(parts.join('\n\n'));

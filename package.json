@@ -17,6 +17,10 @@
   "contributes": {
     "commands": [
       { "command": "devpulse.openPanel", "title": "DevPulse: Open Panel" },
+      { "command": "devpulse.openChat", "title": "DevPulse: Open Chat" },
+      { "command": "devpulse.explainSelection", "title": "DevPulse: Explain Selection" },
+      { "command": "devpulse.fixSelection", "title": "DevPulse: Fix Selection" },
+      { "command": "devpulse.writeTests", "title": "DevPulse: Write Tests" },
       { "command": "devpulse.resumeWork", "title": "DevPulse: Resume Where You Left Off" },
       { "command": "devpulse.pullAndSync", "title": "DevPulse: Git Pull & Sync" },
       { "command": "devpulse.applySuggestion", "title": "DevPulse: Apply Suggestion" },
