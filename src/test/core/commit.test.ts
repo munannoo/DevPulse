@@ -12,7 +12,7 @@ test('commit input reads only staging, redacts secrets, excludes private files a
     await git(root, ['init']);
     await assert.rejects(stagedCommitInput(root), /Stage the changes/);
     const credential = 'sk_' + 'test_FAKEKEY0000000000';
-    await writeFile(join(root, 'feature.ts'), `const token = "${credential}";\n`);
+    await writeFile(join(root, 'feature.ts'), `const value = "${credential}";\n`);
     await writeFile(join(root, '.env'), 'PRIVATE_CONFIG=never-send-me');
     await git(root, ['add', '--', 'feature.ts', '.env']);
     await writeFile(join(root, 'feature.ts'), '// unstaged marker\n');
