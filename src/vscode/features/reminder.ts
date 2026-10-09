@@ -17,7 +17,9 @@ export class PullReminder implements vscode.Disposable {
   private readonly interval: ReturnType<typeof setInterval>;
   private debounce?: ReturnType<typeof setTimeout>;
   private disposed = false;
-  constructor(private readonly refresh: () => Promise<void>, private readonly output: vscode.OutputChannel) {
+  private pendingBranch?: BranchStatus;
+  constructor(private readonly refresh: () => Promise<void>, private readonly output: vscode.OutputChannel,
+    private readonly shielded: () => boolean = () => false) {
     this.interval = setInterval(() => this.check(), 60_000);
     this.listeners.push(vscode.window.onDidChangeWindowState(state => { if (state.focused) { this.check(); } }),
       vscode.workspace.onDidChangeWorkspaceFolders(() => { this.check(); void this.watchRepositories(); }));
@@ -44,17 +46,21 @@ export class PullReminder implements vscode.Disposable {
     }
   }
   observe(branch?: BranchStatus): void {
+    this.pendingBranch = branch;
     const message = pullReminder(branch);
     if (!message || !branch?.fresh || this.disposed) { return; }
     const issue = `${branch.root}\0${branch.branch}\0${branch.upstream}`;
     if (this.notified.has(issue)) { return; }
+    if (this.shielded()) { return; }
     this.notified.add(issue);
     void vscode.window.showInformationMessage(`DevPulse: ${message}`, 'Open DevPulse').then(action => {
       if (action) { void vscode.commands.executeCommand('devpulse.openPanel').then(undefined, () => {}); }
     }, () => {});
   }
   dispose(): void {
+    this.pendingBranch = undefined;
     this.disposed = true; clearInterval(this.interval); clearTimeout(this.debounce);
     this.listeners.forEach(item => item.dispose());
   }
+  flush(): void { if (!this.shielded()) { this.observe(this.pendingBranch); } }
 }

@@ -13,6 +13,6 @@ export function updateStatusBar(item: vscode.StatusBarItem, state: ReviewState):
   const branch = state.branch;
   const busy = state.phase === 'checking' || state.phase === 'reviewing';
   const counts = branch?.upstream ? ` ↓${branch.behind ?? '?'} ↑${branch.ahead ?? '?'}` : '';
-  item.text = `${busy ? '$(sync~spin)' : '$(pulse)'} ${branch?.branch ?? 'DevPulse'}${counts}`;
+  item.text = `${busy ? '$(sync~spin)' : '$(pulse)'} ${branch?.branch ?? 'DevPulse'}${counts}${state.focus?.inFlow ? ' | ✦ In Flow' : ''}`;
   item.tooltip = `${state.pullReminder ?? state.message}\n${branch?.note ?? ''}\nClick to review local changes.`;
 }

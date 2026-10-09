@@ -12,7 +12,7 @@
   <nav aria-label="DevPulse tabs">
     <button data-tab="overview" aria-pressed="true">Overview</button>
     <button data-tab="code" aria-pressed="false">Code</button>
-    <button disabled title="Not implemented yet">Focus</button>
+    <button data-tab="focus" aria-pressed="false">Focus</button>
     <button disabled title="Not implemented yet">Chat</button>
   </nav>
   <p id="message" role="status" aria-live="polite">Loading repository status…</p>
@@ -38,6 +38,12 @@
     <p id="empty" class="muted">Run a review to see summaries and findings.</p>
     <div id="summaries"></div>
     <div id="findings"></div>
+  </section>
+  <section id="focus" hidden>
+    <h2>Today's focus</h2><p id="focus-time">0 minutes</p>
+    <p id="focus-switches">0 context switches</p><p id="focus-state" role="status"></p>
+    <p id="focus-shield" class="muted"></p>
+    <p class="muted">Tracks editor and debug activity. Pauses after two idle minutes or when this window loses focus.</p>
   </section>
   <details id="skipped" hidden><summary>Skipped files</summary><ul id="skipped-list"></ul></details>
   <script nonce="{{NONCE}}" src="{{JS}}"></script>

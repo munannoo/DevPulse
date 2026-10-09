@@ -11,6 +11,7 @@ const send = message => vscode.postMessage(message);
 function selectTab(tab) {
   element('overview').hidden = tab !== 'overview';
   element('code').hidden = tab !== 'code';
+  element('focus').hidden = tab !== 'focus';
   document.querySelectorAll('[data-tab]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.tab === tab)));
 }
 document.querySelectorAll('[data-tab]').forEach(button => button.addEventListener('click', () => selectTab(button.dataset.tab)));
@@ -25,6 +26,11 @@ element('pull').addEventListener('click', () => send({ type: 'pullAndSync' }));
 window.addEventListener('message', event => {
   if (event.data?.type !== 'state') { return; }
   const state = event.data.state;
+  const focus = state.focus;
+  element('focus-time').textContent = `${Math.floor((focus?.milliseconds ?? 0) / 60000)} minutes today`;
+  element('focus-switches').textContent = `${focus?.switches ?? 0} context switches`;
+  element('focus-state').textContent = focus?.inFlow ? '✦ In Flow' : focus?.active ? 'Active' : 'Paused';
+  element('focus-shield').textContent = focus?.shield ? 'Flow Shield delays DevPulse reminders during Flow.' : 'Flow Shield is off.';
   element('welcome-summary').textContent = state.welcome?.summary ?? 'Loading welcome…';
   element('welcome-summary').classList.toggle('loading', Boolean(state.welcome?.loading));
   element('left-off').hidden = !state.leftOff;

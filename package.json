@@ -88,6 +88,10 @@
     "configuration": {
       "title": "DevPulse",
       "properties": {
+        "devpulse.focus.flowMinutes": { "type": "number", "default": 30, "minimum": 1, "maximum": 240,
+          "description": "Continuous active minutes before the In Flow badge appears." },
+        "devpulse.focus.shield": { "type": "boolean", "default": true,
+          "description": "Delay DevPulse reminder toasts during Flow. Other extensions and apps are unaffected." },
         "devpulse.llm.baseUrl": {
           "type": "string",
           "default": "http://localhost:11434/v1",

@@ -2,6 +2,7 @@ import type { BranchStatus } from '../../core/git/repo';
 import type { Finding } from '../../core/llm/schemas';
 import type { LeftOffBanner } from '../features/leftOff';
 import type { WelcomeState } from '../features/welcome';
+import type { FocusState } from '../../core/focus/tracker';
 export type PanelFinding = Finding & { suggestionId?: string };
 
 export type ReviewState = {
@@ -16,6 +17,7 @@ export type ReviewState = {
   leftOff?: LeftOffBanner;
   pullReminder?: string;
   welcome?: WelcomeState;
+  focus?: FocusState;
 };
 export type PanelMessage =
   | { type: 'ready' | 'reviewChanges' | 'analyzeFile' | 'refreshBranch' | 'cancelReview' | 'resumeWork' | 'pullAndSync' }
