@@ -11,6 +11,21 @@ type ChatRequest<T> = {
   system: string; user: string; json: (value: unknown) => T;
   signal?: AbortSignal; maxTokens?: number; timeoutMs?: number;
 };
+export type CompletionRequest = {
+  system: string;
+  user: string;
+  signal?: AbortSignal;
+  maxTokens?: number;
+  timeoutMs?: number;
+  model?: string;
+  temperature?: number;
+};
+export function cleanCompletionText(text: string): string {
+  let cleaned = text.replace(/<think>[\s\S]*?<\/think>/gi, '').trimEnd();
+  cleaned = cleaned.replace(/^```[a-zA-Z0-9_-]*\r?\n?/, '');
+  cleaned = cleaned.replace(/\r?\n?```$/, '');
+  return cleaned;
+}
 export function parseJson(text: string): unknown {
   return JSON.parse(text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim()
     .replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, ''));
@@ -98,6 +113,69 @@ export function createLlm(config: LlmConfig) {
         if (controller.signal.aborted) { throw new LlmError('Gemma timed out. Git status remains available.', true); }
         if (error instanceof LlmError) { throw error; }
         throw new LlmError('Gemma is offline or unreachable. Check the endpoint configuration.', true);
+      } finally {
+        clearTimeout(timer);
+        request.signal?.removeEventListener('abort', cancel);
+      }
+    },
+    async complete(request: CompletionRequest): Promise<string> {
+      const controller = new AbortController();
+      const cancel = () => controller.abort();
+      request.signal?.addEventListener('abort', cancel, { once: true });
+      if (request.signal?.aborted) { controller.abort(); }
+      const timer = setTimeout(cancel, request.timeoutMs ?? 8_000);
+      try {
+        return await requestQueue.run(async () => {
+          const system = redact(request.system);
+          const user = redact(request.user);
+          const model = request.model?.trim() || config.model;
+          const key = contentHash(JSON.stringify(['complete', model, system, user, request.maxTokens]));
+          const cached = getCached(key);
+          if (cached !== undefined) {
+            return cached;
+          }
+          const response = await fetch(`${config.baseUrl}/chat/completions`, {
+            method: 'POST',
+            signal: controller.signal,
+            headers: {
+              'Content-Type': 'application/json',
+              ...(config.apiKey ? { Authorization: `Bearer ${config.apiKey}` } : {}),
+            },
+            body: JSON.stringify({
+              model,
+              temperature: request.temperature ?? 0.1,
+              stream: false,
+              max_tokens: request.maxTokens ?? 64,
+              messages: [
+                { role: 'system', content: system },
+                { role: 'user', content: user },
+              ],
+            }),
+          });
+          if (!response.ok) {
+            await response.body?.cancel();
+            if (response.status === 404) {
+              throw new LlmError('Gemma completion model or route was not found (HTTP 404).', false, true);
+            }
+            if ([401, 403].includes(response.status)) {
+              throw new LlmError('Gemma server denied access for completion.', false, true);
+            }
+            throw new LlmError(`Gemma completion request failed (HTTP ${response.status}).`);
+          }
+          const body = await responseJson(response);
+          const raw = (body as { choices?: Array<{ message?: { content?: unknown } }> })?.choices?.[0]?.message?.content;
+          if (typeof raw !== 'string') {
+            return '';
+          }
+          const result = cleanCompletionText(raw);
+          setCached(key, result);
+          return result;
+        }, controller.signal);
+      } catch (error) {
+        if (request.signal?.aborted) { throw new LlmError('Completion cancelled.'); }
+        if (controller.signal.aborted) { throw new LlmError('Gemma completion timed out.', true); }
+        if (error instanceof LlmError) { throw error; }
+        throw new LlmError('Gemma is offline or unreachable.', true);
       } finally {
         clearTimeout(timer);
         request.signal?.removeEventListener('abort', cancel);
