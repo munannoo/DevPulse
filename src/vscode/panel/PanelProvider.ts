@@ -37,5 +37,6 @@ export class PanelProvider implements vscode.WebviewViewProvider, vscode.Disposa
     const message: ExtensionMessage = { type: 'state', state: this.getState() };
     if (this.view) { void this.view.webview.postMessage(message).then(undefined, () => {}); }
   }
+  isVisible(): boolean { return this.view?.visible === true; }
   dispose(): void { this.listeners.forEach(listener => listener.dispose()); }
 }

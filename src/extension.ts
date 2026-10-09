@@ -35,11 +35,15 @@ export function activate(context: vscode.ExtensionContext) {
   review.onUpdate = () => { panel.update(); updateStatusBar(statusBar, review.getState()); };
   context.subscriptions.push(output, review, panel, statusBar,
     vscode.window.registerWebviewViewProvider('devpulse.panel', panel),
+    vscode.commands.registerCommand('devpulse.openPanel', () => vscode.commands.executeCommand('devpulse.panel.focus')),
     vscode.workspace.onDidChangeWorkspaceFolders(() => { void review.refreshBranch(); }),
   );
   // Render first; Git status loads in the background. LLM review is explicitly invoked.
   void review.refreshBranch().catch(() => output.appendLine('Initial branch check could not complete.'));
-  return { getReviewState: () => review.getState() };
+  if (context.extensionMode === vscode.ExtensionMode.Development) {
+    void vscode.commands.executeCommand('devpulse.openPanel').then(undefined, () => output.appendLine('Open DevPulse with the Open Panel command.'));
+  }
+  return { getReviewState: () => review.getState(), isPanelVisible: () => panel.isVisible() };
 }
 
 // This method is called when your extension is deactivated
