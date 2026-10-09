@@ -8,14 +8,14 @@
 		{
 			"name": "Run Extension",
 			"type": "node",
-			"request": "attach",
-			"address": "127.0.0.1",
-			"port": 9333,
-			"timeout": 30000,
+			"request": "launch",
+			"noDebug": true,
+			"program": "${workspaceFolder}/scripts/launch-extension.mjs",
+			"args": ["${execPath}", "${workspaceFolder}"],
 			"outFiles": [
 				"${workspaceFolder}/dist/**/*.js"
 			],
-			"preLaunchTask": "devpulse: launch"
+			"preLaunchTask": "devpulse: compile"
 		}
 	]
 }

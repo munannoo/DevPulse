@@ -62,10 +62,11 @@ The watch task includes its own esbuild problem matcher. Extension security
 tests use a disposable repository in `test-repo/` and your installed VS Code;
 set `VSCODE_EXECUTABLE_PATH` if it is installed in a different location.
 
-**Run Extension** builds, opens an isolated Development Host, and attaches on
-port 9333. This avoids the Windows Extension Host crash in VS Code's injected
-debug launcher. Installed extensions are disabled in that development window.
-Stopping the debugger detaches; close the Development Host window when finished.
+**Run Extension** builds and opens a fresh Development Host window without an
+attached debugger. This avoids the Windows Extension Host crash in VS Code's
+injected debug launcher. Installed extensions are disabled in that development
+window. The launch task finishes while the window stays open; close the window
+when finished. Each launch uses a separate profile under `.vscode-test/dev-hosts`.
 Run `npm run watch` separately for automatic rebuilds while editing.
 
 ```text
