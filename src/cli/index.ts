@@ -4,6 +4,8 @@ import { repository } from '../core/git/repo';
 import { installHook } from '../core/git/hook';
 import { verifyStaged } from '../core/security/precommit';
 import { planFix, validatePlan, stageFix } from '../core/security/autofix';
+import { loadConfig } from '../core/llm/config';
+import { ping } from '../core/llm/ping';
 
 async function confirm(): Promise<boolean> {
   // Hooks have no ordinary stdin. Failure to open a terminal means no consent.
@@ -21,7 +23,13 @@ async function confirm(): Promise<boolean> {
 async function main(): Promise<void> {
   const command = process.argv[2];
   if (!command || command === '--help' || command === '-h') {
-    console.log('DevPulse: init | precommit | fix <finding-id>\nRegex secret verification of staged additions.');
+    console.log('DevPulse: init | precommit | fix <finding-id> | ping\nRegex secret verification of staged additions.');
+    return;
+  }
+  if (command === 'ping') {
+    const result = await ping(await loadConfig({ scriptDirectory: __dirname }));
+    console.log(`Gemma ${result.reachable ? 'reachable' : 'unreachable'}; model ${result.modelFound === undefined ? 'availability unknown' : result.modelFound ? 'found' : 'missing'}; round trip ${result.latencyMs}ms.`);
+    if (!result.reachable || result.modelFound !== true) { process.exitCode = 1; }
     return;
   }
   const root = await repository(process.cwd());
