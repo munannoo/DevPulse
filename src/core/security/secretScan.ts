@@ -27,10 +27,7 @@ export function containsSecret(text: string): boolean {
   return patterns.some(pattern => { pattern.lastIndex = 0; return pattern.test(text); });
 }
 
-export function redact(text: string): string {
-  for (const pattern of patterns) { pattern.lastIndex = 0; text = text.replace(pattern, '<REDACTED_SECRET>'); }
-  return text;
-}
+export { redact } from './redact';
 
 // Only a standalone JS/TS literal assignment has an unambiguous env replacement.
 export function literalAssignment(text: string): { start: number; end: number; name: string } | undefined {

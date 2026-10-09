@@ -1,0 +1,15 @@
+body {
+  color: var(--vscode-foreground);
+  background: var(--vscode-sideBar-background);
+  font-family: var(--vscode-font-family);
+}
+body { padding: 12px; font-size: var(--vscode-font-size); }
+header { display: flex; align-items: center; gap: 8px; }
+h1 { font-size: 18px; }
+h2 { font-size: 15px; }
+h3 { font-size: 13px; margin-top: 0; }
+p { overflow-wrap: anywhere; line-height: 1.5; }
+button { background: var(--vscode-button-background); color: var(--vscode-button-foreground); border: 0; border-radius: 3px; padding: 7px 10px; cursor: pointer; margin: 3px 0; }
+button:hover { background: var(--vscode-button-hoverBackground); }
+button:focus-visible { outline: 1px solid var(--vscode-focusBorder); outline-offset: 2px; }
+article { margin-top: 16px; padding: 12px; border-left: 3px solid var(--vscode-editorError-foreground); background: var(--vscode-editor-background); }

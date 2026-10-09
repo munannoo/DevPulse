@@ -14,21 +14,101 @@
   ],
   "main": "./dist/extension.js",
   "contributes": {
-    "viewsContainers": {
-      "activitybar": [{ "id": "devpulse", "title": "DevPulse", "icon": "media/mascot.svg" }]
-    },
-    "views": {
-      "devpulse": [{ "type": "webview", "id": "devpulse.security", "name": "Security" }]
-    },
     "commands": [
-      { "command": "devpulse.verifyStaged", "title": "DevPulse: Verify Staged Changes" },
-      { "command": "devpulse.installPrecommitHook", "title": "DevPulse: Install Pre-Commit Hook" },
-      { "command": "devpulse.fixSecret", "title": "DevPulse: Fix Secret", "enablement": "false" },
       {
         "command": "devpulse.helloWorld",
         "title": "DevPulse: Hello World"
+      },
+      {
+        "command": "devpulse.reviewChanges",
+        "title": "DevPulse: Review My Changes"
+      },
+      {
+        "command": "devpulse.analyzeFile",
+        "title": "DevPulse: Analyze File"
+      },
+      {
+        "command": "devpulse.reviewSelection",
+        "title": "DevPulse: Review Selection"
+      },
+      {
+        "command": "devpulse.refreshBranch",
+        "title": "DevPulse: Check Branch Status"
+      },
+      {
+        "command": "devpulse.cancelReview",
+        "title": "DevPulse: Cancel Review"
+      },
+      {
+        "command": "devpulse.setApiKey",
+        "title": "DevPulse: Set API Key"
+      },
+      {
+        "command": "devpulse.verifyStaged",
+        "title": "DevPulse: Verify Staged Changes"
+      },
+      {
+        "command": "devpulse.installPrecommitHook",
+        "title": "DevPulse: Install Pre-Commit Hook"
+      },
+      {
+        "command": "devpulse.fixSecret",
+        "title": "DevPulse: Fix Secret",
+        "enablement": "false"
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "devpulse",
+          "title": "DevPulse",
+          "icon": "media/icons/devpulse.svg"
+        }
+      ]
+    },
+    "views": {
+      "devpulse": [
+        {
+          "id": "devpulse.panel",
+          "name": "DevPulse",
+          "type": "webview"
+        },
+        {
+          "type": "webview",
+          "id": "devpulse.security",
+          "name": "Security"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "DevPulse",
+      "properties": {
+        "devpulse.llm.baseUrl": {
+          "type": "string",
+          "default": "http://localhost:11434/v1",
+          "scope": "machine",
+          "description": "OpenAI-compatible server base URL, including /v1 when required. Environment and DevPulse .env take precedence."
+        },
+        "devpulse.llm.model": {
+          "type": "string",
+          "default": "gemma4:e4b",
+          "scope": "machine",
+          "description": "Exact model identifier installed on your self-hosted server."
+        },
+        "devpulse.llm.jsonMode": {
+          "type": "boolean",
+          "default": true,
+          "scope": "machine",
+          "description": "Request JSON output. Disable for servers without response_format support; responses are always validated."
+        }
+      }
+    }
+  },
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false
+    },
+    "virtualWorkspaces": false
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
@@ -44,6 +124,7 @@
     "lint": "eslint src",
     "test": "vscode-test",
     "build": "npm run package",
+    "test:core": "npm run compile-tests && node --test out/test/core/*.test.js",
     "test:security": "node scripts/test-security.mjs",
     "test:extension-security": "npm run compile-tests && node scripts/run-extension-security.mjs"
   },

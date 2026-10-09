@@ -1,5 +1,40 @@
-<!-- Panel scaffold. PanelProvider must inject resource URIs and a nonce CSP before use. -->
-<main>
-  <h1>DevPulse</h1>
-  <p>The control center will appear here.</p>
-</main>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src {{CSP}}; style-src {{CSP}}; script-src 'nonce-{{NONCE}}';">
+  <link rel="stylesheet" href="{{CSS}}">
+  <title>DevPulse</title>
+</head>
+<body>
+  <header><img src="{{MASCOT}}" alt="" width="28" height="28"><strong>DevPulse</strong><span id="offline" class="badge" hidden>Gemma offline</span></header>
+  <nav aria-label="DevPulse tabs">
+    <button data-tab="overview" aria-pressed="true">Overview</button>
+    <button data-tab="code" aria-pressed="false">Code</button>
+    <button disabled title="Not implemented yet">Focus</button>
+    <button disabled title="Not implemented yet">Chat</button>
+  </nav>
+  <p id="message" role="status" aria-live="polite">Loading repository status…</p>
+  <div class="actions">
+    <button id="review" class="primary">Review My Changes</button>
+    <button id="cancel" hidden>Cancel</button>
+  </div>
+  <section id="overview">
+    <details id="attention" open hidden><summary>Attention</summary><p id="attention-text"></p></details>
+    <details open><summary>Branch status</summary>
+      <p id="branch">Checking repository…</p><p id="branch-note" class="muted"></p>
+      <button id="refresh">Refresh status</button>
+    </details>
+    <p class="muted">Review checks upstream status, then analyzes saved local changes. New files are included. Git pull stays under your control.</p>
+  </section>
+  <section id="code" hidden>
+    <button id="analyze">Analyze Active File</button>
+    <p id="empty" class="muted">Run a review to see summaries and findings.</p>
+    <div id="summaries"></div>
+    <div id="findings"></div>
+  </section>
+  <details id="skipped" hidden><summary>Skipped files</summary><ul id="skipped-list"></ul></details>
+  <script nonce="{{NONCE}}" src="{{JS}}"></script>
+</body>
+</html>

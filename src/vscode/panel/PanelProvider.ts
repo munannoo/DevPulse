@@ -1,39 +1,41 @@
 import * as vscode from 'vscode';
+import { readFile } from 'node:fs/promises';
 import { randomBytes } from 'node:crypto';
-import { panelMessage, PanelMessage, SecurityState } from './messages';
+import { isPanelMessage, type PanelMessage, type ExtensionMessage, type ReviewState } from './messages';
 
-export class PanelProvider implements vscode.WebviewViewProvider {
+export class PanelProvider implements vscode.WebviewViewProvider, vscode.Disposable {
   private view?: vscode.WebviewView;
-  private state: SecurityState = { type: 'security', findings: [], message: 'Checking staged changes…' };
-
-  constructor(private readonly context: vscode.ExtensionContext, private readonly receive: (message: PanelMessage) => void) {}
-
-  resolveWebviewView(view: vscode.WebviewView): void {
+  private listeners: vscode.Disposable[] = [];
+  constructor(
+    private readonly extensionUri: vscode.Uri,
+    private readonly getState: () => ReviewState,
+    private readonly handle: (message: PanelMessage) => Promise<void>,
+    private readonly output: vscode.OutputChannel,
+  ) {}
+  async resolveWebviewView(view: vscode.WebviewView): Promise<void> {
     this.view = view;
-    const nonce = randomBytes(16).toString('hex');
-    const media = vscode.Uri.joinPath(this.context.extensionUri, 'media');
+    const media = vscode.Uri.joinPath(this.extensionUri, 'media');
     view.webview.options = { enableScripts: true, localResourceRoots: [media] };
-    const script = view.webview.asWebviewUri(vscode.Uri.joinPath(media, 'panel.js'));
-    const style = view.webview.asWebviewUri(vscode.Uri.joinPath(media, 'panel.css'));
-    const mascot = view.webview.asWebviewUri(vscode.Uri.joinPath(media, 'mascot.svg'));
-    view.webview.html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
-      <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${view.webview.cspSource}; style-src ${view.webview.cspSource}; script-src 'nonce-${nonce}';">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <link rel="stylesheet" href="${style}"></head><body>
-      <header><img src="${mascot}" width="28" height="28" alt=""><h1>DevPulse</h1></header>
-      <main><h2>Security</h2><p id="status" role="status"></p>
-      <button id="scan">Verify staged changes</button> <button id="install">Install pre-commit hook</button>
-      <div id="findings"></div></main><script nonce="${nonce}" src="${script}"></script></body></html>`;
-    this.context.subscriptions.push(view.webview.onDidReceiveMessage((value: unknown) => {
-      const message = panelMessage(value);
-      if (message) { this.receive(message); }
-    }));
-    this.update(this.state);
-    this.context.subscriptions.push(view.onDidChangeVisibility(() => { if (view.visible) { this.update(this.state); } }));
+    this.listeners.push(view.webview.onDidReceiveMessage((message: unknown) => {
+      if (!isPanelMessage(message)) { return; }
+      if (message.type === 'ready') { this.update(); return; }
+      void this.handle(message).catch(() => this.output.appendLine('Panel action could not complete.'));
+    }), view.onDidDispose(() => { if (this.view === view) { this.view = undefined; } }));
+    try {
+      let html = await readFile(vscode.Uri.joinPath(media, 'panel.html').fsPath, 'utf8');
+      const resources: Record<string, string> = {
+        NONCE: randomBytes(16).toString('hex'), CSP: view.webview.cspSource,
+        CSS: view.webview.asWebviewUri(vscode.Uri.joinPath(media, 'panel.css')).toString(),
+        JS: view.webview.asWebviewUri(vscode.Uri.joinPath(media, 'panel.js')).toString(),
+        MASCOT: view.webview.asWebviewUri(vscode.Uri.joinPath(media, 'mascot.svg')).toString(),
+      };
+      for (const [key, value] of Object.entries(resources)) { html = html.replaceAll(`{{${key}}}`, value); }
+      view.webview.html = html;
+    } catch { this.output.appendLine('Could not load DevPulse panel assets.'); }
   }
-
-  update(state: SecurityState): void {
-    this.state = state;
-    if (this.view) { void this.view.webview.postMessage(state).then(undefined, () => undefined); }
+  update(): void {
+    const message: ExtensionMessage = { type: 'state', state: this.getState() };
+    if (this.view) { void this.view.webview.postMessage(message).then(undefined, () => {}); }
   }
+  dispose(): void { this.listeners.forEach(listener => listener.dispose()); }
 }

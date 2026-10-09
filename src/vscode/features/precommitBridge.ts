@@ -7,7 +7,7 @@ import { verifyStaged } from '../../core/security/precommit';
 import { planFix, safeFile } from '../../core/security/autofix';
 import { applySecretFix } from './applySecretFix';
 import { SecretFinding } from '../../core/security/secretScan';
-import { PanelProvider } from '../panel/PanelProvider';
+import { SecurityPanelProvider } from '../panel/SecurityPanelProvider';
 
 export function registerPrecommit(context: vscode.ExtensionContext): void {
   const output = vscode.window.createOutputChannel('DevPulse');
@@ -23,7 +23,7 @@ export function registerPrecommit(context: vscode.ExtensionContext): void {
     overviewRulerColor: new vscode.ThemeColor('editorError.foreground'),
   });
   const diagnostics = vscode.languages.createDiagnosticCollection('DevPulse Security');
-  const panel = new PanelProvider(context, message => {
+  const panel = new SecurityPanelProvider(context, message => {
     if (message.type === 'scan') { void run(scan); }
     if (message.type === 'install') { void run(install); }
     if (message.type === 'fix') { void run(() => fix(message.id)); }
