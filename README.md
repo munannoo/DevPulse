@@ -274,3 +274,32 @@ Command Palette (Ctrl+Shift+P):
 
 Selecting a model does not enable autocomplete: run **DevPulse: Toggle Inline
 Autocomplete** to opt in, then type a function signature in a saved workspace file.
+
+## Commit description and analysis
+
+Stage the intended change, then run **DevPulse: Generate Commit Description &
+Analysis** from the Command Palette. Gemma drafts a conventional commit title,
+description and analysis in an editable, unsaved text document. Copy the message
+into Source Control after reviewing it. The command does not stage files, commit,
+or run tests; its analysis is a suggestion, not verification.
+
+Only staged text diffs are sent, with secrets redacted and private/generated and
+binary files excluded. Exclusions are listed in the draft. Diffs over 24,000
+characters require a smaller staged change. If staging changes during generation,
+the draft is discarded so it cannot describe an old index. It uses your selected
+review/chat model and remains cancellable.
+
+## AI response cache
+
+Successful structured responses (including commit drafts) and autocomplete results
+are reused for five minutes in memory. Hits bypass the inference queue; queued
+duplicates check again before contacting Gemma. The model catalog is cached for
+one minute. Prompt/context, model, server/authentication configuration and output
+options distinguish requests, so changed input or configuration triggers fresh work.
+
+The shared cache holds at most 64 responses and 2 MiB, evicting the least recently
+used entries. Nothing is written to disk; restarting clears it. Use **DevPulse:
+Clear AI Response Cache** to clear stored responses and the model catalog. Failed
+requests are not cached, and structured results are validated again on reuse.
+Live Git status and staged diffs are read again to keep repository state current;
+streaming chat and the separate PR revision cache retain their existing behavior.
