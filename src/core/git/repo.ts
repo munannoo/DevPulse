@@ -27,7 +27,13 @@ export type BranchStatus = {
   fresh: boolean; note?: string; head?: string;
 };
 export async function getBranchStatus(cwd: string, fetchRemote: boolean, signal?: AbortSignal): Promise<BranchStatus> {
-  const root = (await git(cwd, ['rev-parse', '--show-toplevel'], signal)).trim();
+  let root: string;
+  try {
+    root = (await git(cwd, ['rev-parse', '--show-toplevel'], signal)).trim();
+  } catch {
+    signal?.throwIfAborted();
+    return { root: cwd, branch: '', fresh: false, note: 'Open a Git repository to check branch status.' };
+  }
   const branch = (await git(root, ['branch', '--show-current'], signal)).trim();
   const status: BranchStatus = { root, branch: branch || 'Detached HEAD', fresh: false };
   try { status.head = (await git(root, ['rev-parse', '--verify', 'HEAD'], signal)).trim(); }
