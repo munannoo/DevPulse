@@ -96,6 +96,12 @@ test('Git fetch detects behind; review collects saved staged, unstaged and new f
   const largeChanges = await collectChanges(local, true);
   assert.equal(largeChanges.inputs.filter(input => input.file.startsWith('large')).length, 3);
   assert.ok(!largeChanges.skipped.some(file => file.includes('review size limit')));
+  for (let index = 0; index < 25; index++) {
+    await writeFile(join(local, `extra${index}.ts`), 'export const extra = true;\n');
+  }
+  const manyChanges = await collectChanges(local, true);
+  assert.equal(manyChanges.inputs.filter(input => input.file.startsWith('extra')).length, 25);
+  assert.ok(!manyChanges.skipped.some(file => file.includes('20-file limit')));
   await git(local, ['remote', 'set-url', 'origin', join(directory, 'missing.git')]);
   const offline = await getBranchStatus(local, true);
   assert.equal(offline.fresh, false); assert.equal(offline.behind, 1);

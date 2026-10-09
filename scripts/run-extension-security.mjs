@@ -12,14 +12,16 @@ await mkdir(fixtures, { recursive: true });
 const root = await mkdtemp(path.join(fixtures, '.security-check-'));
 const execute = promisify(execFile);
 const server = createServer(async (request, response) => {
-  for await (const _chunk of request) { /* Consume fixture input without logging it. */ }
+  let body = '';
+  for await (const chunk of request) { body += chunk; }
+  const file = /^File: ([^\n]+)/.exec(JSON.parse(body).messages.at(-1).content)?.[1];
   response.setHeader('Content-Type', 'application/json');
   response.end(JSON.stringify({ choices: [{ message: { content: JSON.stringify({ summary: 'Fixture review.',
-    findings: ['warning', 'security', 'context'].map((severity, index) => ({
+    findings: file === 'highlight.ts' ? ['warning', 'security', 'context'].map((severity, index) => ({
       file: 'highlight.ts', startLine: index + 1, endLine: index + 1, severity,
       title: 'Fixture finding', explanation: 'Fixture explanation.',
       ...(index === 0 ? { replacement: 'const value = 2;' } : {}),
-    })),
+    })) : [],
   }) } }] }));
 });
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
@@ -27,7 +29,7 @@ try {
   for (const args of [['init'], ['config', 'user.name', 'DevPulse Test'], ['config', 'user.email', 'test@example.invalid']]) {
     await execute('git', args, { cwd: root, timeout: 15_000 });
   }
-  await writeFile(path.join(root, '.gitignore'), '/.env\n');
+  await writeFile(path.join(root, '.gitignore'), '/.env\n/.profile\n');
   await writeFile(path.join(root, 'config.ts'), 'const enabled = true;\n');
   await execute('git', ['add', '.'], { cwd: root, timeout: 15_000 });
   await execute('git', ['commit', '-m', 'fixture'], { cwd: root, timeout: 15_000 });

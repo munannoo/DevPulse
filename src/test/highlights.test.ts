@@ -4,6 +4,22 @@ import { writeFile } from 'node:fs/promises';
 import type { ReviewState } from '../vscode/panel/messages';
 
 suite('Highlights in the Extension Host', () => {
+  test('Review My Changes reviews more than twenty files', async function () {
+    if (process.env.DEVPULSE_SECURITY_FIXTURE !== '1') { this.skip(); }
+    const root = vscode.workspace.workspaceFolders?.[0]?.uri;
+    assert.ok(root);
+    for (let index = 0; index < 25; index++) {
+      await writeFile(vscode.Uri.joinPath(root, `many${index}.ts`).fsPath, 'export const value = 1;\n');
+    }
+    const extension = vscode.extensions.all.find(item => item.packageJSON.name === 'devpulse');
+    assert.ok(extension);
+    const api = await extension.activate() as { getReviewState(): ReviewState };
+    await vscode.commands.executeCommand('devpulse.reviewChanges');
+    const state = api.getReviewState();
+    assert.equal(state.phase, 'complete', state.message);
+    assert.equal(state.summaries.filter(item => /^many\d+\.ts$/.test(item.file)).length, 25);
+    assert.ok(!state.skipped.some(item => item.includes('20-file limit')));
+  });
   test('Analyze File renders three severities, trusted own action, and invalidates old IDs', async function () {
     if (process.env.DEVPULSE_SECURITY_FIXTURE !== '1') { this.skip(); }
     const extension = vscode.extensions.all.find(item => item.packageJSON.name === 'devpulse');
