@@ -7,6 +7,20 @@
 	"configurations": [
 		{
 			"name": "Run Extension",
+			"type": "extensionHost",
+			"request": "launch",
+			"args": [
+				"--extensionDevelopmentPath=${workspaceFolder}",
+				"--disable-extensions",
+				"--disable-workspace-trust"
+			],
+			"outFiles": [
+				"${workspaceFolder}/dist/**/*.js"
+			],
+			"preLaunchTask": "devpulse: compile"
+		},
+		{
+			"name": "Run Extension (via Script)",
 			"type": "node",
 			"request": "launch",
 			"noDebug": true,
