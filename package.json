@@ -34,7 +34,8 @@
     "check-types": "tsc --noEmit",
     "lint": "eslint src",
     "test": "vscode-test",
-    "build": "npm run package"
+    "build": "npm run package",
+    "test:core": "npm run compile-tests && node --test out/test/core/*.test.js"
   },
   "devDependencies": {
     "@types/vscode": "^1.103.0",
