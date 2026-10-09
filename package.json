@@ -106,6 +106,18 @@
           "default": true,
           "scope": "machine",
           "description": "Request JSON output. Disable for servers without response_format support; responses are always validated."
+        },
+        "devpulse.assistant.inline.enabled": {
+          "type": "boolean",
+          "default": true,
+          "scope": "resource",
+          "description": "Enable or disable Gemma-powered inline code completions."
+        },
+        "devpulse.assistant.inline.model": {
+          "type": "string",
+          "default": "",
+          "scope": "resource",
+          "description": "Optional model override for inline completion (e.g. gemma4:e2b). If omitted, devpulse.llm.model is used."
         }
       }
     }

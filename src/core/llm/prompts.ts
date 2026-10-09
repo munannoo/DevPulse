@@ -14,3 +14,12 @@ Return at most eight findings. No findings is valid. Avoid stylistic nitpicks.`;
 
 // Repair preserves the original review schema.
 export const repairPrompt = 'Your last response was invalid. Return valid JSON only, matching the requested schema. No markdown or think blocks.';
+
+// System prompt for inline code completions (Copilot-style ghost text)
+export const autocompletePrompt = `You are a high-speed inline code completion engine powered by Gemma.
+Provide the code completion that immediately continues from the cursor.
+Rules:
+1. Output ONLY the raw code to be inserted at the cursor position.
+2. Never repeat the prefix code that appears before the cursor.
+3. Never output markdown code fences (\`\`\`), commentary, or explanation.
+4. Stop immediately when the current logical statement or block is completed.`;
