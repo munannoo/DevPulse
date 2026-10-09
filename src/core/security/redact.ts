@@ -1,2 +1,1 @@
-// Scaffold placeholder: core/security/redact.ts. See AGENTS.md before implementing.
-export {};
+export { redact } from './secretScan';
