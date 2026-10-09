@@ -56,8 +56,8 @@ export function registerPrecommit(context: vscode.ExtensionContext): void {
     }
   }
 
-  function show(message?: string): void {
-    panel.update({ type: 'security', findings, message: message ?? (findings.length ? `${findings.length} staged issue(s). Commit blocked.` : 'All clear. No secrets found in staged additions.') });
+  function show(message?: string, phase: 'checking' | 'ready' | 'failed' = 'ready'): void {
+    panel.update({ type: 'security', findings, phase, message: message ?? (findings.length ? `${findings.length} staged issue(s). Commit blocked.` : 'All clear. No secrets found in staged additions.') });
     paint();
   }
 
@@ -67,7 +67,7 @@ export function registerPrecommit(context: vscode.ExtensionContext): void {
       // Only our own known errors are surfaced. Filesystem/Git errors can include sensitive data.
       const message = error instanceof Error && /^(This file has unstaged|\.gitignore has unstaged|Untrack \.env|Files changed while|Scan again\.|The source changed|Symlink fixes)/.test(error.message)
         ? error.message : 'Security check unavailable. Check Git and file permissions, then retry.';
-      show(message);
+      show(message, 'failed');
       await vscode.window.showWarningMessage(message);
     }
   }
@@ -84,6 +84,7 @@ export function registerPrecommit(context: vscode.ExtensionContext): void {
   async function scan(): Promise<void> {
     if (scanning || fixing) { pending = true; return; }
     scanning = true;
+    show('Checking staged changes…', 'checking');
     try {
       const base = await requireRoot();
       findings = (await verifyStaged(base, undefined, false)).findings;

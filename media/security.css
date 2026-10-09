@@ -60,7 +60,7 @@ body {
   box-shadow: 0 2px 8px rgba(168, 85, 247, 0.12);
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
   flex-shrink: 0;
-  cursor: pointer;
+  cursor: default;
 }
 
 .mascot-wrapper:hover {
@@ -78,8 +78,9 @@ body {
 
 .brand-info {
   display: flex;
-  align-items: baseline;
-  gap: 6px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
 }
 
 .brand-name {
@@ -93,7 +94,7 @@ body {
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--vscode-descriptionForeground);
+  color: var(--vscode-badge-foreground);
   padding: 1px 5px;
   border-radius: var(--radius-pill);
   background: var(--vscode-badge-background, rgba(127, 127, 127, 0.15));
@@ -121,9 +122,7 @@ body {
 .status-message {
   font-size: 11.5px;
   color: var(--vscode-descriptionForeground);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
 }
 
 /* Security Actions */
@@ -293,4 +292,20 @@ body {
 button:focus-visible {
   outline: 2px solid var(--vscode-focusBorder);
   outline-offset: 1px;
+}
+
+#security-status[data-phase="checking"] .status-dot { background: var(--vscode-descriptionForeground); }
+#security-status[data-phase="failed"] .status-dot { background: var(--vscode-editorWarning-foreground); }
+#security-status[data-phase="blocked"] .status-dot { background: var(--vscode-editorError-foreground); }
+.finding-meta { gap: 8px; flex-wrap: wrap; }
+.location-tag { overflow-wrap: anywhere; }
+.finding-card, .empty-state { min-width: 0; }
+.btn-primary:disabled, .btn-secondary:disabled { opacity: .5; cursor: not-allowed; }
+.empty-state { padding: 16px 12px; }
+@media (max-width: 300px) { body { padding: 8px; } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; }
+}
+body.vscode-high-contrast .finding-card, body.vscode-high-contrast-light .finding-card {
+  border: 1px solid var(--vscode-contrastBorder, var(--vscode-focusBorder));
 }

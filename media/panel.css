@@ -67,7 +67,7 @@ body {
   box-shadow: 0 2px 8px rgba(168, 85, 247, 0.12);
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
   flex-shrink: 0;
-  cursor: pointer;
+  cursor: default;
 }
 
 .mascot-wrapper:hover {
@@ -85,8 +85,9 @@ body {
 
 .brand-info {
   display: flex;
-  align-items: baseline;
-  gap: 6px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
 }
 
 .brand-name {
@@ -104,7 +105,7 @@ body {
   color: var(--vscode-descriptionForeground);
   padding: 1px 5px;
   border-radius: var(--radius-pill);
-  background: var(--vscode-badge-background, rgba(127, 127, 127, 0.15));
+  background: var(--vscode-editorWidget-background);
 }
 
 .badge {
@@ -139,7 +140,8 @@ body {
   align-items: center;
   justify-content: center;
   gap: 5px;
-  padding: 5px 8px;
+  min-width: 0;
+  padding: 8px 4px;
   border: none;
   background: transparent;
   color: var(--vscode-descriptionForeground);
@@ -158,8 +160,8 @@ body {
 .tab-btn[aria-pressed="true"] {
   background: var(--vscode-sideBar-background);
   color: var(--vscode-foreground);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
   font-weight: 600;
+  box-shadow: inset 0 -2px var(--vscode-focusBorder);
 }
 
 .tab-btn.tab-disabled {
@@ -333,8 +335,7 @@ body {
 .card-title {
   font-size: 11.5px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.01em;
   color: var(--vscode-foreground);
 }
 
@@ -1073,4 +1074,59 @@ textarea:focus-visible, input:focus-visible {
 
 .muted {
   color: var(--vscode-descriptionForeground);
+}
+
+/* Compact layouts retain complete status and file names. */
+.status-message { white-space: normal; overflow-wrap: anywhere; }
+.brand, .companion-content, .card-body, .tab-pane { min-width: 0; }
+.panel-header { gap: 8px; }
+.branch-pill, .remote-pill, .summary-header, .pr-list p { overflow-wrap: anywhere; }
+.companion-header, .finding-meta { flex-wrap: wrap; }
+.companion-mascot-img, .empty-mascot-img { animation: none; }
+.btn-primary:disabled, .btn-secondary:disabled { opacity: .5; cursor: not-allowed; }
+.pr-list button, .chat-message button {
+  font: inherit;
+  padding: 6px 10px;
+  border: 1px solid var(--vscode-button-border, var(--vscode-panel-border));
+  border-radius: var(--radius-sm);
+  background: var(--vscode-button-secondaryBackground);
+  color: var(--vscode-button-secondaryForeground);
+  cursor: pointer;
+}
+.pr-list button:hover:not(:disabled), .chat-message button:hover {
+  background: var(--vscode-button-secondaryHoverBackground);
+}
+.pr-list button:disabled { opacity: .5; cursor: not-allowed; }
+.pr-result > details {
+  padding: 10px;
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: var(--radius-md);
+}
+.pr-result summary { cursor: pointer; overflow-wrap: anywhere; }
+.pr-result p, .pr-result li { overflow-wrap: anywhere; }
+.pr-result ul { padding-left: 16px; }
+.chat-message { overflow-wrap: anywhere; }
+.chat-message > strong { display: block; margin-bottom: 8px; color: var(--vscode-textLink-foreground); }
+.chat-message p, .chat-message pre { margin: 6px 0 10px; }
+.chat-message pre { padding: 10px; overflow-x: auto; white-space: pre; }
+.chat-message button { margin-top: 6px; }
+.chat-options { flex-direction: row; flex-wrap: wrap; gap: 8px 12px; }
+.checkbox-label { font-size: 11px; }
+.focus-metric-value { font-size: 20px; font-variant-numeric: tabular-nums; }
+.focus-metric-box { min-width: 0; padding: 12px; }
+.focus-card .muted-note { line-height: 1.6; }
+@media (max-width: 300px) {
+  body { padding: 8px; }
+  .tab-icon { display: none; }
+  .tab-btn { font-size: 11px; }
+  .header-status .badge { font-size: 10px; }
+  .card { padding: 10px; }
+  .focus-metrics-row { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+body.vscode-high-contrast .card, body.vscode-high-contrast-light .card,
+body.vscode-high-contrast .tab-btn[aria-pressed="true"], body.vscode-high-contrast-light .tab-btn[aria-pressed="true"] {
+  border: 1px solid var(--vscode-contrastBorder, var(--vscode-focusBorder));
 }

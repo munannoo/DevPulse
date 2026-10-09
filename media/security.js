@@ -9,6 +9,9 @@ document.getElementById('install')?.addEventListener('click', () => vscode.postM
 window.addEventListener('message', event => {
   const state = event.data;
   if (!state || state.type !== 'security' || !Array.isArray(state.findings)) { return; }
+  const phase = state.phase ?? 'ready';
+  document.getElementById('security-status')?.setAttribute('data-phase', phase === 'ready' && state.findings.length ? 'blocked' : phase);
+  for (const id of ['scan', 'install']) { const button = document.getElementById(id); if (button) { button.disabled = phase === 'checking'; } }
 
   const statusEl = document.getElementById('status');
   if (statusEl) {
@@ -25,11 +28,11 @@ window.addEventListener('message', event => {
 
     const title = document.createElement('p');
     title.className = 'empty-title';
-    title.textContent = 'All Clear';
+    title.textContent = phase === 'failed' ? 'Verification unavailable' : phase === 'checking' ? 'Checking staging' : 'All Clear';
 
     const desc = document.createElement('p');
     desc.className = 'empty-desc';
-    desc.textContent = 'No credentials or secrets detected in staged additions.';
+    desc.textContent = phase === 'failed' ? 'Retry verification before committing.' : phase === 'checking' ? 'Results will appear when the scan finishes.' : 'No staged issues found. Review skipped or partial checks in the status above.';
 
     emptyCard.append(title, desc);
     list.append(emptyCard);

@@ -74,7 +74,7 @@ export function isPanelMessage(value: unknown): value is PanelMessage {
 import type { SecretFinding } from '../../core/security/secretScan';
 
 export type SecurityPanelMessage = { type: 'scan' } | { type: 'install' } | { type: 'fix'; id: string };
-export type SecurityState = { type: 'security'; findings: SecretFinding[]; message: string };
+export type SecurityState = { type: 'security'; findings: SecretFinding[]; message: string; phase?: 'checking' | 'ready' | 'failed' };
 
 export function securityPanelMessage(value: unknown): SecurityPanelMessage | undefined {
   if (!value || typeof value !== 'object') { return undefined; }

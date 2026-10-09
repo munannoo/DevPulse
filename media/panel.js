@@ -7,6 +7,9 @@ const vscode = acquireVsCodeApi();
 const element = id => document.getElementById(id);
 /** @param {PanelMessage} message */
 const send = message => vscode.postMessage(message);
+// Keep visual priority and keyboard reading order aligned.
+element('overview').prepend(element('attention'));
+element('attention').after(document.querySelector('.primary-action-wrap'));
 
 function selectTab(tab) {
   element('overview').hidden = tab !== 'overview';
@@ -224,12 +227,15 @@ window.addEventListener('message', event => {
   ].filter(Boolean).join(' ');
 
   // Empty state handling
-  const hasContent = state.findings.length > 0 || (state.summaries.length > 0 && state.phase !== 'complete');
+  const hasContent = state.findings.length > 0 || state.summaries.length > 0;
   element('empty').hidden = hasContent;
   const emptyMsg = element('empty').querySelector('.empty-message');
   if (emptyMsg) {
     emptyMsg.textContent = state.phase === 'complete' && state.reviewedFiles && !state.skipped.length
       ? `All clear: No findings in ${state.reviewedFiles} reviewed file(s).`
+      : state.phase === 'failed' ? 'Review unavailable. Check the status above and try again.'
+      : state.skipped.length ? 'Review is partial. See skipped files below.'
+      : busy ? 'Review in progress. Findings will appear here.'
       : 'Run a review to see summaries and findings.';
   }
 

@@ -4,7 +4,7 @@ import { securityPanelMessage, SecurityPanelMessage, SecurityState } from './mes
 
 export class SecurityPanelProvider implements vscode.WebviewViewProvider {
   private view?: vscode.WebviewView;
-  private state: SecurityState = { type: 'security', findings: [], message: 'Checking staged changes…' };
+  private state: SecurityState = { type: 'security', findings: [], message: 'Checking staged changes…', phase: 'checking' };
 
   constructor(private readonly context: vscode.ExtensionContext, private readonly receive: (message: SecurityPanelMessage) => void) {}
 
@@ -32,7 +32,7 @@ export class SecurityPanelProvider implements vscode.WebviewViewProvider {
             </div>
           </div>
         </header>
-        <div class="status-strip">
+        <div id="security-status" class="status-strip" data-phase="checking">
           <span class="status-dot"></span>
           <span id="status" class="status-message" role="status">Checking staged changes…</span>
         </div>
