@@ -1,6 +1,19 @@
 # Gemma DevPulse
 A local-first, self-hostable VS Code extension and Git pre-commit guard.
 
+## Welcome and sync
+
+Overview shows your branch status and a short summary of commits since the last
+visit, including authors and changed files. The first visit establishes a baseline.
+Only bounded, redacted commit metadata goes to Gemma; commit counts remain available
+when the server is unavailable. Reload the same Development Host to test revisits.
+
+**Git Pull & Sync** uses fast-forward only and refreshes the summary and reminders.
+Save your edited files and commit or stash local changes first. Diverged branches
+need manual reconciliation. Check the configured server and model with
+`node dist/cli.js ping`; the diagnostic prints reachability and latency without
+printing the endpoint or token.
+
 ## Saved context and pull reminders
 
 DevPulse saves editing context after about two seconds of inactivity. Reopening
