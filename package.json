@@ -19,6 +19,7 @@
       { "command": "devpulse.openPanel", "title": "DevPulse: Open Panel" },
       { "command": "devpulse.resumeWork", "title": "DevPulse: Resume Where You Left Off" },
       { "command": "devpulse.pullAndSync", "title": "DevPulse: Git Pull & Sync" },
+      { "command": "devpulse.applySuggestion", "title": "DevPulse: Apply Suggestion" },
       {
         "command": "devpulse.helloWorld",
         "title": "DevPulse: Hello World"

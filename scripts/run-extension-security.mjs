@@ -4,12 +4,25 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { runTests } from '@vscode/test-electron';
 import assert from 'node:assert/strict';
+import { createServer } from 'node:http';
 
 const project = process.cwd();
 const fixtures = path.join(project, 'test-repo');
 await mkdir(fixtures, { recursive: true });
 const root = await mkdtemp(path.join(fixtures, '.security-check-'));
 const execute = promisify(execFile);
+const server = createServer(async (request, response) => {
+  for await (const _chunk of request) { /* Consume fixture input without logging it. */ }
+  response.setHeader('Content-Type', 'application/json');
+  response.end(JSON.stringify({ choices: [{ message: { content: JSON.stringify({ summary: 'Fixture review.',
+    findings: ['warning', 'security', 'context'].map((severity, index) => ({
+      file: 'highlight.ts', startLine: index + 1, endLine: index + 1, severity,
+      title: 'Fixture finding', explanation: 'Fixture explanation.',
+      ...(index === 0 ? { replacement: 'const value = 2;' } : {}),
+    })),
+  }) } }] }));
+});
+await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 try {
   for (const args of [['init'], ['config', 'user.name', 'DevPulse Test'], ['config', 'user.email', 'test@example.invalid']]) {
     await execute('git', args, { cwd: root, timeout: 15_000 });
@@ -25,10 +38,15 @@ try {
     vscodeExecutablePath: executable,
     extensionDevelopmentPath: project,
     extensionTestsPath: path.join(project, 'node_modules/@vscode/test-cli/out/runner.cjs'),
-    extensionTestsEnv: { DEVPULSE_SECURITY_FIXTURE: '1', VSCODE_TEST_OPTIONS: JSON.stringify({ mochaOpts: { ui: 'tdd', timeout: 30_000 }, files: [path.join(project, 'out/test/security.test.js'), path.join(project, 'out/test/suggestion.test.js')], preload: [] }) },
+    extensionTestsEnv: { DEVPULSE_SECURITY_FIXTURE: '1',
+      DEVPULSE_LLM_BASE_URL: `http://127.0.0.1:${server.address().port}/v1`, DEVPULSE_LLM_MODEL: 'fixture',
+      VSCODE_TEST_OPTIONS: JSON.stringify({ mochaOpts: { ui: 'tdd', timeout: 30_000 },
+        files: ['security', 'suggestion', 'highlights'].map(name => path.join(project, `out/test/${name}.test.js`)), preload: [] }) },
     launchArgs: [root, '--disable-extensions', '--skip-welcome', '--skip-release-notes', '--disable-workspace-trust', '--user-data-dir', path.join(root, '.profile')],
   });
 } finally {
+  server.closeAllConnections();
+  await new Promise(resolve => server.close(resolve));
   assert.equal(path.dirname(path.resolve(root)), path.resolve(fixtures));
   assert.ok(path.basename(root).startsWith('.security-check-'));
   await rm(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });

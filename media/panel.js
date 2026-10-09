@@ -69,11 +69,16 @@ window.addEventListener('message', event => {
     location.addEventListener('click', () => send({ type: 'openFinding', index }));
     const explanation = document.createElement('p'); explanation.textContent = finding.explanation;
     card.append(title, location, explanation);
-    if (finding.suggestion) {
+    if (finding.suggestion || finding.replacement) {
       const details = document.createElement('details');
       const label = document.createElement('summary'); label.textContent = 'Suggestion';
-      const suggestion = document.createElement('pre'); suggestion.textContent = finding.suggestion;
+      const suggestion = document.createElement('pre'); suggestion.textContent = finding.replacement ?? finding.suggestion ?? '';
       details.append(label, suggestion); card.append(details);
+    }
+    if (finding.suggestionId) {
+      const apply = document.createElement('button'); apply.textContent = 'Apply Suggestion'; apply.disabled = busy;
+      apply.addEventListener('click', () => { apply.disabled = true; send({ type: 'applySuggestion', id: finding.suggestionId }); });
+      card.append(apply);
     }
     element('findings').append(card);
   });

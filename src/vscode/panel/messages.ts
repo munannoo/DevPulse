@@ -2,12 +2,13 @@ import type { BranchStatus } from '../../core/git/repo';
 import type { Finding } from '../../core/llm/schemas';
 import type { LeftOffBanner } from '../features/leftOff';
 import type { WelcomeState } from '../features/welcome';
+export type PanelFinding = Finding & { suggestionId?: string };
 
 export type ReviewState = {
   phase: 'idle' | 'checking' | 'reviewing' | 'complete' | 'failed' | 'cancelled';
   message: string;
   branch?: BranchStatus;
-  findings: Finding[];
+  findings: PanelFinding[];
   summaries: Array<{ file: string; text: string }>;
   skipped: string[];
   offline: boolean;
@@ -18,12 +19,16 @@ export type ReviewState = {
 };
 export type PanelMessage =
   | { type: 'ready' | 'reviewChanges' | 'analyzeFile' | 'refreshBranch' | 'cancelReview' | 'resumeWork' | 'pullAndSync' }
-  | { type: 'openFinding'; index: number };
+  | { type: 'openFinding'; index: number }
+  | { type: 'applySuggestion'; id: string };
 export type ExtensionMessage = { type: 'state'; state: ReviewState };
 
 export function isPanelMessage(value: unknown): value is PanelMessage {
   if (!value || typeof value !== 'object') { return false; }
   const message = value as Record<string, unknown>;
+  if (message.type === 'applySuggestion') {
+    return typeof message.id === 'string' && /^[a-f0-9-]{36}$/.test(message.id);
+  }
   if (message.type === 'openFinding') {
     return Number.isInteger(message.index) && Number(message.index) >= 0;
   }
