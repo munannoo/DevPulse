@@ -1,11 +1,16 @@
 import type { LlmConfig } from './config';
 import { redact } from '../security/redact';
+import { contentHash, getCached, setCached } from './cache';
 export class ModelListError extends Error {}
 export function validModelId(value: unknown): value is string {
   return typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,199}$/.test(value) && redact(value) === value;
 }
 export async function listModels(config: LlmConfig, signal?: AbortSignal): Promise<string[]> {
   try {
+    signal?.throwIfAborted();
+    const key = contentHash(JSON.stringify(['models', config.baseUrl, config.apiKey]));
+    const cached = getCached(key);
+    if (cached !== undefined) { return JSON.parse(cached) as string[]; }
     const response = await fetch(`${config.baseUrl}/models`, { redirect: 'error',
       signal: AbortSignal.any([AbortSignal.timeout(8000), ...(signal ? [signal] : [])]),
       headers: config.apiKey ? { Authorization: `Bearer ${config.apiKey}` } : {} });
@@ -21,7 +26,8 @@ export async function listModels(config: LlmConfig, signal?: AbortSignal): Promi
     } finally { await reader.cancel().catch(() => {}); reader.releaseLock(); }
     const body = JSON.parse(Buffer.concat(chunks).toString('utf8')) as { data?: Array<{ id?: unknown }> };
     if (!Array.isArray(body?.data)) { throw new ModelListError('Gemma returned an invalid model list.'); }
-    return [...new Set(body.data.map(item => item?.id).filter(validModelId))].sort().slice(0, 200);
+    const models = [...new Set(body.data.map(item => item?.id).filter(validModelId))].sort().slice(0, 200);
+    setCached(key, JSON.stringify(models), 60_000); return models;
   } catch (error) {
     if (error instanceof ModelListError) { throw error; }
     throw new ModelListError(signal?.aborted ? 'Model selection cancelled.' : 'Gemma model list is unavailable. Check the server and try again.');

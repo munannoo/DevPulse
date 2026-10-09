@@ -59,14 +59,17 @@ export function createLlm(config: LlmConfig) {
       if (request.signal?.aborted) { controller.abort(); }
       const timer = setTimeout(cancel, request.timeoutMs ?? 30_000);
       try {
-        return await requestQueue.run(async () => {
-          const system = redact(request.system);
-          const user = redact(request.user);
-          const key = contentHash(JSON.stringify([config, system, user, request.maxTokens, request.responseSchema]));
+        controller.signal.throwIfAborted();
+        const system = redact(request.system), user = redact(request.user);
+        const key = contentHash(JSON.stringify(['chat', config, system, user, request.maxTokens ?? 1600, request.responseSchema]));
+        const cachedResult = () => {
           const cached = getCached(key);
-          if (cached) {
-            try { return request.json(parseJson(cached)); } catch { /* Revalidate against the caller's schema. */ }
-          }
+          if (cached !== undefined) { try { return { value: request.json(parseJson(cached)) }; } catch { /* Revalidate before reuse. */ } }
+          return undefined;
+        };
+        const immediate = cachedResult(); if (immediate) { return immediate.value; }
+        return await requestQueue.run(async () => {
+          const ready = cachedResult(); if (ready) { return ready.value; }
           let jsonMode = config.jsonMode;
           let schemaMode = Boolean(request.responseSchema);
           let thinkingControls = true;
@@ -157,11 +160,12 @@ export function createLlm(config: LlmConfig) {
       if (request.signal?.aborted) { controller.abort(); }
       const timer = setTimeout(cancel, request.timeoutMs ?? 8_000);
       try {
+        controller.signal.throwIfAborted();
+        const system = redact(request.system), user = redact(request.user);
+        const model = request.model?.trim() || config.model;
+        const key = contentHash(JSON.stringify(['complete', config, model, system, user, request.maxTokens ?? 64, request.temperature ?? 0.1]));
+        const immediate = getCached(key); if (immediate !== undefined) { return immediate; }
         return await requestQueue.run(async () => {
-          const system = redact(request.system);
-          const user = redact(request.user);
-          const model = request.model?.trim() || config.model;
-          const key = contentHash(JSON.stringify(['complete', config, model, system, user, request.maxTokens, request.temperature]));
           const cached = getCached(key);
           if (cached !== undefined) {
             return cached;
