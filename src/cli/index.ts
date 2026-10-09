@@ -23,7 +23,7 @@ async function confirm(): Promise<boolean> {
 async function main(): Promise<void> {
   const command = process.argv[2];
   if (!command || command === '--help' || command === '-h') {
-    console.log('DevPulse: init | precommit | fix <finding-id> | ping\nRegex secret verification of staged additions.');
+    console.log('DevPulse: init [--ai] | precommit [--ai] | fix <finding-id> | ping\nRegex staged-secret verification; --ai enables optional time-boxed risk analysis.');
     return;
   }
   if (command === 'ping') {

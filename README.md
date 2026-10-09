@@ -27,6 +27,12 @@ that a pull is needed. Checks run every minute, on window focus and after Git re
 changes. The reminder clears after catching up; diverged branches and failed
 fetches receive distinct messages. Pulling remains an explicit user action.
 
+Attention also reports requested PR reviews, a missing DevPulse hook, and work
+that has remained uncommitted for a day. Change the threshold with
+`devpulse.reminders.uncommittedMinutes`. These checks run every minute, on focus,
+and after file changes; **DevPulse: Refresh Attention** checks immediately.
+Each issue produces at most one reminder toast per session, delayed during Flow.
+
 ## Editor highlights and suggestions
 
 Run **DevPulse: Analyze File** on a saved file. Yellow, red and blue gutters
@@ -66,8 +72,22 @@ new file or included in the report, preview or console output.
 Partially staged or unsaved files, tracked `.env` files and symlinks require
 manual handling. Other credential locations offer manual-fix guidance. Verify
 again after editing. Scanning is heuristic; it cannot guarantee all secrets are
-detected. This increment implements regex verification; optional Gemma pre-commit risk
-review remains scaffolded. LLM review of local changes is available separately.
+detected. LLM review of local changes is available separately.
+
+For optional AI checks, run **DevPulse: Install Pre-Commit Hook with AI Review**,
+or install with `node dist/cli.js init --ai`. The hook runs regex first, then
+reviews redacted staged additions for fatal runtime risks, unhandled network
+calls and PII logging. Valid risk findings block the commit and appear in the
+Security view for manual correction. AI work has a ten-second total limit;
+timeout, invalid responses or an unavailable server warn and allow the commit.
+Regex findings continue to block. The fast hook review skips private/generated
+files and limits context to 24,000 characters per file and 80,000 total, reporting
+partial coverage. It does not certify the whole diff.
+
+Use **DevPulse: Disable AI Pre-Commit Review** to return to regex-only checks.
+`node dist/cli.js precommit --ai` runs a one-off AI check. Hooks use the CLI's
+environment/`.env` model configuration, independent of editor model overrides.
+Reinstalling an existing hook preserves its AI mode and chained prior hook.
 
 Standalone use, after building:
 
@@ -86,8 +106,9 @@ if you move the extension or Node installation.
 
 Generated using the official `yo code` TypeScript/esbuild template and extended
 with the folder structure from `AGENTS.md`. Branch checks, LLM code review, the
-sidebar, and editor findings are implemented. The pre-commit secret guard and
-Security view and requested PR reviews are also implemented; other features remain placeholders.
+sidebar, editor findings, secret guard, optional AI hook review, requested PR
+reviews, inline autocomplete, streaming chat, commit descriptions, caching and
+passive focus tracking are implemented.
 
 ```powershell
 npm install
@@ -211,7 +232,21 @@ Security view separately offers confirmed fixes for supported credentials.
 Run `npm run test:core` for temporary local-Git and mock-HTTP tests covering
 behind status, change collection, configuration, redaction, validation, retries,
 caching, cancellation, and timeout handling. These do not contact your server.
-Interactive Extension Development Host acceptance checks remain pending.
+Extension Host fixture tests cover security fixes, reminders, editor suggestions,
+inline completions, chat and focus. `node scripts/test-left-off.mjs` verifies saved
+file/line navigation across two real launches with one disposable profile.
+For packaged installation acceptance, run:
+
+```powershell
+npm run build
+npm run compile-tests
+npx @vscode/vsce package --no-dependencies --out .vscode-test/devpulse-acceptance.vsix
+node scripts/test-install.mjs
+```
+
+These checks use isolated profiles and temporary repositories. They do not modify
+your installed extensions. Live GitHub/Gemma acceptance still needs a signed-in
+account, an open PR requesting review, and your configured model server.
 
 ## Pull request reviews
 
@@ -221,6 +256,11 @@ lists open PRs requesting your review in that repository (including team review
 requests). Choose **Review with Gemma** on a PR to see per-file summaries,
 severity-based risk and findings. Configure Gemma as described under Code review.
 You can also run **DevPulse: Connect GitHub** or **DevPulse: Refresh Requested PRs**.
+
+Requested PRs refresh automatically every five minutes and on window focus using
+an existing login. Focus checks are throttled and failed requests back off for up
+to thirty minutes. Background refresh preserves the current review where possible
+and never opens a sign-in prompt.
 
 PR review uses the remote diff without checking out the branch or changing local
 files. Finding links open the reviewed head revision on GitHub, so they do not
