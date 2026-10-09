@@ -243,8 +243,13 @@ export class CodeReview implements vscode.Disposable {
           this.highlights.clearFile(uri); this.markStale(uri); return;
         }
         const editor = await vscode.window.showTextDocument(document);
-        const position = new vscode.Position(Math.min(document.lineCount - 1, finding.startLine - 1), 0);
-        editor.selection = new vscode.Selection(position, position); editor.revealRange(new vscode.Range(position, position));
+        const startLine = Math.max(0, Math.min(document.lineCount - 1, finding.startLine - 1));
+        const endLine = Math.max(startLine, Math.min(document.lineCount - 1, finding.endLine - 1));
+        const startPos = new vscode.Position(startLine, 0);
+        const endPos = new vscode.Position(endLine, document.lineAt(endLine).text.length);
+        editor.selection = new vscode.Selection(startPos, endPos);
+        editor.revealRange(new vscode.Range(startPos, endPos), vscode.TextEditorRevealType.InCenterIfOutsideViewport);
+        this.highlights.pulseFinding(editor, finding);
       } catch { this.output.appendLine('Could not open this finding. The file may have moved.'); }
     }
   }
