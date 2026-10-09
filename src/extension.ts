@@ -11,6 +11,7 @@ import { Welcome } from './vscode/features/welcome';
 import { Focus } from './vscode/features/focus';
 import { Chat } from './vscode/assistant/chat';
 import { PullRequests } from './vscode/features/prReview';
+import { registerInlineCompletion } from './vscode/assistant/inlineCompletion';
 import { writeFile } from 'node:fs/promises';
 import { isAbsolute, relative, resolve, sep } from 'node:path';
 
@@ -97,6 +98,13 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.window.registerWebviewViewProvider('devpulse.panel', panel),
     vscode.commands.registerCommand('devpulse.openPanel', () => vscode.commands.executeCommand('devpulse.panel.focus')),
     vscode.commands.registerCommand('devpulse.pullAndSync', pull),
+    vscode.commands.registerCommand('devpulse.toggleInlineCompletion', async () => {
+      const config = vscode.workspace.getConfiguration('devpulse.assistant.inline');
+      const current = config.get<boolean>('enabled', true);
+      await config.update('enabled', !current, vscode.ConfigurationTarget.Global);
+      vscode.window.showInformationMessage(`DevPulse Inline Autocomplete ${!current ? 'enabled' : 'disabled'}.`);
+    }),
+    registerInlineCompletion(context, output),
     vscode.workspace.onDidChangeWorkspaceFolders(() => { void review.refreshBranch(); }),
   );
   // Render first; Git status loads in the background. LLM review is explicitly invoked.
