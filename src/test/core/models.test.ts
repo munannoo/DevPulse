@@ -19,6 +19,7 @@ test('model catalog validates IDs, deduplicates, sanitizes errors and honors can
   try {
     assert.deepEqual(await listModels(config), ['gemma4:12b', 'gemma4:e2b']);
     assert.deepEqual(await listModels(config), ['gemma4:12b', 'gemma4:e2b']); assert.equal(calls, 1);
+    assert.deepEqual(await listModels(config, undefined, true), ['gemma4:12b', 'gemma4:e2b']); assert.equal(calls, 2);
     clearCached();
     fail = true; await assert.rejects(listModels(config), /HTTP 500/);
     const controller = new AbortController(); controller.abort();
