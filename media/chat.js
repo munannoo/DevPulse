@@ -49,6 +49,30 @@ function renderChat(state, send) {
   const signature = JSON.stringify(chat.messages);
   if (messages.dataset.signature === signature) { return; }
   messages.dataset.signature = signature; messages.replaceChildren();
+  if (!chat.messages.length) {
+    const starter = document.createElement('div'); starter.className = 'chat-starter';
+    const title = document.createElement('h3'); title.className = 'chat-starter-title'; title.textContent = 'Ask Gemma About Your Code';
+    const desc = document.createElement('p'); desc.className = 'chat-starter-desc'; desc.textContent = 'Explore architecture, find edge cases, or choose a prompt to start:';
+    const chips = document.createElement('div'); chips.className = 'chat-chips';
+    const prompts = [
+      { label: '💡 Explain this file', prompt: 'Explain how this file works and summarize its key responsibilities.' },
+      { label: '🔍 Find potential bugs', prompt: 'Analyze this code for subtle edge cases, potential bugs, or unhandled errors.' },
+      { label: '🧪 Write unit tests', prompt: 'Write unit tests for the functions in this file covering normal and edge cases.' },
+    ];
+    for (const item of prompts) {
+      const chip = document.createElement('button'); chip.type = 'button'; chip.className = 'chat-chip'; chip.textContent = item.label;
+      chip.addEventListener('click', () => {
+        const input = element('chat-question');
+        if (input) {
+          input.value = item.prompt;
+          const fileCheck = element('chat-file'); if (fileCheck) { fileCheck.checked = true; }
+          if (typeof input.focus === 'function') { input.focus(); }
+        }
+      });
+      chips.append(chip);
+    }
+    starter.append(title, desc, chips); messages.append(starter);
+  }
   for (const message of chat.messages) {
     const card = document.createElement('article'); card.className = 'chat-message';
     const label = document.createElement('strong'); label.textContent = message.role === 'user' ? 'You' : 'Gemma';

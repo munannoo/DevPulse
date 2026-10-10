@@ -67,8 +67,9 @@ function renderPullRequests(state) {
   element('pr-list').replaceChildren();
   for (const pr of state.items) {
     const card = document.createElement('article');
-    const title = document.createElement('p'); title.textContent = `#${pr.number} · ${pr.title} — ${pr.author}`;
-    const button = document.createElement('button'); button.textContent = 'Review with Gemma'; button.disabled = busy;
+    const title = document.createElement('p'); title.className = 'pr-item-title'; title.textContent = `#${pr.number} · ${pr.title} — ${pr.author}`;
+    const button = document.createElement('button'); button.className = 'btn-secondary pr-review-btn'; button.textContent = 'Review with Gemma'; button.disabled = busy;
+    button.title = 'Run an automated AI code review on this pull request';
     button.addEventListener('click', () => send({ type: 'reviewPullRequest', number: pr.number }));
     card.append(title, button); element('pr-list').append(card);
   }
@@ -172,6 +173,7 @@ window.addEventListener('message', event => {
   // Branch status formatting
   const branch = state.branch;
   element('pull').disabled = busy || !branch?.upstream || !branch.behind || Boolean(branch.ahead);
+  element('pull').title = 'Safely fast-forward local branch with remote commits';
   element('pull-message').hidden = !state.welcome?.pullMessage;
   element('pull-message').textContent = state.welcome?.pullMessage ?? '';
 
@@ -186,19 +188,22 @@ window.addEventListener('message', event => {
       if (branch.behind) {
         const behind = document.createElement('span');
         behind.className = 'metric-pill behind';
-        behind.textContent = `↓${branch.behind} behind`;
+        behind.title = 'Commits available on the remote server waiting to be downloaded and synced';
+        behind.textContent = `↓ ${branch.behind} behind remote`;
         element('branch').append(behind);
       }
       if (branch.ahead) {
         const ahead = document.createElement('span');
         ahead.className = 'metric-pill ahead';
-        ahead.textContent = `↑${branch.ahead} ahead`;
+        ahead.title = 'Local commits ready to be pushed to the remote server';
+        ahead.textContent = `↑ ${branch.ahead} ahead of remote`;
         element('branch').append(ahead);
       }
       if (!branch.behind && !branch.ahead) {
         const synced = document.createElement('span');
         synced.className = 'metric-pill synced';
-        synced.textContent = '✓ Synced';
+        synced.title = 'Your local branch is completely up to date with remote';
+        synced.textContent = '✓ Up to date';
         element('branch').append(synced);
       }
       const remote = document.createElement('span');
@@ -269,11 +274,22 @@ window.addEventListener('message', event => {
 
     const severity = document.createElement('span');
     severity.className = 'severity-pill';
-    severity.textContent = finding.severity;
+    const severityLabels = {
+      security: '🛡️ Security',
+      warning: '⚠️ Warning',
+      context: '💡 Tip',
+    };
+    const severityTitles = {
+      security: 'Security vulnerability or hardcoded secret detected',
+      warning: 'Potential logic bug, error handling or unhandled edge case',
+      context: 'Code clarity, architectural design or style recommendation',
+    };
+    severity.textContent = severityLabels[finding.severity] ?? finding.severity;
+    severity.title = severityTitles[finding.severity] ?? finding.severity;
 
     const location = document.createElement('button');
     location.className = 'location-link';
-    location.title = `Jump to ${finding.file}:${finding.startLine}`;
+    location.title = `Jump to line in editor: ${finding.file}:${finding.startLine}`;
     location.textContent = `${finding.file}:${finding.startLine} ↗`;
     location.addEventListener('click', () => send({ type: 'openFinding', index }));
 
@@ -295,7 +311,7 @@ window.addEventListener('message', event => {
 
       const label = document.createElement('summary');
       label.className = 'suggestion-summary';
-      label.textContent = 'Suggested Fix';
+      label.textContent = 'Recommended Fix';
 
       const suggestion = document.createElement('pre');
       suggestion.className = 'suggestion-code';
@@ -306,7 +322,11 @@ window.addEventListener('message', event => {
     }
 
     if (finding.suggestionId) {
-      const apply = document.createElement('button'); apply.textContent = 'Apply Suggestion'; apply.disabled = busy;
+      const apply = document.createElement('button');
+      apply.className = 'btn-apply';
+      apply.title = 'Preview diff and automatically apply this fix to your file';
+      apply.textContent = 'Apply Suggestion';
+      apply.disabled = busy;
       apply.addEventListener('click', () => { apply.disabled = true; send({ type: 'applySuggestion', id: finding.suggestionId }); });
       card.append(apply);
     }

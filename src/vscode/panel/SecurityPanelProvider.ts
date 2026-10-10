@@ -37,8 +37,8 @@ export class SecurityPanelProvider implements vscode.WebviewViewProvider {
           <span id="status" class="status-message" role="status">Checking staged changes…</span>
         </div>
         <div class="security-actions">
-          <button id="scan" class="btn-primary">Verify Staged Changes</button>
-          <button id="install" class="btn-secondary">Install Pre-Commit Hook</button>
+          <button id="scan" class="btn-primary" title="Scan staged files for leaked API keys, tokens, or passwords">Verify Staged Changes</button>
+          <button id="install" class="btn-secondary" title="Install a Git hook to automatically block commits containing leaked secrets">Install Pre-Commit Hook</button>
         </div>
         <div id="findings" class="findings-group"></div>
       </div>

@@ -48,7 +48,8 @@ window.addEventListener('message', event => {
 
     const threat = document.createElement('span');
     threat.className = 'threat-pill';
-    threat.textContent = 'Security';
+    threat.textContent = '🛡️ Security';
+    threat.title = 'Leaked credential or secret detected in staged changes';
 
     const location = document.createElement('span');
     location.className = 'location-tag';
@@ -70,6 +71,7 @@ window.addEventListener('message', event => {
       const button = document.createElement('button');
       button.className = 'btn-fix';
       button.textContent = 'Auto-Fix Secret';
+      button.title = 'Automatically move secret to .env and replace it with an environment variable';
       button.addEventListener('click', () => vscode.postMessage({ type: 'fix', id: finding.id }));
       card.append(button);
     } else {
