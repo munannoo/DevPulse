@@ -15,6 +15,10 @@ const ALLOWED_TABS = ['overview', 'code', 'focus', 'chat'];
 const COLLAPSIBLE_SECTIONS = ['welcome-card', 'left-off', 'pull-requests', 'connection-card', 'skipped'];
 
 let currentTab = 'overview';
+let renderedFindings = '';
+const findingIdentity = finding => JSON.stringify([
+  finding.file, finding.startLine, finding.endLine, finding.title, finding.suggestion,
+]);
 
 function getStoredPreferences() {
   try {
@@ -488,6 +492,10 @@ window.addEventListener('message', event => {
   }
 
   // Findings rendering
+  const nextFindings = JSON.stringify(state.findings);
+  if (nextFindings !== renderedFindings) {
+  const expanded = new Set(Array.from(element('findings').querySelectorAll('details[open]'))
+    .map(details => details.dataset.finding));
   element('findings').replaceChildren();
   state.findings.forEach((finding, index) => {
     const card = document.createElement('article');
@@ -532,6 +540,8 @@ window.addEventListener('message', event => {
     if (finding.suggestion) {
       const details = document.createElement('details');
       details.className = 'suggestion-box';
+      details.dataset.finding = findingIdentity(finding);
+      details.open = expanded.has(details.dataset.finding);
 
       const label = document.createElement('summary');
       label.className = 'suggestion-summary';
@@ -555,6 +565,11 @@ window.addEventListener('message', event => {
       card.append(apply);
     }
     element('findings').append(card);
+  });
+  renderedFindings = nextFindings;
+  }
+  element('findings').querySelectorAll('.btn-apply').forEach(button => {
+    button.disabled = busy;
   });
 
   // Skipped files
