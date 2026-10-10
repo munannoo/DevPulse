@@ -45,8 +45,10 @@ test('optional AI hook mode preserves existing hook chains and can be disabled',
     await writeFile(hook, '#!/bin/sh\nexit 0\n');
     await installHook(root, join(root, 'cli.js'), true);
     assert.match(await readFile(hook, 'utf8'), /precommit --ai/);
+    const original = await readFile(hook, 'utf8');
+    await writeFile(hook, original.replace(/^.+ precommit --ai \|\| exit \$\?$/m, "'C:/broken/Code.exe' 'C:/old/cli.js' precommit --ai || exit $?"));
     await installHook(root, join(root, 'cli.js'));
-    assert.match(await readFile(hook, 'utf8'), /precommit --ai/);
+    assert.equal(await readFile(hook, 'utf8'), original, 'reinstallation repairs Electron runtime while preserving AI mode and chaining');
     await installHook(root, join(root, 'cli.js'), false);
     assert.ok(!(await readFile(hook, 'utf8')).includes('precommit --ai'));
     assert.equal(await readFile(hook + '.devpulse-backup', 'utf8'), '#!/bin/sh\nexit 0\n');

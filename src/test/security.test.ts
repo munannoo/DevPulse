@@ -19,6 +19,8 @@ suite('Pre-commit security in Extension Host', () => {
     assert.ok(extension.isActive);
     await vscode.commands.executeCommand('devpulse.security.focus');
     await vscode.commands.executeCommand('devpulse.installPrecommitHook');
+    const hook = await readFile(path.join(root, '.git', 'hooks', 'pre-commit'), 'utf8');
+    assert.ok(!/Code\.exe/i.test(hook), 'hook must use standalone Node, not the Electron extension host');
     const file = path.join(root, 'config.ts');
     const fake = 'sk_test_' + 'FAKEKEY0000000000';
     await writeFile(file, `const apiKey = "${fake}";\n`);
