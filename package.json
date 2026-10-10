@@ -1,8 +1,8 @@
 {
-  "name": "devpulse",
+  "name": "devpulseYahu",
   "displayName": "Gemma DevPulse",
   "description": "Local-first developer context and pre-commit review.",
-  "version": "0.0.1",
+  "version": "1.0.0.",
   "engines": {
     "node": "^20.19.0 || ^22.13.0 || >=24",
     "vscode": "^1.103.0"
@@ -16,30 +16,104 @@
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
-      { "command": "devpulse.connectGitHub", "title": "DevPulse: Connect GitHub" },
-      { "command": "devpulse.refreshPullRequests", "title": "DevPulse: Refresh Requested PRs" },
-      { "command": "devpulse.reviewPullRequest", "title": "DevPulse: Review Pull Request", "enablement": "false" },
-      { "command": "devpulse.cancelPullReview", "title": "DevPulse: Cancel PR Review" },
-      { "command": "devpulse.openPanel", "title": "DevPulse: Open Panel" },
-      { "command": "devpulse.openSettings", "title": "DevPulse: Open Settings" },
-      { "command": "devpulse.openSetupGuide", "title": "DevPulse: Set Up Ollama & Models" },
-      { "command": "devpulse.inspectAnalysisStep", "title": "DevPulse: Inspect Analysis Step", "enablement": "false" },
-      { "command": "devpulse.openChat", "title": "DevPulse: Open Chat" },
-      { "command": "devpulse.selectInlineModel", "title": "DevPulse: Select Autocomplete Model" },
-      { "command": "devpulse.selectModel", "title": "DevPulse: Select Model (Review & Chat)" },
-      { "command": "devpulse.generateCommitDescription", "title": "DevPulse: Generate Commit Description & Analysis" },
-      { "command": "devpulse.clearAiCache", "title": "DevPulse: Clear AI Response Cache" },
-      { "command": "devpulse.refreshAttention", "title": "DevPulse: Refresh Attention" },
-      { "command": "devpulse.checkConnection", "title": "DevPulse: Check AI Connection" },
-      { "command": "devpulse.installPrecommitAiHook", "title": "DevPulse: Install Pre-Commit Hook with AI Review" },
-      { "command": "devpulse.disablePrecommitAi", "title": "DevPulse: Disable AI Pre-Commit Review" },
-      { "command": "devpulse.explainSelection", "title": "DevPulse: Explain Selection" },
-      { "command": "devpulse.fixSelection", "title": "DevPulse: Fix Selection" },
-      { "command": "devpulse.writeTests", "title": "DevPulse: Write Tests" },
-      { "command": "devpulse.resumeWork", "title": "DevPulse: Resume Where You Left Off" },
-      { "command": "devpulse.pullAndSync", "title": "DevPulse: Git Pull & Sync" },
-      { "command": "devpulse.applySuggestion", "title": "DevPulse: Apply Suggestion" },
-      { "command": "devpulse.checkConnection", "title": "DevPulse: Check AI Connection" },
+      {
+        "command": "devpulse.connectGitHub",
+        "title": "DevPulse: Connect GitHub"
+      },
+      {
+        "command": "devpulse.refreshPullRequests",
+        "title": "DevPulse: Refresh Requested PRs"
+      },
+      {
+        "command": "devpulse.reviewPullRequest",
+        "title": "DevPulse: Review Pull Request",
+        "enablement": "false"
+      },
+      {
+        "command": "devpulse.cancelPullReview",
+        "title": "DevPulse: Cancel PR Review"
+      },
+      {
+        "command": "devpulse.openPanel",
+        "title": "DevPulse: Open Panel"
+      },
+      {
+        "command": "devpulse.openSettings",
+        "title": "DevPulse: Open Settings"
+      },
+      {
+        "command": "devpulse.openSetupGuide",
+        "title": "DevPulse: Set Up Ollama & Models"
+      },
+      {
+        "command": "devpulse.inspectAnalysisStep",
+        "title": "DevPulse: Inspect Analysis Step",
+        "enablement": "false"
+      },
+      {
+        "command": "devpulse.openChat",
+        "title": "DevPulse: Open Chat"
+      },
+      {
+        "command": "devpulse.selectInlineModel",
+        "title": "DevPulse: Select Autocomplete Model"
+      },
+      {
+        "command": "devpulse.selectModel",
+        "title": "DevPulse: Select Model (Review & Chat)"
+      },
+      {
+        "command": "devpulse.generateCommitDescription",
+        "title": "DevPulse: Generate Commit Description & Analysis"
+      },
+      {
+        "command": "devpulse.clearAiCache",
+        "title": "DevPulse: Clear AI Response Cache"
+      },
+      {
+        "command": "devpulse.refreshAttention",
+        "title": "DevPulse: Refresh Attention"
+      },
+      {
+        "command": "devpulse.checkConnection",
+        "title": "DevPulse: Check AI Connection"
+      },
+      {
+        "command": "devpulse.installPrecommitAiHook",
+        "title": "DevPulse: Install Pre-Commit Hook with AI Review"
+      },
+      {
+        "command": "devpulse.disablePrecommitAi",
+        "title": "DevPulse: Disable AI Pre-Commit Review"
+      },
+      {
+        "command": "devpulse.explainSelection",
+        "title": "DevPulse: Explain Selection"
+      },
+      {
+        "command": "devpulse.fixSelection",
+        "title": "DevPulse: Fix Selection"
+      },
+      {
+        "command": "devpulse.writeTests",
+        "title": "DevPulse: Write Tests"
+      },
+      {
+        "command": "devpulse.resumeWork",
+        "title": "DevPulse: Resume Where You Left Off"
+      },
+      {
+        "command": "devpulse.pullAndSync",
+        "title": "DevPulse: Git Pull & Sync"
+      },
+      {
+        "command": "devpulse.applySuggestion",
+        "title": "DevPulse: Apply Suggestion"
+      },
+      {
+        "command": "devpulse.checkConnection",
+        "title": "DevPulse: Check AI Connection"
+      },
       {
         "command": "devpulse.helloWorld",
         "title": "DevPulse: Hello World"
@@ -128,17 +202,55 @@
     "configuration": {
       "title": "DevPulse",
       "properties": {
-        "devpulse.analysis.highlights": { "type": "boolean", "default": true, "scope": "resource", "description": "Color reviewed code lines and gutters: red for security, yellow for warnings, blue for architectural context. Descriptions remain in the Code tab." },
-        "devpulse.analysis.codeLens": { "type": "boolean", "default": true, "scope": "resource", "description": "Show the DevPulse analysis action and finding count above the file. Also requires editor.codeLens." },
-        "devpulse.analysis.hovers": { "type": "boolean", "default": true, "scope": "resource", "description": "Show finding details and safe suggestion actions when hovering reviewed lines." },
-        "devpulse.analysis.diagrams": { "type": "boolean", "default": true, "scope": "resource", "description": "Show validated AI code-flow diagrams in hovers with clickable steps. Available when the review includes flow data." },
-        "devpulse.analysis.history": { "type": "boolean", "default": true, "scope": "resource", "description": "Include up to three recent file commits and authors in analysis hovers. Git history is cached for one minute; no AI request is made." },
-        "devpulse.focus.flowMinutes": { "type": "number", "default": 30, "minimum": 1, "maximum": 240,
-          "description": "Continuous active minutes before the In Flow badge appears." },
-        "devpulse.reminders.uncommittedMinutes": { "type": "number", "default": 1440, "minimum": 1, "maximum": 10080,
-          "description": "Minutes uncommitted work must remain before DevPulse shows a reminder." },
-        "devpulse.focus.shield": { "type": "boolean", "default": true,
-          "description": "Delay DevPulse reminder toasts during Flow. Other extensions and apps are unaffected." },
+        "devpulse.analysis.highlights": {
+          "type": "boolean",
+          "default": true,
+          "scope": "resource",
+          "description": "Color reviewed code lines and gutters: red for security, yellow for warnings, blue for architectural context. Descriptions remain in the Code tab."
+        },
+        "devpulse.analysis.codeLens": {
+          "type": "boolean",
+          "default": true,
+          "scope": "resource",
+          "description": "Show the DevPulse analysis action and finding count above the file. Also requires editor.codeLens."
+        },
+        "devpulse.analysis.hovers": {
+          "type": "boolean",
+          "default": true,
+          "scope": "resource",
+          "description": "Show finding details and safe suggestion actions when hovering reviewed lines."
+        },
+        "devpulse.analysis.diagrams": {
+          "type": "boolean",
+          "default": true,
+          "scope": "resource",
+          "description": "Show validated AI code-flow diagrams in hovers with clickable steps. Available when the review includes flow data."
+        },
+        "devpulse.analysis.history": {
+          "type": "boolean",
+          "default": true,
+          "scope": "resource",
+          "description": "Include up to three recent file commits and authors in analysis hovers. Git history is cached for one minute; no AI request is made."
+        },
+        "devpulse.focus.flowMinutes": {
+          "type": "number",
+          "default": 30,
+          "minimum": 1,
+          "maximum": 240,
+          "description": "Continuous active minutes before the In Flow badge appears."
+        },
+        "devpulse.reminders.uncommittedMinutes": {
+          "type": "number",
+          "default": 1440,
+          "minimum": 1,
+          "maximum": 10080,
+          "description": "Minutes uncommitted work must remain before DevPulse shows a reminder."
+        },
+        "devpulse.focus.shield": {
+          "type": "boolean",
+          "default": true,
+          "description": "Delay DevPulse reminder toasts during Flow. Other extensions and apps are unaffected."
+        },
         "devpulse.llm.baseUrl": {
           "type": "string",
           "default": "http://localhost:11434/v1",
