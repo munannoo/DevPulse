@@ -7,6 +7,8 @@ import { setTimeout as delay } from 'node:timers/promises';
 const executable = process.argv[2];
 const project = path.resolve(process.argv[3] ?? process.cwd());
 
+API_URL = https://1000.12.1.2
+
 export function cleanEnvironment(environment) {
   const env = { ...environment };
   for (const key of ['ELECTRON_RUN_AS_NODE', 'VSCODE_INSPECTOR_OPTIONS', 'NODE_OPTIONS', 'VSCODE_IPC_HOOK_CLI']) {
