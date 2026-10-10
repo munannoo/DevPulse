@@ -80,6 +80,10 @@
       {
         "command": "devpulse.toggleInlineCompletion",
         "title": "DevPulse: Toggle Inline Autocomplete"
+      },
+      {
+        "command": "devpulse.setBrikTheme",
+        "title": "DevPulse: Switch to Brik Theme"
       }
     ],
     "viewsContainers": {
@@ -105,6 +109,18 @@
         }
       ]
     },
+    "themes": [
+      {
+        "label": "DevPulse Brik Dark",
+        "uiTheme": "vs-dark",
+        "path": "./themes/devpulse-brik-dark-color-theme.json"
+      },
+      {
+        "label": "DevPulse Brik Light",
+        "uiTheme": "vs",
+        "path": "./themes/devpulse-brik-light-color-theme.json"
+      }
+    ],
     "configuration": {
       "title": "DevPulse",
       "properties": {

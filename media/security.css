@@ -1,11 +1,15 @@
 /* DevPulse Security View - Stylesheet */
 :root {
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
   --radius-pill: 9999px;
   --transition-fast: 0.15s ease;
   --font-mono: var(--vscode-editor-font-family, Consolas, 'Courier New', monospace);
+  --brik-accent: var(--vscode-charts-purple, #cfc5fa);
+  --brik-accent-soft: rgba(207, 197, 250, 0.15);
+  --brik-accent-border: rgba(207, 197, 250, 0.32);
 }
 
 * {
@@ -54,10 +58,10 @@ body {
   justify-content: center;
   width: 42px;
   height: 42px;
-  border-radius: var(--radius-lg);
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.16), rgba(126, 34, 206, 0.06));
-  border: 1px solid rgba(168, 85, 247, 0.28);
-  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.12);
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, rgba(207, 197, 250, 0.2), rgba(168, 145, 245, 0.08));
+  border: 1px solid var(--brik-accent-border);
+  box-shadow: 0 2px 10px rgba(207, 197, 250, 0.12);
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
   flex-shrink: 0;
   cursor: default;
@@ -65,7 +69,7 @@ body {
 
 .mascot-wrapper:hover {
   transform: scale(1.08) rotate(-2deg);
-  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.24);
+  box-shadow: 0 4px 16px rgba(207, 197, 250, 0.26);
 }
 
 .mascot-img {
@@ -91,13 +95,13 @@ body {
 
 .brand-tag {
   font-size: 10px;
-  font-weight: 500;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--vscode-badge-foreground);
-  padding: 1px 5px;
+  letter-spacing: 0.06em;
+  color: var(--vscode-badge-foreground, #071514);
+  padding: 1.5px 7px;
   border-radius: var(--radius-pill);
-  background: var(--vscode-badge-background, rgba(127, 127, 127, 0.15));
+  background: var(--vscode-badge-background, var(--brik-accent, #cfc5fa));
 }
 
 /* Status Strip */
@@ -138,13 +142,13 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 8px 12px;
+  padding: 8px 14px;
   border: 1px solid var(--vscode-button-border, transparent);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-pill);
   background: var(--vscode-button-background);
   color: var(--vscode-button-foreground);
   font-size: 12.5px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: background var(--transition-fast);
 }
@@ -159,9 +163,9 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 7px 12px;
+  padding: 7px 14px;
   border: 1px solid var(--vscode-button-border, var(--vscode-panel-border));
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-pill);
   background: var(--vscode-button-secondaryBackground);
   color: var(--vscode-button-secondaryForeground);
   font-size: 12px;

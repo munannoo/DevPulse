@@ -1,11 +1,16 @@
 /* DevPulse Minimalist UI - Media Panel Stylesheet */
 :root {
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
   --radius-pill: 9999px;
   --transition-fast: 0.15s ease;
   --font-mono: var(--vscode-editor-font-family, Consolas, 'Courier New', monospace);
+  --brik-accent: var(--vscode-charts-purple, #cfc5fa);
+  --brik-accent-soft: rgba(207, 197, 250, 0.15);
+  --brik-accent-hover: rgba(207, 197, 250, 0.25);
+  --brik-accent-border: rgba(207, 197, 250, 0.32);
 }
 
 * {
@@ -65,10 +70,10 @@ body {
   justify-content: center;
   width: 42px;
   height: 42px;
-  border-radius: var(--radius-lg);
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.16), rgba(126, 34, 206, 0.06));
-  border: 1px solid rgba(168, 85, 247, 0.28);
-  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.12);
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, rgba(207, 197, 250, 0.2), rgba(168, 145, 245, 0.08));
+  border: 1px solid var(--brik-accent-border);
+  box-shadow: 0 2px 10px rgba(207, 197, 250, 0.12);
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
   flex-shrink: 0;
   cursor: default;
@@ -76,7 +81,7 @@ body {
 
 .mascot-wrapper:hover {
   transform: scale(1.08) rotate(-2deg);
-  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.24);
+  box-shadow: 0 4px 16px rgba(207, 197, 250, 0.26);
 }
 
 .mascot-img {
@@ -112,13 +117,13 @@ body {
 
 .brand-tag {
   font-size: 10px;
-  font-weight: 500;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--vscode-descriptionForeground);
-  padding: 1px 5px;
+  letter-spacing: 0.06em;
+  color: var(--vscode-badge-foreground, #071514);
+  padding: 1.5px 7px;
   border-radius: var(--radius-pill);
-  background: var(--vscode-editorWidget-background);
+  background: var(--vscode-badge-background, var(--brik-accent, #cfc5fa));
 }
 
 /* Companion Top Status */
@@ -148,8 +153,8 @@ body {
 }
 
 .companion-top-dot.busy {
-  background-color: var(--vscode-charts-purple, #a855f7);
-  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.25);
+  background-color: var(--brik-accent, #cfc5fa);
+  box-shadow: 0 0 0 2px var(--brik-accent-border);
   animation: pulse-busy 1.2s infinite;
 }
 
@@ -219,9 +224,9 @@ body {
 }
 
 .ai-status-pill.checking {
-  background: rgba(168, 85, 247, 0.08);
-  border-color: rgba(168, 85, 247, 0.28);
-  color: var(--vscode-charts-purple, #a855f7);
+  background: var(--brik-accent-soft);
+  border-color: var(--brik-accent-border);
+  color: var(--brik-accent);
 }
 
 .ai-status-pill.warning {
@@ -250,7 +255,7 @@ body {
 }
 
 .ai-status-dot.checking {
-  background-color: var(--vscode-charts-purple, #a855f7);
+  background-color: var(--brik-accent, #cfc5fa);
   animation: pulse-busy 1.2s infinite;
 }
 
@@ -286,11 +291,11 @@ body {
 /* Tabs Navigation */
 .nav-tabs {
   display: flex;
-  gap: 2px;
+  gap: 3px;
   background: var(--vscode-editorWidget-background, rgba(127, 127, 127, 0.08));
-  padding: 3px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--vscode-panel-border, transparent);
+  padding: 4px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--vscode-widget-border, rgba(127, 127, 127, 0.15));
 }
 
 .tab-btn {
@@ -300,27 +305,27 @@ body {
   justify-content: center;
   gap: 5px;
   min-width: 0;
-  padding: 8px 4px;
+  padding: 6px 4px;
   border: none;
   background: transparent;
   color: var(--vscode-descriptionForeground);
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 500;
   cursor: pointer;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-pill);
   transition: all var(--transition-fast);
 }
 
 .tab-btn:hover:not(:disabled) {
   color: var(--vscode-foreground);
-  background: rgba(127, 127, 127, 0.12);
+  background: rgba(127, 127, 127, 0.1);
 }
 
 .tab-btn[aria-pressed="true"] {
   background: var(--vscode-sideBar-background);
   color: var(--vscode-foreground);
   font-weight: 600;
-  box-shadow: inset 0 -2px var(--vscode-focusBorder);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.16);
 }
 
 .tab-btn.tab-disabled {
@@ -429,13 +434,13 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 8px 12px;
+  padding: 8px 14px;
   border: 1px solid var(--vscode-button-border, transparent);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-pill);
   background: var(--vscode-button-background);
   color: var(--vscode-button-foreground);
   font-size: 12.5px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: background var(--transition-fast), transform var(--transition-fast);
 }
@@ -459,9 +464,9 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 7px 12px;
+  padding: 7px 14px;
   border: 1px solid var(--vscode-button-border, var(--vscode-panel-border));
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-pill);
   background: var(--vscode-button-secondaryBackground);
   color: var(--vscode-button-secondaryForeground);
   font-size: 12px;
@@ -654,9 +659,9 @@ details.collapsible-card[open] > summary .chevron-icon {
 }
 
 .connection-live-pill.checking {
-  background: rgba(168, 85, 247, 0.12);
-  color: var(--vscode-charts-purple, #a855f7);
-  border-color: rgba(168, 85, 247, 0.28);
+  background: var(--brik-accent-soft);
+  color: var(--brik-accent);
+  border-color: var(--brik-accent-border);
 }
 
 .connection-live-pill.behind {
@@ -700,10 +705,10 @@ details.collapsible-card[open] > summary .chevron-icon {
   align-items: center;
   gap: 14px;
   padding: 12px 14px;
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.12), rgba(126, 34, 206, 0.04));
-  border: 1px solid rgba(168, 85, 247, 0.25);
+  background: linear-gradient(135deg, rgba(207, 197, 250, 0.14), rgba(168, 145, 245, 0.05));
+  border: 1px solid var(--brik-accent-border);
   border-radius: var(--radius-lg);
-  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.08);
+  box-shadow: 0 2px 10px rgba(207, 197, 250, 0.08);
 }
 
 .companion-avatar-wrap {
@@ -714,9 +719,9 @@ details.collapsible-card[open] > summary .chevron-icon {
   width: 58px;
   height: 58px;
   border-radius: 50%;
-  background: radial-gradient(circle at 40% 35%, rgba(216, 180, 254, 0.35), rgba(147, 51, 234, 0.12));
-  border: 1.5px solid rgba(168, 85, 247, 0.35);
-  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.18);
+  background: radial-gradient(circle at 40% 35%, rgba(207, 197, 250, 0.35), rgba(168, 145, 245, 0.12));
+  border: 1.5px solid var(--brik-accent-border);
+  box-shadow: 0 4px 12px rgba(207, 197, 250, 0.16);
 }
 
 .companion-mascot-img {
@@ -756,14 +761,14 @@ details.collapsible-card[open] > summary .chevron-icon {
 
 .companion-pill {
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 1px 7px;
+  letter-spacing: 0.06em;
+  padding: 1.5px 8px;
   border-radius: var(--radius-pill);
-  background: rgba(168, 85, 247, 0.18);
-  color: #c084fc;
-  border: 1px solid rgba(168, 85, 247, 0.32);
+  background: var(--vscode-badge-background, var(--brik-accent, #cfc5fa));
+  color: var(--vscode-badge-foreground, #071514);
+  border: 1px solid transparent;
 }
 
 .companion-pill.offline {
@@ -773,9 +778,10 @@ details.collapsible-card[open] > summary .chevron-icon {
 }
 
 .companion-pill.busy {
-  background: rgba(168, 85, 247, 0.25);
-  color: #c084fc;
-  border-color: rgba(168, 85, 247, 0.45);
+  background: var(--brik-accent, #cfc5fa);
+  color: #071514;
+  border-color: transparent;
+  animation: pulse-busy 1.2s infinite;
 }
 
 .companion-pill.complete {

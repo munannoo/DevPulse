@@ -116,6 +116,27 @@ export function activate(context: vscode.ExtensionContext) {
       await config.update('enabled', !current, vscode.ConfigurationTarget.Global);
       vscode.window.showInformationMessage(`DevPulse Inline Autocomplete ${!current ? 'enabled' : 'disabled'}.`);
     }),
+    vscode.commands.registerCommand('devpulse.setBrikTheme', async () => {
+      const items: (vscode.QuickPickItem & { theme: string })[] = [
+        {
+          label: '$(paintcan) DevPulse Brik Dark',
+          description: 'Obsidian forest teal with lilac and mint accents',
+          theme: 'DevPulse Brik Dark',
+        },
+        {
+          label: '$(paintcan) DevPulse Brik Light',
+          description: 'Bone-cream canvas with obsidian duo-tone and lilac badges',
+          theme: 'DevPulse Brik Light',
+        },
+      ];
+      const selected = await vscode.window.showQuickPick(items, {
+        placeHolder: 'Select a DevPulse Brik color theme',
+      });
+      if (selected) {
+        await vscode.workspace.getConfiguration('workbench').update('colorTheme', selected.theme, vscode.ConfigurationTarget.Global);
+        vscode.window.showInformationMessage(`DevPulse: Switched to ${selected.theme}.`);
+      }
+    }),
     registerInlineCompletion(context, output),
     registerModelPicker(context, output),
     registerCommitDraft(context, output),
