@@ -2,7 +2,7 @@
   "name": "devpulseYahu",
   "displayName": "Gemma DevPulse",
   "description": "Local-first developer context and pre-commit review.",
-  "version": "1.0.0.",
+  "version": "1.0.0",
   "engines": {
     "node": "^20.19.0 || ^22.13.0 || >=24",
     "vscode": "^1.103.0"
