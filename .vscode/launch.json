@@ -7,6 +7,7 @@
       "request": "launch",
       "noDebug": true,
       "runtimeExecutable": "node",
+      "windows": { "runtimeExecutable": "${env:ProgramFiles}\\nodejs\\node.exe" },
       "env": {
         "NODE_OPTIONS": "",
         "VSCODE_INSPECTOR_OPTIONS": ""
