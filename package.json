@@ -22,6 +22,7 @@
       { "command": "devpulse.cancelPullReview", "title": "DevPulse: Cancel PR Review" },
       { "command": "devpulse.openPanel", "title": "DevPulse: Open Panel" },
       { "command": "devpulse.openSettings", "title": "DevPulse: Open Settings" },
+      { "command": "devpulse.inspectAnalysisStep", "title": "DevPulse: Inspect Analysis Step", "enablement": "false" },
       { "command": "devpulse.openChat", "title": "DevPulse: Open Chat" },
       { "command": "devpulse.selectInlineModel", "title": "DevPulse: Select Autocomplete Model" },
       { "command": "devpulse.selectModel", "title": "DevPulse: Select Model (Review & Chat)" },
@@ -126,6 +127,11 @@
     "configuration": {
       "title": "DevPulse",
       "properties": {
+        "devpulse.analysis.highlights": { "type": "boolean", "default": true, "scope": "resource", "description": "Color reviewed code lines and gutters: red for security, yellow for warnings, blue for architectural context. Descriptions remain in the Code tab." },
+        "devpulse.analysis.codeLens": { "type": "boolean", "default": true, "scope": "resource", "description": "Show the DevPulse analysis action and finding count above the file. Also requires editor.codeLens." },
+        "devpulse.analysis.hovers": { "type": "boolean", "default": true, "scope": "resource", "description": "Show finding details and safe suggestion actions when hovering reviewed lines." },
+        "devpulse.analysis.diagrams": { "type": "boolean", "default": true, "scope": "resource", "description": "Show validated AI code-flow diagrams in hovers with clickable steps. Available when the review includes flow data." },
+        "devpulse.analysis.history": { "type": "boolean", "default": true, "scope": "resource", "description": "Include up to three recent file commits and authors in analysis hovers. Git history is cached for one minute; no AI request is made." },
         "devpulse.focus.flowMinutes": { "type": "number", "default": 30, "minimum": 1, "maximum": 240,
           "description": "Continuous active minutes before the In Flow badge appears." },
         "devpulse.reminders.uncommittedMinutes": { "type": "number", "default": 1440, "minimum": 1, "maximum": 10080,

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import * as vscode from 'vscode';
 import { writeFile } from 'node:fs/promises';
 import type { ReviewState } from '../vscode/panel/messages';
+import { git } from '../core/git/repo';
 
 suite('Highlights in the Extension Host', () => {
   test('Review My Changes reviews more than twenty files', async function () {
@@ -33,6 +34,8 @@ suite('Highlights in the Extension Host', () => {
     assert.ok(root);
     const uri = vscode.Uri.joinPath(root, 'highlight.ts');
     await writeFile(uri.fsPath, 'const value = 1;\nvoid fetch("/fixture");\nexport {};\n');
+    await git(root.fsPath, ['add', '--', 'highlight.ts']);
+    await git(root.fsPath, ['commit', '-m', 'Add highlight fixture']);
     const document = await vscode.workspace.openTextDocument(uri);
     await vscode.window.showTextDocument(document);
     await vscode.commands.executeCommand('devpulse.analyzeFile');
@@ -52,7 +55,28 @@ suite('Highlights in the Extension Host', () => {
     const markdown = hovers?.flatMap(hover => hover.contents).find(item =>
       item instanceof vscode.MarkdownString && item.value.includes('command:devpulse.applySuggestion')) as vscode.MarkdownString | undefined;
     assert.ok(markdown);
-    assert.deepEqual(markdown.isTrusted, { enabledCommands: ['devpulse.applySuggestion'] });
+    assert.deepEqual(markdown.isTrusted, { enabledCommands: ['devpulse.inspectAnalysisStep', 'devpulse.applySuggestion'] });
+    assert.ok(markdown.value.includes('Code flow'));
+    assert.ok(markdown.value.includes('→ L2 network request'));
+    assert.ok(markdown.value.includes('Recent file commits'));
+    assert.ok(markdown.value.includes(new vscode.MarkdownString().appendText('DevPulse Test').value));
+    assert.ok(markdown.value.includes(new vscode.MarkdownString().appendText('Add highlight fixture').value));
+    await vscode.commands.executeCommand('devpulse.inspectAnalysisStep', uri.toString(), 2);
+    assert.equal(vscode.window.activeTextEditor?.selection.active.line, 1);
+    const settings = vscode.workspace.getConfiguration('devpulse.analysis', uri);
+    const previousHover = settings.inspect<boolean>('hovers')?.workspaceValue;
+    const previousLens = settings.inspect<boolean>('codeLens')?.workspaceValue;
+    try {
+      await settings.update('hovers', false, vscode.ConfigurationTarget.Workspace);
+      const disabledHovers = await vscode.commands.executeCommand<vscode.Hover[]>('vscode.executeHoverProvider', uri, new vscode.Position(0, 0));
+      assert.ok(!disabledHovers?.some(hover => hover.contents.some(item => item instanceof vscode.MarkdownString && item.value.includes('**DevPulse**'))));
+      await settings.update('codeLens', false, vscode.ConfigurationTarget.Workspace);
+      const disabledLenses = await vscode.commands.executeCommand<vscode.CodeLens[]>('vscode.executeCodeLensProvider', uri);
+      assert.ok(!disabledLenses?.some(lens => lens.command?.command === 'devpulse.analyzeFile'));
+    } finally {
+      await settings.update('hovers', previousHover, vscode.ConfigurationTarget.Workspace);
+      await settings.update('codeLens', previousLens, vscode.ConfigurationTarget.Workspace);
+    }
     const edit = new vscode.WorkspaceEdit(); edit.insert(uri, new vscode.Position(0, 0), '// changed\n');
     await vscode.workspace.applyEdit(edit);
     const staleDeadline = Date.now() + 2000;
@@ -64,6 +88,9 @@ suite('Highlights in the Extension Host', () => {
     const staleLenses = await vscode.commands.executeCommand<vscode.CodeLens[]>('vscode.executeCodeLensProvider', uri);
     assert.equal(staleLenses?.find(lens => lens.command?.command === 'devpulse.analyzeFile')?.command?.title, 'DevPulse · Analyze file');
     const changed = document.getText();
+    const staleSelection = vscode.window.activeTextEditor?.selection;
+    await vscode.commands.executeCommand('devpulse.inspectAnalysisStep', uri.toString(), 2);
+    assert.deepEqual(vscode.window.activeTextEditor?.selection, staleSelection);
     await vscode.commands.executeCommand('devpulse.applySuggestion', finding.suggestionId);
     assert.equal(document.getText(), changed);
     await vscode.commands.executeCommand('workbench.action.files.revert');

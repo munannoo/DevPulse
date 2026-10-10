@@ -205,6 +205,20 @@ settings editor. Choose User or Workspace scope where the setting supports it.
 Environment and `.env` values still take precedence over host/model defaults;
 use **DevPulse: Set API Key** to store credentials securely.
 
+Reviewed lines also appear directly in the editor: red security gutters,
+yellow warnings and blue architectural context, with matching line highlights.
+Hover a finding for its explanation and, when the model supplies validated flow
+data, a Markdown diagram of variable flow, calls or execution branches. Click
+**Inspect step** to jump to its line. Recent file commits show real Git authors
+and commit metadata; history is cached for one minute and requires no AI call.
+Edits clear stale highlights and disable old step links. The Code tab retains
+the complete review descriptions.
+
+In DevPulse settings, toggle **Analysis: Highlights**, **Code Lens**, **Hovers**,
+**Diagrams**, and **History** independently. Diagrams use native Markdown;
+no Mermaid extension is required. Flow diagrams are AI analysis, not execution
+traces, and are omitted when the review has no flow data.
+
 Copy `.env.example` to `.env` in the project you open in VS Code and enter your server's
 base URL, exact installed model ID, and optional API key. Configuration resolves
 per value from process environment, the nearest `.env` above that workspace, VS Code

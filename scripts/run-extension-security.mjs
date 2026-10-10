@@ -51,6 +51,7 @@ const server = createServer(async (request, response) => {
       : file === 'highlight.ts' ? ['warning', 'security', 'context'].map((severity, index) => ({
       file: 'highlight.ts', startLine: index + 1, endLine: index + 1, severity,
       title: 'Fixture finding', explanation: 'Fixture explanation.',
+      ...(index === 0 ? { flow: { nodes: [{ label: 'value', line: 1 }, { label: 'network request', line: 2 }], edges: [{ from: 0, to: 1, label: 'next' }] } } : {}),
       ...(index === 0 ? { replacement: 'const value = 2;' } : {}),
     })) : [],
   }) } }] }));
