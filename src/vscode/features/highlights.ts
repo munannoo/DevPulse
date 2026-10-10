@@ -1,10 +1,12 @@
 import * as vscode from 'vscode';
 import type { Finding } from '../../core/llm/schemas';
 import type { PanelFinding } from '../panel/messages';
+import { isSensitiveFile } from '../../core/git/diff';
 
 export class Highlights implements vscode.Disposable {
   private readonly findings = new Map<string, PanelFinding[]>();
   private readonly diagnostics = vscode.languages.createDiagnosticCollection('devpulse');
+  private readonly lensChanges = new vscode.EventEmitter<void>();
   private readonly decorations: Record<Finding['severity'], vscode.TextEditorDecorationType>;
   private readonly focusDecoration = vscode.window.createTextEditorDecorationType({
     isWholeLine: true,
@@ -29,6 +31,17 @@ export class Highlights implements vscode.Disposable {
     });
     this.decorations = { warning: create('warning', '#eab308'), security: create('security', '#ef4444'), context: create('context', '#3b82f6') };
     this.listeners = [
+      vscode.languages.registerCodeLensProvider({ scheme: 'file' }, {
+        onDidChangeCodeLenses: this.lensChanges.event,
+        provideCodeLenses: document => {
+          if (!vscode.workspace.isTrusted || !vscode.workspace.getWorkspaceFolder(document.uri) || isSensitiveFile(document.fileName)) { return []; }
+          const findings = this.findings.get(document.uri.toString());
+          const status = findings === undefined ? 'Analyze file' : findings.length ? `${findings.length} finding${findings.length === 1 ? '' : 's'} · Analyze again` : 'No findings · Analyze again';
+          return [new vscode.CodeLens(new vscode.Range(0, 0, 0, 0), {
+            title: `DevPulse · ${status}`, command: 'devpulse.analyzeFile', arguments: [document.uri],
+          })];
+        },
+      }),
       vscode.window.onDidChangeVisibleTextEditors(editors => editors.forEach(editor => this.render(editor))),
       vscode.window.onDidChangeActiveTextEditor(editor => { if (editor) { this.render(editor); } }),
       vscode.workspace.onDidChangeTextDocument(event => {
@@ -59,6 +72,7 @@ export class Highlights implements vscode.Disposable {
   }
   set(uri: vscode.Uri, findings: PanelFinding[]): void {
     this.findings.set(uri.toString(), findings);
+    this.lensChanges.fire();
     this.diagnostics.set(uri, findings.map(finding => {
       const diagnostic = new vscode.Diagnostic(this.range(finding), `${finding.title}: ${finding.explanation}`,
         finding.severity === 'security' ? vscode.DiagnosticSeverity.Error : finding.severity === 'warning' ? vscode.DiagnosticSeverity.Warning : vscode.DiagnosticSeverity.Information);
@@ -88,16 +102,19 @@ export class Highlights implements vscode.Disposable {
   }
   clearFile(uri: vscode.Uri): void {
     this.findings.delete(uri.toString()); this.diagnostics.delete(uri);
+    this.lensChanges.fire();
     vscode.window.visibleTextEditors.forEach(editor => this.render(editor));
   }
   clear(): void {
     this.findings.clear(); this.diagnostics.clear();
+    this.lensChanges.fire();
     vscode.window.visibleTextEditors.forEach(editor => this.render(editor));
   }
   dispose(): void {
     clearTimeout(this.focusTimer);
     this.focusDecoration.dispose();
     this.listeners.forEach(listener => listener.dispose()); this.diagnostics.dispose();
+    this.lensChanges.dispose();
     Object.values(this.decorations).forEach(decoration => decoration.dispose());
   }
 }

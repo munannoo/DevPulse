@@ -40,6 +40,12 @@ suite('Highlights in the Extension Host', () => {
     assert.equal(state.phase, 'complete', state.message);
     assert.deepEqual(state.findings.map(item => item.severity).sort(), ['context', 'security', 'warning']);
     assert.equal(vscode.languages.getDiagnostics(uri).filter(item => item.source === 'DevPulse').length, 3);
+    const lenses = await vscode.commands.executeCommand<vscode.CodeLens[]>('vscode.executeCodeLensProvider', uri);
+    const analysisLens = lenses?.find(lens => lens.command?.command === 'devpulse.analyzeFile');
+    assert.ok(analysisLens?.command);
+    assert.ok(analysisLens.command.title.includes('3 findings'));
+    assert.equal(analysisLens.range.start.line, 0);
+    assert.equal((analysisLens.command.arguments?.[0] as vscode.Uri).toString(), uri.toString());
     const finding = state.findings.find(item => item.suggestionId);
     assert.ok(finding?.suggestionId);
     const hovers = await vscode.commands.executeCommand<vscode.Hover[]>('vscode.executeHoverProvider', uri, new vscode.Position(0, 0));
@@ -55,6 +61,8 @@ suite('Highlights in the Extension Host', () => {
     }
     assert.equal(api.getReviewState().findings.length, 0);
     assert.equal(vscode.languages.getDiagnostics(uri).filter(item => item.source === 'DevPulse').length, 0);
+    const staleLenses = await vscode.commands.executeCommand<vscode.CodeLens[]>('vscode.executeCodeLensProvider', uri);
+    assert.equal(staleLenses?.find(lens => lens.command?.command === 'devpulse.analyzeFile')?.command?.title, 'DevPulse · Analyze file');
     const changed = document.getText();
     await vscode.commands.executeCommand('devpulse.applySuggestion', finding.suggestionId);
     assert.equal(document.getText(), changed);

@@ -29,7 +29,15 @@ export class CodeReview implements vscode.Disposable {
     this.highlights = new Highlights(context.extensionUri, uri => this.markStale(uri));
     this.subscriptions.push(
       vscode.commands.registerCommand('devpulse.reviewChanges', () => this.review('changes')),
-      vscode.commands.registerCommand('devpulse.analyzeFile', () => this.review('file')),
+      vscode.commands.registerCommand('devpulse.analyzeFile', async (uri: unknown) => {
+        if (uri !== undefined) {
+          if (!(uri instanceof vscode.Uri) || uri.scheme !== 'file' || !vscode.workspace.isTrusted
+            || !vscode.workspace.getWorkspaceFolder(uri) || isSensitiveFile(uri.fsPath)) { return; }
+          try { await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(uri)); }
+          catch { this.output.appendLine('Could not open the file for analysis.'); return; }
+        }
+        await this.review('file');
+      }),
       vscode.commands.registerCommand('devpulse.reviewSelection', () => this.review('selection')),
       vscode.commands.registerCommand('devpulse.refreshBranch', () => this.refreshBranch()),
       vscode.commands.registerCommand('devpulse.cancelReview', () => this.operation?.abort()),
