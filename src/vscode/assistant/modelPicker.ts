@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { loadConfig } from '../../core/llm/config';
+import { loadEditorConfig as loadConfig } from '../configuration';
 import { listModels, ModelListError, validModelId } from '../../core/llm/models';
 
 export function registerModelPicker(context: vscode.ExtensionContext, output: vscode.OutputChannel): vscode.Disposable {

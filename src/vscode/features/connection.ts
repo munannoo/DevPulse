@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { join } from 'node:path';
-import { loadConfig } from '../../core/llm/config';
+import { loadEditorConfig as loadConfig } from '../configuration';
 import { listModels, ModelListError } from '../../core/llm/models';
 import type { ConnectionState } from '../panel/messages';
 

@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { getBranchStatus, git, GitError } from '../../core/git/repo';
 import { collectChanges, isSensitiveFile, safeFile, type ReviewInput } from '../../core/git/diff';
-import { loadConfig } from '../../core/llm/config';
+import { loadEditorConfig as loadConfig } from '../configuration';
 import { contentHash } from '../../core/llm/cache';
 import { LlmError } from '../../core/llm/client';
 import { analyze } from '../../core/review/analyze';

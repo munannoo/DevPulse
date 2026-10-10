@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { repository, GitError } from '../../core/git/repo';
 import { stagedCommitInput, stagedFingerprint, generateCommitDraft, CommitDraftError } from '../../core/review/commit';
-import { loadConfig } from '../../core/llm/config';
+import { loadEditorConfig as loadConfig } from '../configuration';
 import { LlmError } from '../../core/llm/client';
 import { clearCached } from '../../core/llm/cache';
 

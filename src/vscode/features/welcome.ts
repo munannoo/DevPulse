@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { getCommitsSince, pullFastForward, PullBlockedError, type BranchStatus } from '../../core/git/repo';
 import { relative } from 'node:path';
-import { loadConfig } from '../../core/llm/config';
+import { loadEditorConfig as loadConfig } from '../configuration';
 import { createLlm, LlmError } from '../../core/llm/client';
 import { welcomePrompt } from '../../core/llm/prompts';
 import { redact } from '../../core/security/redact';

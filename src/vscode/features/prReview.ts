@@ -2,7 +2,8 @@ import * as vscode from 'vscode';
 import { GitHubClient, GitHubError } from '../../core/github/client';
 import { githubRepository, type GitHubRepository } from '../../core/github/repository';
 import { PullReviewer } from '../../core/review/pullRequest';
-import { loadConfig, type LlmConfig } from '../../core/llm/config';
+import type { LlmConfig } from '../../core/llm/config';
+import { loadEditorConfig as loadConfig } from '../configuration';
 import { LlmError } from '../../core/llm/client';
 import type { PanelMessage, PullRequestState } from '../panel/messages';
 
@@ -40,7 +41,7 @@ export class PullRequests implements vscode.Disposable {
         const settings = vscode.workspace.getConfiguration('devpulse.llm', root);
         return loadConfig({ scriptDirectory: context.extensionPath + '/dist', settings: {
           baseUrl: settings.get<string>('baseUrl'), model: settings.get<string>('model'), modelOverride: settings.get<string>('modelOverride'), jsonMode: settings.get<boolean>('jsonMode'),
-        }, secretApiKey: await context.secrets.get('devpulse.llm.apiKey') });
+        }, secretApiKey: await context.secrets.get('devpulse.llm.apiKey') }, root);
       }, ...services,
     };
     this.subscriptions = [

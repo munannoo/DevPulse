@@ -198,15 +198,20 @@ runs type checking, linting, and a production build.
 
 ## Code review
 
-Copy `.env.example` to `.env` in this extension project and enter your server's
+Copy `.env.example` to `.env` in the project you open in VS Code and enter your server's
 base URL, exact installed model ID, and optional API key. Configuration resolves
-per value from process environment, the nearest `.env` above `dist/`, VS Code
+per value from process environment, the nearest `.env` above that workspace, VS Code
 settings, then defaults. Alternatively set `devpulse.llm.baseUrl` and
 `devpulse.llm.model`, and use **DevPulse: Set API Key** for secret storage.
 Never put an API key in settings. Requests use the OpenAI-compatible
 `/chat/completions` route. Origin-only addresses automatically use `/v1`.
 Explicit custom paths are preserved. A missing route/model or denied access
 stops the review once and shows a configuration message.
+
+Use `DEVPULSE_LLM_BASE_URL=http://192.0.2.10:11434/v1` for a LAN server,
+or `DEVPULSE_LLM_BASE_URL=https://ai.example.com/v1` for a cloud endpoint;
+replace the example address with your own. Workspace `.env` changes are read
+on the next AI request. CLI commands still search from their script directory.
 
 Press F5, open the Git repository you want to review in the Development Host,
 and choose **DevPulse: Review My Changes**. The DevPulse activity-bar view shows

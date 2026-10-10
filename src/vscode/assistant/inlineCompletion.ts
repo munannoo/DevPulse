@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { relative, join } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
-import { loadConfig } from '../../core/llm/config';
+import { loadEditorConfig as loadConfig } from '../configuration';
 import { createLlm } from '../../core/llm/client';
 import { autocompletePrompt } from '../../core/llm/prompts';
 import { completionContext, stripCompletionPrefix } from '../../core/llm/completion';

@@ -3,7 +3,7 @@ import { relative } from 'node:path';
 import { getBranchStatus, git } from '../../core/git/repo';
 import { isSensitiveFile, safeFile } from '../../core/git/diff';
 import { redact } from '../../core/security/redact';
-import { loadConfig } from '../../core/llm/config';
+import { loadEditorConfig as loadConfig } from '../configuration';
 import { createLlm } from '../../core/llm/client';
 import { leftOffPrompt } from '../../core/llm/prompts';
 

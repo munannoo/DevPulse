@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { randomUUID } from 'node:crypto';
-import { loadConfig } from '../../core/llm/config';
+import { loadEditorConfig as loadConfig } from '../configuration';
 import { createLlm, LlmError } from '../../core/llm/client';
 import { chatPrompt } from '../../core/llm/prompts';
 import { redact } from '../../core/security/redact';
