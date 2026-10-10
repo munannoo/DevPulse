@@ -1,7 +1,7 @@
 // @ts-check
 /** @typedef {import('../src/vscode/panel/messages').PanelMessage} PanelMessage */
 /** @typedef {import('../src/vscode/panel/messages').ExtensionMessage} ExtensionMessage */
-/** @type {{ postMessage(message: PanelMessage): void }} */
+/** @type {{ postMessage(message: PanelMessage): void, getState?(): any, setState?(state: any): void }} */
 // @ts-ignore acquireVsCodeApi is provided by the VS Code webview host.
 const vscode = acquireVsCodeApi();
 const element = id => document.getElementById(id);
@@ -11,7 +11,54 @@ const send = message => vscode.postMessage(message);
 element('overview').prepend(element('attention'));
 element('attention').after(document.querySelector('.primary-action-wrap'));
 
-function selectTab(tab) {
+const ALLOWED_TABS = ['overview', 'code', 'focus', 'chat'];
+const COLLAPSIBLE_SECTIONS = ['welcome-card', 'left-off', 'pull-requests', 'connection-card', 'skipped'];
+
+let currentTab = 'overview';
+
+function getStoredPreferences() {
+  try {
+    if (typeof vscode.getState !== 'function') { return {}; }
+    const raw = vscode.getState();
+    if (!raw || typeof raw !== 'object') { return {}; }
+    const res = {};
+    if (typeof raw.tab === 'string' && ALLOWED_TABS.includes(raw.tab)) {
+      res.tab = raw.tab;
+    }
+    if (raw.sections && typeof raw.sections === 'object') {
+      const sections = {};
+      for (const id of COLLAPSIBLE_SECTIONS) {
+        if (typeof raw.sections[id] === 'boolean') {
+          sections[id] = raw.sections[id];
+        }
+      }
+      res.sections = sections;
+    }
+    return res;
+  } catch {
+    return {};
+  }
+}
+
+function savePreferences() {
+  try {
+    if (typeof vscode.setState !== 'function') { return; }
+    const sections = {};
+    for (const id of COLLAPSIBLE_SECTIONS) {
+      const el = element(id);
+      if (el && 'open' in el) {
+        sections[id] = Boolean(/** @type {HTMLDetailsElement} */ (el).open);
+      }
+    }
+    vscode.setState({ tab: currentTab, sections });
+  } catch {
+    // Ignore storage errors in restricted contexts
+  }
+}
+
+function selectTab(tab, persist = true) {
+  if (!ALLOWED_TABS.includes(tab)) { return; }
+  currentTab = tab;
   element('overview').hidden = tab !== 'overview';
   element('code').hidden = tab !== 'code';
   element('focus').hidden = tab !== 'focus';
@@ -21,6 +68,31 @@ function selectTab(tab) {
   document.querySelectorAll('[data-tab]').forEach(button => {
     button.setAttribute('aria-pressed', String(button.dataset.tab === tab));
   });
+  if (persist) {
+    savePreferences();
+  }
+}
+
+// Restore saved preferences on startup
+const initialPrefs = getStoredPreferences();
+if (initialPrefs.sections) {
+  for (const [id, open] of Object.entries(initialPrefs.sections)) {
+    const el = element(id);
+    if (el && 'open' in el) {
+      /** @type {HTMLDetailsElement} */ (el).open = open;
+    }
+  }
+}
+if (initialPrefs.tab) {
+  selectTab(initialPrefs.tab, false);
+}
+
+// Track toggle events on collapsible sections
+for (const id of COLLAPSIBLE_SECTIONS) {
+  const el = element(id);
+  if (el) {
+    el.addEventListener('toggle', () => savePreferences());
+  }
 }
 
 document.querySelectorAll('[data-tab]').forEach(button => {
