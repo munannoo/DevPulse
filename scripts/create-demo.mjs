@@ -85,4 +85,7 @@ if (process.argv.includes('--secret')) {
   await writeFile(path.join(workspace, 'credential.mjs'), ['const ', 'demoToken', ' = ', JSON.stringify(synthetic), ';\n'].join(''));
   await git(workspace, 'add', 'credential.mjs');
 }
-console.log(`Demo ready: ${root}\nOpen: ${workspace}\nIncoming-code preview: ${preview}\nVerified: one incoming commit, baseline passes, faulty push rejected.\nWalkthrough: test-repo/README.md`);
+const session = { root, workspace, preview, origin };
+await writeFile(path.join(root, 'session.json'), JSON.stringify(session, null, 2) + '\n');
+console.log(process.argv.includes('--json') ? JSON.stringify(session)
+  : `Demo ready: ${root}\nOpen: ${workspace}\nIncoming-code preview: ${preview}\nVerified: one incoming commit, baseline passes, faulty push rejected.\nWalkthrough: test-repo/README.md`);
