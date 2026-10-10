@@ -11,6 +11,8 @@ export class Connection implements vscode.Disposable {
   };
   private operation?: AbortController;
   private readonly subscriptions: vscode.Disposable[] = [];
+  private startupTimer?: NodeJS.Timeout;
+  private pollTimer?: NodeJS.Timeout;
   onUpdate: () => void = () => {};
 
   constructor(
@@ -23,15 +25,33 @@ export class Connection implements vscode.Disposable {
           this.cancel();
           this.update({
             phase: 'idle',
-            message: 'Settings changed. Check AI connection again.',
+            message: 'Settings changed. Checking AI connection…',
             latencyMs: undefined,
             reviewModel: undefined,
             inlineModel: undefined,
             modelsCount: undefined,
           });
+          void this.check();
+        }
+      }),
+      vscode.window.onDidChangeWindowState(windowState => {
+        if (windowState.focused) {
+          void this.check();
         }
       }),
     );
+
+    // Initial probe runs in background shortly after startup
+    this.startupTimer = setTimeout(() => {
+      void this.check();
+    }, 200);
+    this.startupTimer.unref?.();
+
+    // Periodic diagnostics heartbeat every 30 seconds
+    this.pollTimer = setInterval(() => {
+      void this.check();
+    }, 30_000);
+    this.pollTimer.unref?.();
   }
 
   getState(): ConnectionState {
@@ -44,6 +64,10 @@ export class Connection implements vscode.Disposable {
   }
 
   cancel(): void {
+    if (this.startupTimer) {
+      clearTimeout(this.startupTimer);
+      this.startupTimer = undefined;
+    }
     if (this.operation) {
       this.operation.abort();
       this.operation = undefined;
@@ -51,6 +75,10 @@ export class Connection implements vscode.Disposable {
   }
 
   async check(): Promise<void> {
+    if (this.startupTimer) {
+      clearTimeout(this.startupTimer);
+      this.startupTimer = undefined;
+    }
     if (this.state.phase === 'checking' || this.operation) {
       return;
     }
@@ -121,6 +149,14 @@ export class Connection implements vscode.Disposable {
   }
 
   dispose(): void {
+    if (this.startupTimer) {
+      clearTimeout(this.startupTimer);
+      this.startupTimer = undefined;
+    }
+    if (this.pollTimer) {
+      clearInterval(this.pollTimer);
+      this.pollTimer = undefined;
+    }
     this.cancel();
     this.subscriptions.forEach(s => s.dispose());
   }
