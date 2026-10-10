@@ -1,5 +1,11 @@
 # DevPulse presentation demo
 
+For a complete guided supervisor presentation, run **`npm.cmd run demo`**.
+It opens the development windows, pauses for your clicks, and runs the local
+Git/test/security scenes. See the [presenter cue sheet](../docs/supervisor-demo.md)
+for timing, talking points, and rehearsal options. The commands below prepare
+fixtures manually.
+
 Run from the DevPulse project with supported Node on PATH:
 
 ```powershell

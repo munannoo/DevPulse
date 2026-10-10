@@ -297,6 +297,7 @@
     "virtualWorkspaces": false
   },
   "scripts": {
+    "demo": "node scripts/present-demo.mjs",
     "prebuild": "node scripts/check-node.cjs",
     "precompile": "node scripts/check-node.cjs",
     "prepackage": "node scripts/check-node.cjs",
