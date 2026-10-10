@@ -12,10 +12,13 @@ ollama run gemma4:e2b
 
 Ask the model a short question, then enter `/bye`. Leave the Ollama app running.
 If Ollama is missing, follow **DevPulse: Set Up Ollama & Models** first.
-The runner defaults to local Ollama and `gemma4:e2b`. To use another installed
-model or an OpenAI-compatible server, set `DEVPULSE_LLM_MODEL` and
-`DEVPULSE_LLM_BASE_URL` in this terminal before launching. Use your existing secure
-credential configuration when needed; never project a credential on screen.
+The runner uses your existing project configuration: process environment first,
+then the nearest `.env` from the DevPulse project directory, then DevPulse's normal
+defaults. It passes the resolved host, model and optional API key to the connection
+check and both demo windows in memory; nothing is copied into the demo files or
+printed. If your project already points to a working server, skip the Ollama steps.
+To override it, set `DEVPULSE_LLM_MODEL` and `DEVPULSE_LLM_BASE_URL` in this terminal
+before launching. Never project a credential on screen.
 
 Start the complete guided presentation:
 

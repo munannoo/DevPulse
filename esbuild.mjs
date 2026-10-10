@@ -28,6 +28,7 @@ async function main() {
 		entryPoints: {
 			extension: 'src/extension.ts',
 			cli: 'src/cli/index.ts',
+			config: 'src/core/llm/config.ts',
 		},
 		bundle: true,
 		format: 'cjs',

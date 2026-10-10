@@ -6,14 +6,13 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import { cleanEnvironment } from './launch-extension.mjs';
+import { presentationEnvironment } from './demo-config.mjs';
 
 const execute = promisify(execFile);
 const project = fileURLToPath(new URL('../', import.meta.url));
 const flags = new Set(process.argv.slice(2));
 const unattended = flags.has('--prepare-only') || flags.has('--rehearse');
-const env = { ...cleanEnvironment(process.env),
-  DEVPULSE_LLM_BASE_URL: process.env.DEVPULSE_LLM_BASE_URL || 'http://localhost:11434/v1',
-  DEVPULSE_LLM_MODEL: process.env.DEVPULSE_LLM_MODEL || 'gemma4:e2b' };
+let env = cleanEnvironment(process.env);
 const run = (file, args, cwd = project) => execute(file, args, { cwd, env, timeout: 180_000, maxBuffer: 2_000_000 });
 const cli = path.join(project, 'dist', 'cli.js');
 const terminal = unattended ? undefined : createInterface({ input: process.stdin, output: process.stdout });
@@ -55,6 +54,8 @@ try {
     await run(process.execPath, ['scripts/build-extension.mjs', '--verify', '--production']);
   }
   await access(cli);
+  env = await presentationEnvironment(project, env);
+  console.log('Using the project AI configuration (process environment, then nearest .env, then defaults).');
   session = JSON.parse((await run(process.execPath, ['scripts/create-demo.mjs', '--json'])).stdout);
   await writeFile(path.join(session.root, 'PRESENTER.md'), await readFile(path.join(project, 'docs', 'supervisor-demo.md'), 'utf8'));
   console.log(`Workspace: ${session.workspace}\nCue sheet: ${path.join(session.root, 'PRESENTER.md')}`);
