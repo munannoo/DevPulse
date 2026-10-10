@@ -2,6 +2,10 @@
   "name": "devpulseYahu",
   "displayName": "Gemma DevPulse",
   "description": "Local-first developer context and pre-commit review.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/munannoo/DevPulse"
+  },
   "version": "1.0.0",
   "engines": {
     "node": "^20.19.0 || ^22.13.0 || >=24",
