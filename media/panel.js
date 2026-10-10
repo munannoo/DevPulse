@@ -128,6 +128,49 @@ element('pr-cancel').addEventListener('click', () => send({ type: 'cancelPullRev
 
 element('connection-check').addEventListener('click', () => send({ type: 'checkConnection' }));
 element('connection-cancel').addEventListener('click', () => send({ type: 'cancelConnection' }));
+element('ai-status-pill')?.addEventListener('click', () => send({ type: 'checkConnection' }));
+
+/**
+ * @param {import('../src/vscode/panel/messages').ConnectionState | undefined} connection
+ * @param {boolean} offline
+ */
+function renderAiStatusPill(connection, offline) {
+  const pill = element('ai-status-pill');
+  const dot = element('ai-status-dot');
+  const text = element('ai-status-text');
+  if (!pill || !dot || !text) { return; }
+
+  if (offline || connection?.phase === 'failed') {
+    pill.className = 'ai-status-pill failed';
+    dot.className = 'ai-status-dot failed';
+    text.textContent = 'AI Offline';
+    pill.title = connection?.message || 'AI endpoint unreachable. Click to re-test.';
+  } else if (connection?.phase === 'checking') {
+    pill.className = 'ai-status-pill checking';
+    dot.className = 'ai-status-dot checking';
+    text.textContent = 'Connecting…';
+    pill.title = 'Checking AI connection to local endpoint…';
+  } else if (connection?.phase === 'ready') {
+    const ms = connection.latencyMs ?? 0;
+    const reviewReady = connection.reviewModel ? connection.reviewModel.available : true;
+    if (!reviewReady) {
+      pill.className = 'ai-status-pill warning';
+      dot.className = 'ai-status-dot warning';
+      text.textContent = 'Model missing';
+      pill.title = `Model ${connection.reviewModel?.id} is missing on endpoint. Click to re-test.`;
+    } else {
+      pill.className = 'ai-status-pill ready';
+      dot.className = 'ai-status-dot ready';
+      text.textContent = `${ms}ms`;
+      pill.title = `DevPulse AI: Connected (${ms}ms)\nReview Model: ${connection.reviewModel?.id ?? 'default'}\nAutocomplete: ${connection.inlineModel?.id ?? 'default'}\nModels: ${connection.modelsCount ?? 0} available\nClick to re-test.`;
+    }
+  } else {
+    pill.className = 'ai-status-pill idle';
+    dot.className = 'ai-status-dot idle';
+    text.textContent = 'AI Ready';
+    pill.title = 'DevPulse AI connection ready. Click to test.';
+  }
+}
 
 /** @param {import('../src/vscode/panel/messages').ConnectionState | undefined} connection
  *  @param {boolean} busy
@@ -138,9 +181,30 @@ function renderConnection(connection, busy) {
   element('connection-check').disabled = busy || connection.phase === 'checking';
   element('connection-cancel').hidden = connection.phase !== 'checking';
 
+  const liveIndicator = element('connection-live-indicator');
+  if (liveIndicator) {
+    if (connection.phase === 'checking') {
+      liveIndicator.textContent = 'Probing…';
+      liveIndicator.className = 'connection-live-pill checking';
+    } else if (connection.phase === 'ready') {
+      liveIndicator.textContent = 'Live';
+      liveIndicator.className = 'connection-live-pill synced';
+    } else if (connection.phase === 'failed') {
+      liveIndicator.textContent = 'Offline';
+      liveIndicator.className = 'connection-live-pill behind';
+    } else {
+      liveIndicator.textContent = 'Real-time';
+      liveIndicator.className = 'connection-live-pill';
+    }
+  }
+
   const modelsBox = element('connection-models');
+  const latencyMetric = element('connection-latency-metric');
   if (connection.phase === 'ready' && connection.reviewModel && connection.inlineModel) {
     modelsBox.hidden = false;
+    if (latencyMetric) {
+      latencyMetric.textContent = `${connection.latencyMs ?? 0}ms`;
+    }
     const reviewEl = element('connection-review-model');
     reviewEl.textContent = `${connection.reviewModel.id} (${connection.reviewModel.available ? '✓ ready' : '✗ missing'})`;
     reviewEl.className = `metric-pill ${connection.reviewModel.available ? 'synced' : 'behind'}`;
@@ -246,6 +310,37 @@ window.addEventListener('message', event => {
   }
   element('cancel').hidden = !busy;
   renderConnection(state.connection, busy);
+  renderAiStatusPill(state.connection, state.offline || Boolean(state.pullRequests?.offline));
+
+  // Top companion status
+  const topDot = element('companion-top-dot');
+  const topText = element('companion-top-text');
+  const topStatus = element('companion-top-status');
+  if (topDot && topText && topStatus) {
+    if (state.offline || state.pullRequests?.offline) {
+      topDot.className = 'companion-top-dot offline';
+      topText.textContent = 'Companion: Offline · Guards active';
+      topStatus.title = 'Gemma endpoint unreachable. Local Git and secret scanning guards remain active.';
+    } else if (busy) {
+      topDot.className = 'companion-top-dot busy';
+      topText.textContent = 'Companion: Reviewing changes…';
+      topStatus.title = 'Analyzing repository changes through your local Gemma endpoint…';
+    } else if (state.phase === 'complete') {
+      if (state.findings.length) {
+        topDot.className = 'companion-top-dot complete warning';
+        topText.textContent = `Companion: ${state.findings.length} finding${state.findings.length === 1 ? '' : 's'}`;
+        topStatus.title = state.message;
+      } else {
+        topDot.className = 'companion-top-dot complete';
+        topText.textContent = 'Companion: All Clear';
+        topStatus.title = 'Review complete. No issues found in reviewed changes.';
+      }
+    } else {
+      topDot.className = 'companion-top-dot active';
+      topText.textContent = 'Companion: Active · Standing by';
+      topStatus.title = 'Local-first code guard powered by Gemma. Standing by for reviews.';
+    }
+  }
 
   // Companion hero banner status
   const companionBadge = element('companion-badge');
