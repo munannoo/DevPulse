@@ -120,6 +120,12 @@ element('chat-form').addEventListener('submit', event => {
   element('chat-send').disabled = true;
 });
 element('chat-stop').addEventListener('click', () => send({ type: 'chatCancel' }));
+element('chat-question').addEventListener('keydown', event => {
+  if (event.key === 'Enter' && (event.ctrlKey || event.metaKey) && !event.isComposing) {
+    event.preventDefault();
+    if (!element('chat-send').disabled) { element('chat-form').requestSubmit(); }
+  }
+});
 element('chat-clear').addEventListener('click', () => send({ type: 'chatClear' }));
 
 element('pr-connect').addEventListener('click', () => send({ type: 'connectGitHub' }));

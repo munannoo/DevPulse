@@ -1365,9 +1365,9 @@ textarea:focus-visible, input:focus-visible {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 24px 12px;
+  padding: 18px 14px;
   background: var(--vscode-editorWidget-background, rgba(127, 127, 127, 0.04));
-  border: 1px dashed var(--vscode-widget-border, var(--vscode-panel-border));
+  border: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
   border-radius: var(--radius-lg);
   margin: 8px 0;
 }
@@ -1384,7 +1384,7 @@ textarea:focus-visible, input:focus-visible {
   line-height: 1.4;
   color: var(--vscode-descriptionForeground);
   margin: 0 0 14px 0;
-  max-width: 260px;
+  max-width: 340px;
 }
 
 .chat-chips {
@@ -1429,7 +1429,7 @@ textarea:focus-visible, input:focus-visible {
   margin-right: 6px;
 }
 
-.chat-message pre, code {
+.chat-message pre, .chat-message code {
   background: var(--vscode-textCodeBlock-background);
   border-radius: var(--radius-sm);
 }
@@ -1469,7 +1469,19 @@ textarea:focus-visible, input:focus-visible {
   flex: 1;
   min-height: 72px;
   overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-gutter: stable;
 }
+
+#chat[data-empty="true"] { flex: 0 1 auto; }
+#chat[data-empty="true"] #chat-messages { flex: none; }
+.chat-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.chat-toolbar h2 { font-size: 14px; margin: 0 0 3px; }
+.chat-toolbar .muted-note { margin: 0; }
+.chat-toolbar button { width: auto; flex-shrink: 0; font-size: 11px; padding: 6px 10px; }
+.chat-message[data-role="user"] { margin-left: 18px; background: var(--vscode-input-background); }
+.chat-message[data-role="assistant"] { margin-right: 6px; border-left: 2px solid var(--vscode-textLink-foreground); }
+.chat-message { user-select: text; line-height: 1.65; }
 
 #chat-status {
   margin: 2px 0;
@@ -1479,23 +1491,38 @@ textarea:focus-visible, input:focus-visible {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--vscode-input-border, var(--vscode-panel-border));
+  border-radius: var(--radius-lg);
+  background: var(--vscode-editorWidget-background);
 }
 
 #chat-form textarea {
-  height: 52px;
-  min-height: 42px;
+  height: 80px;
+  min-height: 64px;
   max-height: 120px;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  resize: vertical;
 }
 
 .chat-actions {
   display: flex;
   gap: 6px;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 .chat-actions button {
-  flex: 1;
+  width: auto;
+  flex: 0 0 auto;
+  min-width: 72px;
+  padding: 8px 16px;
 }
+.chat-actions .muted-note { margin-right: auto; font-size: 10px; }
+.chat-options .checkbox-label { padding: 5px 8px; border-radius: var(--radius-sm); background: var(--vscode-input-background); }
+.chat-options input { accent-color: var(--vscode-focusBorder); }
 
 @media (max-height: 340px) {
   .chat-open { overflow-y: auto; }

@@ -30,6 +30,7 @@ let lastChatBusy = false;
 function renderChat(state, send) {
   const chat = state.chat;
   if (!chat) { return; }
+  element('chat').dataset.empty = String(chat.messages.length === 0);
   if (chat.draft && chat.draft.id !== lastChatDraft) {
     lastChatDraft = chat.draft.id; selectTab('chat');
     element('chat-question').value = chat.draft.text;
@@ -52,7 +53,7 @@ function renderChat(state, send) {
   if (!chat.messages.length) {
     const starter = document.createElement('div'); starter.className = 'chat-starter';
     const title = document.createElement('h3'); title.className = 'chat-starter-title'; title.textContent = 'Ask Gemma About Your Code';
-    const desc = document.createElement('p'); desc.className = 'chat-starter-desc'; desc.textContent = 'Explore architecture, find edge cases, or choose a prompt to start:';
+    const desc = document.createElement('p'); desc.className = 'chat-starter-desc'; desc.textContent = 'Start with a question or use a prompt below. You review code before inserting it.';
     const chips = document.createElement('div'); chips.className = 'chat-chips';
     const prompts = [
       { label: '💡 Explain this file', prompt: 'Explain how this file works and summarize its key responsibilities.' },
@@ -75,8 +76,9 @@ function renderChat(state, send) {
   }
   for (const message of chat.messages) {
     const card = document.createElement('article'); card.className = 'chat-message';
+    card.dataset.role = message.role;
     const label = document.createElement('strong'); label.textContent = message.role === 'user' ? 'You' : 'Gemma';
-    const body = document.createElement('div'); renderChatMarkdown(body, message.text); card.append(label, body);
+    const body = document.createElement('div'); renderChatMarkdown(body, message.text || (message.complete ? 'No response text.' : 'Thinking…')); card.append(label, body);
     if (message.role === 'assistant' && message.complete) {
       const copy = document.createElement('button'); copy.textContent = 'Copy';
       copy.addEventListener('click', () => send({ type: 'chatCopy', id: message.id })); card.append(copy);

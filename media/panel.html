@@ -311,19 +311,23 @@
 
     <!-- Chat Section -->
     <section id="chat" class="tab-pane" hidden>
+      <div class="chat-toolbar">
+        <div><h2>Code companion</h2><p class="muted-note">Choose the context you want to share.</p></div>
+        <button id="chat-clear" class="btn-secondary" type="button" title="Clear chat history and reset conversation">Clear chat</button>
+      </div>
       <div id="chat-messages" aria-label="Conversation"></div>
       <p id="chat-status" class="muted-note" role="status" aria-live="polite">Ask Gemma about your code.</p>
       <form id="chat-form">
         <label for="chat-question" class="chat-label">Message</label>
-        <textarea id="chat-question" rows="4" maxlength="8000" required placeholder="Ask about your code…"></textarea>
+        <textarea id="chat-question" rows="3" maxlength="8000" required placeholder="Ask a question, explore a bug, or plan a change…" aria-describedby="chat-keyboard-hint"></textarea>
         <div class="chat-options">
           <label class="checkbox-label" title="Send content of the currently active editor file to Gemma as context"><input id="chat-file" type="checkbox"> Include current file</label>
           <label class="checkbox-label" title="Send only the highlighted text selection in the editor to Gemma as context"><input id="chat-selection" type="checkbox"> Include selection</label>
         </div>
         <div class="actions chat-actions">
+          <span id="chat-keyboard-hint" class="muted-note">Ctrl / ⌘ + Enter to send</span>
           <button id="chat-send" class="btn-primary" type="submit" title="Send message to Gemma">Send</button>
           <button id="chat-stop" class="btn-secondary" type="button" hidden title="Stop the streaming response">Stop</button>
-          <button id="chat-clear" class="btn-secondary" type="button" title="Clear chat history and reset conversation">Clear</button>
         </div>
       </form>
     </section>
