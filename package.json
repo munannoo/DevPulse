@@ -176,7 +176,7 @@
     "lint": "eslint src",
     "test": "vscode-test",
     "build": "node scripts/build-extension.mjs --verify --production",
-    "test:core": "npm run compile-tests && node --test out/test/core/*.test.js",
+    "test:core": "npm run compile-tests && node --test out/test/core",
     "test:security": "node scripts/test-security.mjs",
     "test:extension-security": "npm run compile-tests && node scripts/run-extension-security.mjs",
     "test:pr": "npm run compile-tests && npm run compile && node scripts/test-pr.mjs"
