@@ -9,6 +9,10 @@ For a precise fix, also provide replacement: raw complete code replacing exactly
 through endLine, preserving indentation, without markdown fences or surrounding prose.
 Keep the response concise; include at most two replacements, each under 800 characters.
 Omit replacement when context is insufficient or the range contains a redacted secret.
+Optionally include flow: {"nodes":[{"label":"input or operation","line":1}],"edges":[{"from":0,"to":1,"label":"condition"}]}.
+Use 2-6 nodes and 1-8 edges, with zero-based node indexes and real destination line numbers.
+Describe visible variable transfers, function calls and execution branches only; omit flow when context is insufficient.
+For diffs, every flow node must be within changedRanges. Never invent dependencies or commit history.
 Use only the provided file path. For diffs, report issues on added lines or deletion anchors
 listed in changedRanges; do not report unrelated existing issues. Do not invent missing code.
 Numbered excerpts use original destination file line numbers, not excerpt-relative numbers.

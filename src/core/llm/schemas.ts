@@ -1,10 +1,12 @@
 import type { ReviewInput } from '../git/diff';
 import { redact } from '../security/redact';
+import type { CodeFlow } from '../review/flow';
 
 export type Finding = {
   file: string; startLine: number; endLine: number;
   severity: 'warning' | 'security' | 'context';
   title: string; explanation: string; suggestion?: string; replacement?: string;
+  flow?: CodeFlow;
 };
 export type ReviewResult = { summary: string; findings: Finding[] };
 export function reviewResponseSchema(input: ReviewInput): Record<string, unknown> {
@@ -24,6 +26,14 @@ export function reviewResponseSchema(input: ReviewInput): Record<string, unknown
           explanation: { type: 'string', minLength: 1, maxLength: 500 },
           suggestion: { type: 'string', minLength: 1, maxLength: 500 },
           replacement: { type: 'string', minLength: 1, maxLength: 800 },
+          flow: { type: 'object', additionalProperties: false, required: ['nodes', 'edges'], properties: {
+            nodes: { type: 'array', minItems: 2, maxItems: 6, items: { type: 'object', additionalProperties: false, required: ['label', 'line'], properties: {
+              label: { type: 'string', minLength: 1, maxLength: 80 }, line: { type: 'integer', minimum: 1, maximum: input.lineCount },
+            } } },
+            edges: { type: 'array', minItems: 1, maxItems: 8, items: { type: 'object', additionalProperties: false, required: ['from', 'to'], properties: {
+              from: { type: 'integer', minimum: 0, maximum: 5 }, to: { type: 'integer', minimum: 0, maximum: 5 }, label: { type: 'string', minLength: 1, maxLength: 40 },
+            } } },
+          } },
         },
       } },
     },
@@ -36,6 +46,24 @@ function record(value: unknown): Record<string, unknown> {
 function text(value: unknown, max: number): string {
   if (typeof value !== 'string' || !value.trim()) { throw new Error('Expected text.'); }
   return redact(value.trim()).slice(0, max);
+}
+function validateFlow(value: unknown, input: ReviewInput): CodeFlow {
+  const data = record(value);
+  if (!Array.isArray(data.nodes) || data.nodes.length < 2 || data.nodes.length > 6
+    || !Array.isArray(data.edges) || !data.edges.length || data.edges.length > 8) { throw new Error('Invalid code flow size.'); }
+  const nodes = data.nodes.map(value => {
+    const item = record(value);
+    if (!Number.isSafeInteger(item.line) || Number(item.line) < 1 || Number(item.line) > input.lineCount
+      || input.changedRanges && !input.changedRanges.some(range => Number(item.line) >= range.start && Number(item.line) <= range.end)) { throw new Error('Invalid code flow line.'); }
+    return { label: text(item.label, 80), line: Number(item.line) };
+  });
+  const edges = data.edges.map(value => {
+    const item = record(value);
+    if (!Number.isSafeInteger(item.from) || !Number.isSafeInteger(item.to)
+      || Number(item.from) < 0 || Number(item.from) >= nodes.length || Number(item.to) < 0 || Number(item.to) >= nodes.length) { throw new Error('Invalid code flow edge.'); }
+    return { from: Number(item.from), to: Number(item.to), ...(item.label === undefined ? {} : { label: text(item.label, 40) }) };
+  });
+  return { nodes, edges };
 }
 export function validateReview(value: unknown, input: ReviewInput): ReviewResult {
   const data = record(value);
@@ -65,6 +93,7 @@ export function validateReview(value: unknown, input: ReviewInput): ReviewResult
       title: text(finding.title, 60), explanation: text(finding.explanation, 1200),
       ...(finding.suggestion === undefined ? {} : { suggestion: text(finding.suggestion, 4000) }),
       ...(replacement === undefined ? {} : { replacement }),
+      ...(finding.flow === undefined ? {} : { flow: validateFlow(finding.flow, input) }),
     });
   }
   return { summary: data.summary === undefined ? '' : text(data.summary, 1600), findings };
