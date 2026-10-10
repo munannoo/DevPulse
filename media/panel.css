@@ -256,6 +256,14 @@ body {
   margin-top: 2px;
 }
 
+.action-caption {
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--vscode-descriptionForeground);
+  margin-top: 5px;
+  text-align: center;
+}
+
 .btn-primary {
   width: 100%;
   display: flex;
@@ -339,6 +347,13 @@ body {
   color: var(--vscode-foreground);
 }
 
+.card-subtitle {
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--vscode-descriptionForeground);
+  margin-bottom: 6px;
+}
+
 .card-title-group {
   display: flex;
   align-items: center;
@@ -420,6 +435,18 @@ details.collapsible-card[open] > summary .chevron-icon {
   background: var(--vscode-editor-background);
   border: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
   border-radius: var(--radius-md);
+}
+
+.pr-item-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--vscode-foreground);
+  line-height: 1.4;
+}
+
+.pr-review-btn {
+  font-size: 11.5px;
+  padding: 5px 10px;
 }
 
 .left-off-body {
@@ -708,6 +735,20 @@ details.collapsible-card[open] > summary .chevron-icon {
   animation: gentle-float 3.5s ease-in-out infinite;
 }
 
+.empty-text-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.empty-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--vscode-foreground);
+  margin: 0;
+}
+
 .empty-message {
   font-size: 12px;
   color: var(--vscode-descriptionForeground);
@@ -880,6 +921,33 @@ details.collapsible-card[open] > summary .chevron-icon {
   color: var(--vscode-foreground);
 }
 
+.btn-apply {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--vscode-button-secondaryBackground);
+  color: var(--vscode-button-secondaryForeground);
+  border: 1px solid var(--vscode-button-border, var(--vscode-panel-border));
+  font-size: 11.5px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: all var(--transition-fast);
+}
+
+.btn-apply:hover:not(:disabled) {
+  background: var(--vscode-button-secondaryHoverBackground);
+  border-color: var(--vscode-focusBorder);
+}
+
+.btn-apply:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Skipped Files */
 .skipped-card {
   margin-top: 12px;
@@ -984,6 +1052,64 @@ textarea:focus-visible, input:focus-visible {
   font-size: 12px;
   color: var(--vscode-foreground);
   cursor: pointer;
+}
+
+/* Chat starter & prompt chips */
+.chat-starter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 24px 12px;
+  background: var(--vscode-editorWidget-background, rgba(127, 127, 127, 0.04));
+  border: 1px dashed var(--vscode-widget-border, var(--vscode-panel-border));
+  border-radius: var(--radius-lg);
+  margin: 8px 0;
+}
+
+.chat-starter-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--vscode-foreground);
+  margin: 0 0 4px 0;
+}
+
+.chat-starter-desc {
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--vscode-descriptionForeground);
+  margin: 0 0 14px 0;
+  max-width: 260px;
+}
+
+.chat-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.chat-chip {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
+  background: var(--vscode-editor-background);
+  color: var(--vscode-foreground);
+  font-size: 11.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.chat-chip:hover {
+  background: var(--vscode-list-hoverBackground, rgba(127, 127, 127, 0.1));
+  border-color: var(--vscode-focusBorder);
+  transform: translateY(-1px);
 }
 
 .chat-message {
@@ -1129,4 +1255,27 @@ textarea:focus-visible, input:focus-visible {
 body.vscode-high-contrast .card, body.vscode-high-contrast-light .card,
 body.vscode-high-contrast .tab-btn[aria-pressed="true"], body.vscode-high-contrast-light .tab-btn[aria-pressed="true"] {
   border: 1px solid var(--vscode-contrastBorder, var(--vscode-focusBorder));
+}
+
+/* Custom slim scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--vscode-scrollbarSlider-background, rgba(127, 127, 127, 0.3));
+  border-radius: var(--radius-pill);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--vscode-scrollbarSlider-hoverBackground, rgba(127, 127, 127, 0.5));
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: var(--vscode-scrollbarSlider-activeBackground, rgba(127, 127, 127, 0.7));
 }
