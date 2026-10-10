@@ -91,12 +91,16 @@
       <!-- Attention Banner (when behind or security findings exist) -->
       <div id="attention" class="card card-attention" hidden>
         <div class="card-header attention-header">
-          <svg class="alert-icon" viewBox="0 0 16 16" width="14" height="14" fill="currentColor">
-            <path d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575L6.457 1.047zM8 5a.75.75 0 0 0-.75.75v3.5a.75.75 0 0 0 1.5 0v-3.5A.75.75 0 0 0 8 5zm0 7a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
-          </svg>
-          <span class="card-title">Attention Required</span>
+          <div class="attention-title-group">
+            <svg class="alert-icon" viewBox="0 0 16 16" width="14" height="14" fill="currentColor">
+              <path d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575L6.457 1.047zM8 5a.75.75 0 0 0-.75.75v3.5a.75.75 0 0 0 1.5 0v-3.5A.75.75 0 0 0 8 5zm0 7a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
+            </svg>
+            <span class="card-title">Attention Required</span>
+          </div>
+          <span id="attention-badge" class="attention-badge-pill">Action needed</span>
         </div>
-        <p id="attention-text" class="attention-body"></p>
+        <div id="attention-list" class="attention-list"></div>
+        <p id="attention-text" class="attention-body" hidden></p>
       </div>
 
       <!-- Welcome Back Card -->

@@ -419,12 +419,34 @@ window.addEventListener('message', event => {
 
   // Attention banner
   const security = state.findings.filter(finding => finding.severity === 'security').length;
-  element('attention').hidden = !branch?.behind && !security && !state.attention?.length;
-  element('attention-text').textContent = [
+  const attentionItems = [
     state.pullReminder ?? (branch?.behind ? `${branch.behind} commit(s) behind upstream${branch.fresh ? '' : ' (last fetched)'}.` : ''),
     security ? `${security} security finding(s) detected in local code.` : '',
     ...(state.attention ?? []).map(item => item.text),
-  ].filter(Boolean).join(' ');
+  ].filter(Boolean);
+
+  element('attention').hidden = attentionItems.length === 0;
+  element('attention-text').textContent = attentionItems.join(' ');
+
+  const attentionList = element('attention-list');
+  if (attentionList) {
+    attentionList.replaceChildren(...attentionItems.map(text => {
+      const itemEl = document.createElement('div');
+      itemEl.className = 'attention-item';
+      const dotEl = document.createElement('span');
+      dotEl.className = 'attention-item-dot';
+      const textEl = document.createElement('span');
+      textEl.className = 'attention-item-text';
+      textEl.textContent = text;
+      itemEl.append(dotEl, textEl);
+      return itemEl;
+    }));
+  }
+
+  const attentionBadge = element('attention-badge');
+  if (attentionBadge) {
+    attentionBadge.textContent = attentionItems.length === 1 ? '1 item' : `${attentionItems.length} items`;
+  }
 
   // Empty state handling
   const hasContent = state.findings.length > 0 || state.summaries.length > 0;
