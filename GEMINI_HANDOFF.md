@@ -3,6 +3,21 @@
 Prepared October 10, 2026. Read `AGENTS.md` and `GEMINI.md` before editing.
 This is a handoff, not permission to implement every suggested feature at once.
 
+## Update after push repair
+
+Origin's two newer commits were merged without rewriting history. The unfinished
+diagnostics edits were restored, and a recoverable stash remains as a backup.
+Commit `749ef9a` fixes hook installation: Extension Hosts now find standalone Node
+instead of writing `Code.exe` into the hook. Reinstalling repairs old guards while
+preserving AI mode and chained hooks. The local project's hook was repaired too.
+
+After this repair, **44 core tests, Git hook regression checks, and all three
+targeted Extension Host tests (security, suggestions, connection) passed**.
+The original failures below are historical and no longer reproduced by that run.
+The diagnostics feature is still uncommitted; continue its panel acceptance and
+the remaining work below before committing it. A complete new full-suite run has
+not been claimed.
+
 ## What the user wants
 
 - Finish useful extra features completely, including their controls and error states.
