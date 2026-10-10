@@ -188,6 +188,37 @@
         </div>
       </details>
 
+      <!-- AI Connection Card -->
+      <details id="connection-card" open class="card collapsible-card">
+        <summary class="card-header">
+          <div class="card-title-group">
+            <svg class="section-icon" viewBox="0 0 16 16" width="14" height="14" fill="currentColor">
+              <path d="M7.775 3.275a.75.75 0 0 0 1.06 1.06l1.25-1.25a2 2 0 1 1 2.83 2.83l-2.5 2.5a2 2 0 0 1-2.83 0 .75.75 0 0 0-1.06 1.06 3.5 3.5 0 0 0 4.95 0l2.5-2.5a3.5 3.5 0 0 0-4.95-4.95l-1.25 1.25zm-2.12 3.65a.75.75 0 0 0-1.06-1.06L3.345 7.115a3.5 3.5 0 0 0 4.95 4.95l1.25-1.25a.75.75 0 0 0-1.06-1.06l-1.25 1.25a2 2 0 0 1-2.83-2.83l2.5-2.5a2 2 0 0 1 2.83 0 .75.75 0 0 0 1.06-1.06 3.5 3.5 0 0 0-4.95 0l-2.5 2.5z"/>
+            </svg>
+            <span class="card-title">AI Connection</span>
+          </div>
+          <span class="chevron-icon" aria-hidden="true">▾</span>
+        </summary>
+        <div class="card-body connection-body">
+          <p class="card-subtitle">Test endpoint latency and verify model availability.</p>
+          <p id="connection-message" class="connection-message" role="status" aria-live="polite">Check your AI connection to verify endpoint reachability and models.</p>
+          <div id="connection-models" class="connection-models-grid" hidden>
+            <div class="connection-model-item">
+              <span class="connection-model-label">Review &amp; Chat:</span>
+              <span id="connection-review-model" class="metric-pill">Checking…</span>
+            </div>
+            <div class="connection-model-item">
+              <span class="connection-model-label">Autocomplete:</span>
+              <span id="connection-inline-model" class="metric-pill">Checking…</span>
+            </div>
+          </div>
+          <div class="card-actions connection-actions">
+            <button id="connection-check" class="btn-secondary" title="Test AI endpoint response time and list installed models">Check Connection</button>
+            <button id="connection-cancel" class="btn-cancel" hidden title="Cancel the connection check">Cancel</button>
+          </div>
+        </div>
+      </details>
+
       <!-- Local First Guarantee Info -->
       <footer class="overview-footer">
         <p class="footer-note">Reviews are performed through your configured Gemma endpoint. Git pull stays strictly under your control.</p>

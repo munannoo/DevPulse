@@ -49,6 +49,14 @@ remain read-only. Use the Security view's **Fix** action for hardcoded credentia
 Gemma requests have a 30-second timeout. A reachable server can still be too
 busy to finish analysis; Git status and regex secret verification keep working.
 
+## AI connection diagnostics
+
+Use **DevPulse: Check AI Connection** or the **Check Connection** button in the
+panel's Overview tab to test server reachability, response latency, and installed
+model catalog. Diagnostics report whether your configured review/chat and inline
+autocomplete models are present on the endpoint without sending code, exposing
+passwords, or revealing full private URLs.
+
 ## Pre-commit secret verification
 
 Open your Git repository in the Extension Development Host (F5), then open

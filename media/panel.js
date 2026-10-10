@@ -54,6 +54,33 @@ element('pr-connect').addEventListener('click', () => send({ type: 'connectGitHu
 element('pr-refresh').addEventListener('click', () => send({ type: 'refreshPullRequests' }));
 element('pr-cancel').addEventListener('click', () => send({ type: 'cancelPullReview' }));
 
+element('connection-check').addEventListener('click', () => send({ type: 'checkConnection' }));
+element('connection-cancel').addEventListener('click', () => send({ type: 'cancelConnection' }));
+
+/** @param {import('../src/vscode/panel/messages').ConnectionState | undefined} connection
+ *  @param {boolean} busy
+ */
+function renderConnection(connection, busy) {
+  if (!connection) { return; }
+  element('connection-message').textContent = connection.message;
+  element('connection-check').disabled = busy || connection.phase === 'checking';
+  element('connection-cancel').hidden = connection.phase !== 'checking';
+
+  const modelsBox = element('connection-models');
+  if (connection.phase === 'ready' && connection.reviewModel && connection.inlineModel) {
+    modelsBox.hidden = false;
+    const reviewEl = element('connection-review-model');
+    reviewEl.textContent = `${connection.reviewModel.id} (${connection.reviewModel.available ? '✓ ready' : '✗ missing'})`;
+    reviewEl.className = `metric-pill ${connection.reviewModel.available ? 'synced' : 'behind'}`;
+
+    const inlineEl = element('connection-inline-model');
+    inlineEl.textContent = `${connection.inlineModel.id} (${connection.inlineModel.available ? '✓ ready' : '✗ missing'})`;
+    inlineEl.className = `metric-pill ${connection.inlineModel.available ? 'synced' : 'behind'}`;
+  } else {
+    modelsBox.hidden = true;
+  }
+}
+
 /** @param {import('../src/vscode/panel/messages').PullRequestState | undefined} state */
 function renderPullRequests(state) {
   if (!state) { return; }
@@ -146,6 +173,7 @@ window.addEventListener('message', event => {
     element(id).disabled = busy;
   }
   element('cancel').hidden = !busy;
+  renderConnection(state.connection, busy);
 
   // Companion hero banner status
   const companionBadge = element('companion-badge');

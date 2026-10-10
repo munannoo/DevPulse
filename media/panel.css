@@ -461,6 +461,42 @@ details.collapsible-card[open] > summary .chevron-icon {
   color: var(--vscode-foreground);
 }
 
+/* AI Connection Card */
+.connection-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.connection-message {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--vscode-foreground);
+}
+
+.connection-models-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  background: var(--vscode-editor-background);
+  border: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
+  border-radius: var(--radius-md);
+}
+
+.connection-model-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11.5px;
+}
+
+.connection-model-label {
+  font-weight: 500;
+  color: var(--vscode-descriptionForeground);
+}
+
 /* Companion Card */
 .card-companion {
   display: flex;

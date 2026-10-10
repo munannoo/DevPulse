@@ -19,6 +19,15 @@ export type ChatMessage = { id: string; role: 'user' | 'assistant'; text: string
 export type ChatState = { messages: ChatMessage[]; busy: boolean; offline: boolean; status: string;
   draft?: { id: string; text: string; includeSelection: boolean } };
 
+export type ConnectionState = {
+  phase: 'idle' | 'checking' | 'ready' | 'failed' | 'cancelled';
+  message: string;
+  latencyMs?: number;
+  reviewModel?: { id: string; available: boolean };
+  inlineModel?: { id: string; available: boolean };
+  modelsCount?: number;
+};
+
 export type ReviewState = {
   phase: 'idle' | 'checking' | 'reviewing' | 'complete' | 'failed' | 'cancelled';
   message: string;
@@ -35,9 +44,10 @@ export type ReviewState = {
   focus?: FocusState;
   chat?: ChatState;
   pullRequests?: PullRequestState;
+  connection?: ConnectionState;
 };
 export type PanelMessage =
-  | { type: 'ready' | 'reviewChanges' | 'analyzeFile' | 'refreshBranch' | 'cancelReview' | 'resumeWork' | 'pullAndSync' }
+  | { type: 'ready' | 'reviewChanges' | 'analyzeFile' | 'refreshBranch' | 'cancelReview' | 'resumeWork' | 'pullAndSync' | 'checkConnection' | 'cancelConnection' }
   | { type: 'openFinding'; index: number }
   | { type: 'applySuggestion'; id: string }
   | { type: 'chatSend'; text: string; includeFile: boolean; includeSelection: boolean }
@@ -69,7 +79,7 @@ export function isPanelMessage(value: unknown): value is PanelMessage {
     return Number.isInteger(message.index) && Number(message.index) >= 0;
   }
   if (message.type === 'reviewPullRequest') { return Number.isSafeInteger(message.number) && Number(message.number) > 0; }
-  return ['ready', 'reviewChanges', 'analyzeFile', 'refreshBranch', 'cancelReview', 'resumeWork', 'pullAndSync', 'connectGitHub', 'refreshPullRequests', 'cancelPullReview'].includes(String(message.type));
+  return ['ready', 'reviewChanges', 'analyzeFile', 'refreshBranch', 'cancelReview', 'resumeWork', 'pullAndSync', 'connectGitHub', 'refreshPullRequests', 'cancelPullReview', 'checkConnection', 'cancelConnection'].includes(String(message.type));
 }
 import type { SecretFinding } from '../../core/security/secretScan';
 
