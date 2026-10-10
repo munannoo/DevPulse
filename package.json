@@ -21,6 +21,7 @@
       { "command": "devpulse.reviewPullRequest", "title": "DevPulse: Review Pull Request", "enablement": "false" },
       { "command": "devpulse.cancelPullReview", "title": "DevPulse: Cancel PR Review" },
       { "command": "devpulse.openPanel", "title": "DevPulse: Open Panel" },
+      { "command": "devpulse.openSettings", "title": "DevPulse: Open Settings" },
       { "command": "devpulse.openChat", "title": "DevPulse: Open Chat" },
       { "command": "devpulse.selectInlineModel", "title": "DevPulse: Select Autocomplete Model" },
       { "command": "devpulse.selectModel", "title": "DevPulse: Select Model (Review & Chat)" },
@@ -135,7 +136,7 @@
           "type": "string",
           "default": "http://localhost:11434/v1",
           "scope": "machine",
-          "description": "OpenAI-compatible server base URL, including /v1 when required. Environment and DevPulse .env take precedence."
+          "description": "Host address of your local, LAN or cloud OpenAI-compatible server (for example http://192.0.2.10:11434/v1 or https://ai.example.com/v1). Process environment and workspace .env take precedence. API keys belong in DevPulse: Set API Key."
         },
         "devpulse.llm.model": {
           "type": "string",

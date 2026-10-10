@@ -47,6 +47,17 @@ body {
 }
 
 /* Header */
+.settings-button {
+  width: auto;
+  padding: 4px 7px;
+  flex: 0 0 auto;
+  color: var(--vscode-foreground);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+}
+.settings-button:hover { background: var(--vscode-toolbar-hoverBackground); }
 .panel-header {
   display: flex;
   align-items: center;

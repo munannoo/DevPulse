@@ -127,6 +127,7 @@ element('chat-question').addEventListener('keydown', event => {
   }
 });
 element('chat-clear').addEventListener('click', () => send({ type: 'chatClear' }));
+element('open-settings').addEventListener('click', () => send({ type: 'openSettings' }));
 
 element('pr-connect').addEventListener('click', () => send({ type: 'connectGitHub' }));
 element('pr-refresh').addEventListener('click', () => send({ type: 'refreshPullRequests' }));

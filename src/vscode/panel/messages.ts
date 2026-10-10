@@ -46,7 +46,7 @@ export type ReviewState = {
   connection?: ConnectionState;
 };
 export type PanelMessage =
-  | { type: 'ready' | 'reviewChanges' | 'analyzeFile' | 'refreshBranch' | 'cancelReview' | 'resumeWork' | 'pullAndSync' | 'checkConnection' | 'cancelConnection' }
+  | { type: 'ready' | 'reviewChanges' | 'analyzeFile' | 'refreshBranch' | 'cancelReview' | 'resumeWork' | 'pullAndSync' | 'checkConnection' | 'cancelConnection' | 'openSettings' }
   | { type: 'openFinding'; index: number }
   | { type: 'applySuggestion'; id: string }
   | { type: 'chatSend'; text: string; includeFile: boolean; includeSelection: boolean }
@@ -79,7 +79,7 @@ export function isPanelMessage(value: unknown): value is PanelMessage {
     return Number.isInteger(message.index) && Number(message.index) >= 0;
   }
   if (message.type === 'reviewPullRequest') { return Number.isSafeInteger(message.number) && Number(message.number) > 0; }
-  return ['ready', 'reviewChanges', 'analyzeFile', 'refreshBranch', 'cancelReview', 'resumeWork', 'pullAndSync', 'connectGitHub', 'refreshPullRequests', 'cancelPullReview', 'checkConnection', 'cancelConnection'].includes(String(message.type));
+  return ['ready', 'reviewChanges', 'analyzeFile', 'refreshBranch', 'cancelReview', 'resumeWork', 'pullAndSync', 'connectGitHub', 'refreshPullRequests', 'cancelPullReview', 'checkConnection', 'cancelConnection', 'openSettings'].includes(String(message.type));
 }
 import type { SecretFinding } from '../../core/security/secretScan';
 

@@ -8,6 +8,7 @@ import { registerPrecommit } from './vscode/features/precommitBridge';
 import { LeftOff } from './vscode/features/leftOff';
 import { PullReminder, pullReminder } from './vscode/features/reminder';
 import { Connection } from './vscode/features/connection';
+import { registerSettings, settingsCommands } from './vscode/features/settings';
 import { Welcome } from './vscode/features/welcome';
 import { Focus } from './vscode/features/focus';
 import { Chat } from './vscode/assistant/chat';
@@ -79,6 +80,7 @@ export function activate(context: vscode.ExtensionContext) {
     await writeFile(readyFile, JSON.stringify({ extensionPath: context.extensionPath, panelVisible: true }), 'utf8');
   };
   const panel = new PanelProvider(context.extensionUri, getState, message => message.type === 'resumeWork' ? leftOff.resume()
+    : message.type === 'openSettings' ? Promise.resolve(vscode.commands.executeCommand<void>(settingsCommands.open))
     : message.type === 'pullAndSync' ? pull() : message.type === 'checkConnection' ? connection.check() : message.type === 'cancelConnection' ? Promise.resolve(connection.cancel()) : message.type.startsWith('chat') ? chat.handle(message) : message.type === "connectGitHub" || message.type === "refreshPullRequests" || message.type === "reviewPullRequest" || message.type === "cancelPullReview" || message.type === "openPullFinding" ? pullRequests.handle(message) : review.handle(message), output, reportReady);
   const statusBar = createStatusBar();
   review.onUpdate = () => {
@@ -105,6 +107,7 @@ export function activate(context: vscode.ExtensionContext) {
     if (branch !== lastBranch) { lastBranch = branch; leftOff.schedule(); focus.observeBranch(branch); }
   };
   context.subscriptions.push(output, review, pullRequests, ...pullRequests.registerCommands(), leftOff, reminder, attention, welcome, connection, focus, chat, panel, statusBar,
+    registerSettings(context),
     vscode.window.registerWebviewViewProvider('devpulse.panel', panel),
     vscode.commands.registerCommand('devpulse.openPanel', () => vscode.commands.executeCommand('devpulse.panel.focus')),
     vscode.commands.registerCommand('devpulse.pullAndSync', pull),

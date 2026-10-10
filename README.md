@@ -198,6 +198,13 @@ runs type checking, linting, and a production build.
 
 ## Code review
 
+Use the **⚙ Settings** button in the panel header or **DevPulse: Open Settings**
+to edit the host address, review/chat model, autocomplete model and enablement,
+JSON mode, Focus threshold, Flow Shield and reminder timing in VS Code's native
+settings editor. Choose User or Workspace scope where the setting supports it.
+Environment and `.env` values still take precedence over host/model defaults;
+use **DevPulse: Set API Key** to store credentials securely.
+
 Copy `.env.example` to `.env` in the project you open in VS Code and enter your server's
 base URL, exact installed model ID, and optional API key. Configuration resolves
 per value from process environment, the nearest `.env` above that workspace, VS Code
