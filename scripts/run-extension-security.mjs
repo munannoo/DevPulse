@@ -11,6 +11,9 @@ const fixtures = path.join(project, 'test-repo');
 await mkdir(fixtures, { recursive: true });
 const root = await mkdtemp(path.join(fixtures, '.security-check-'));
 const execute = promisify(execFile);
+const tests = ['security', 'suggestion', 'highlights', 'focus', 'chat-context', 'chat', 'inlineCompletion', 'modelPicker', 'commitDraft', 'attention', 'aiPrecommit', 'connection'];
+const selected = process.env.DEVPULSE_TEST_FILES?.split(',') ?? tests;
+assert.ok(selected.length && selected.every(name => tests.includes(name)), 'Unknown Extension Host fixture test');
 let commitCalls = 0;
 const server = createServer(async (request, response) => {
   if (request.method === 'GET' && request.url === '/v1/fixture-commit-calls') { response.end(JSON.stringify({ calls: commitCalls })); return; }

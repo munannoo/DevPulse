@@ -18,7 +18,6 @@ export type PanelFinding = Finding & { suggestionId?: string };
 export type ChatMessage = { id: string; role: 'user' | 'assistant'; text: string; complete: boolean };
 export type ChatState = { messages: ChatMessage[]; busy: boolean; offline: boolean; status: string;
   draft?: { id: string; text: string; includeSelection: boolean } };
-
 export type ConnectionState = {
   phase: 'idle' | 'checking' | 'ready' | 'failed' | 'cancelled';
   message: string;
@@ -72,6 +71,7 @@ export function isPanelMessage(value: unknown): value is PanelMessage {
     return typeof message.id === 'string' && /^[a-f0-9-]{36}$/.test(message.id);
   }
   if (message.type === 'chatCancel' || message.type === 'chatClear') { return true; }
+  if (message.type === 'checkConnection' || message.type === 'cancelConnection') { return true; }
   if (message.type === 'applySuggestion') {
     return typeof message.id === 'string' && /^[a-f0-9-]{36}$/.test(message.id);
   }
