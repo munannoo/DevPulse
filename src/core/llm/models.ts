@@ -5,12 +5,12 @@ export class ModelListError extends Error {}
 export function validModelId(value: unknown): value is string {
   return typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,199}$/.test(value) && redact(value) === value;
 }
-export async function listModels(config: LlmConfig, signal?: AbortSignal): Promise<string[]> {
+export async function listModels(config: LlmConfig, signal?: AbortSignal, fresh = false): Promise<string[]> {
   try {
     signal?.throwIfAborted();
     const key = contentHash(JSON.stringify(['models', config.baseUrl, config.apiKey]));
     const cached = getCached(key);
-    if (cached !== undefined) { return JSON.parse(cached) as string[]; }
+    if (!fresh && cached !== undefined) { return JSON.parse(cached) as string[]; }
     const response = await fetch(`${config.baseUrl}/models`, { redirect: 'error',
       signal: AbortSignal.any([AbortSignal.timeout(8000), ...(signal ? [signal] : [])]),
       headers: config.apiKey ? { Authorization: `Bearer ${config.apiKey}` } : {} });

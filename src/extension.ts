@@ -15,6 +15,7 @@ import { registerInlineCompletion } from './vscode/assistant/inlineCompletion';
 import { registerModelPicker } from './vscode/assistant/modelPicker';
 import { registerCommitDraft } from './vscode/features/commitDraft';
 import { Attention } from './vscode/features/attention';
+import { Connection } from './vscode/features/connection';
 import { writeFile } from 'node:fs/promises';
 import { isAbsolute, relative, resolve, sep } from 'node:path';
 
@@ -41,6 +42,7 @@ export function activate(context: vscode.ExtensionContext) {
   registerPrecommit(context);
 
   const output = vscode.window.createOutputChannel('DevPulse');
+  const connection = new Connection(context, output);
   const review = new CodeReview(context, output);
   const focus = new Focus(context, output);
   const attention = new Attention(context, output, () => { const state = focus.getState(); return state.shield && state.inFlow; });
@@ -51,7 +53,7 @@ export function activate(context: vscode.ExtensionContext) {
   });
   const welcome = new Welcome(context, output);
   const getState = () => ({ ...review.getState(), leftOff: leftOff.getState(), pullReminder: pullReminder(review.getState().branch),
-    attention: attention.getState(),
+    attention: attention.getState(), connection: connection.getState(),
     pullRequests: pullRequests.getState(), welcome: welcome.getState(), focus: focus.getState(), chat: chat.getState(),
     offline: review.getState().offline || welcome.getState().offline || chat.getState().offline || Boolean(pullRequests.getState().offline) });
   const pull = async () => {
@@ -77,6 +79,7 @@ export function activate(context: vscode.ExtensionContext) {
     await writeFile(readyFile, JSON.stringify({ extensionPath: context.extensionPath, panelVisible: true }), 'utf8');
   };
   const panel = new PanelProvider(context.extensionUri, getState, message => message.type === 'resumeWork' ? leftOff.resume()
+    : message.type === 'checkConnection' ? connection.check() : message.type === 'cancelConnection' ? Promise.resolve(connection.cancel())
     : message.type === 'pullAndSync' ? pull() : message.type.startsWith('chat') ? chat.handle(message) : message.type === "connectGitHub" || message.type === "refreshPullRequests" || message.type === "reviewPullRequest" || message.type === "cancelPullReview" || message.type === "openPullFinding" ? pullRequests.handle(message) : review.handle(message), output, reportReady);
   const statusBar = createStatusBar();
   review.onUpdate = () => {
@@ -94,6 +97,7 @@ export function activate(context: vscode.ExtensionContext) {
   welcome.onUpdate = () => panel.update();
   focus.onUpdate = () => { panel.update(); updateStatusBar(statusBar, getState()); reminder.flush(); attention.flush(); };
   chat.onUpdate = () => panel.update();
+  connection.onUpdate = () => panel.update();
   let lastBranch: string | undefined;
   const updateReview = review.onUpdate;
   review.onUpdate = () => {
@@ -101,11 +105,12 @@ export function activate(context: vscode.ExtensionContext) {
     const branch = review.getState().branch?.branch;
     if (branch !== lastBranch) { lastBranch = branch; leftOff.schedule(); focus.observeBranch(branch); }
   };
-  context.subscriptions.push(output, review, pullRequests, ...pullRequests.registerCommands(), leftOff, reminder, attention, welcome, focus, chat, panel, statusBar,
+  context.subscriptions.push(output, connection, review, pullRequests, ...pullRequests.registerCommands(), leftOff, reminder, attention, welcome, focus, chat, panel, statusBar,
     vscode.window.registerWebviewViewProvider('devpulse.panel', panel),
     vscode.commands.registerCommand('devpulse.openPanel', () => vscode.commands.executeCommand('devpulse.panel.focus')),
     vscode.commands.registerCommand('devpulse.pullAndSync', pull),
     vscode.commands.registerCommand('devpulse.refreshAttention', () => attention.refresh()),
+    vscode.commands.registerCommand('devpulse.checkConnection', () => connection.check()),
     vscode.commands.registerCommand('devpulse.toggleInlineCompletion', async () => {
       const config = vscode.workspace.getConfiguration('devpulse.assistant.inline');
       const current = config.get<boolean>('enabled', true);

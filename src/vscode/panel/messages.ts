@@ -18,6 +18,8 @@ export type PanelFinding = Finding & { suggestionId?: string };
 export type ChatMessage = { id: string; role: 'user' | 'assistant'; text: string; complete: boolean };
 export type ChatState = { messages: ChatMessage[]; busy: boolean; offline: boolean; status: string;
   draft?: { id: string; text: string; includeSelection: boolean } };
+export type ConnectionState = { phase: 'idle' | 'checking' | 'ready' | 'failed'; message: string;
+  latencyMs?: number; reviewFound?: boolean; inlineFound?: boolean };
 
 export type ReviewState = {
   phase: 'idle' | 'checking' | 'reviewing' | 'complete' | 'failed' | 'cancelled';
@@ -35,6 +37,7 @@ export type ReviewState = {
   focus?: FocusState;
   chat?: ChatState;
   pullRequests?: PullRequestState;
+  connection?: ConnectionState;
 };
 export type PanelMessage =
   | { type: 'ready' | 'reviewChanges' | 'analyzeFile' | 'refreshBranch' | 'cancelReview' | 'resumeWork' | 'pullAndSync' }
@@ -42,6 +45,7 @@ export type PanelMessage =
   | { type: 'applySuggestion'; id: string }
   | { type: 'chatSend'; text: string; includeFile: boolean; includeSelection: boolean }
   | { type: 'chatCancel' | 'chatClear' }
+  | { type: 'checkConnection' | 'cancelConnection' }
   | { type: 'chatCopy' | 'chatInsert'; id: string }
   | PullPanelMessage;
 export type PullPanelMessage =
@@ -62,6 +66,7 @@ export function isPanelMessage(value: unknown): value is PanelMessage {
     return typeof message.id === 'string' && /^[a-f0-9-]{36}$/.test(message.id);
   }
   if (message.type === 'chatCancel' || message.type === 'chatClear') { return true; }
+  if (message.type === 'checkConnection' || message.type === 'cancelConnection') { return true; }
   if (message.type === 'applySuggestion') {
     return typeof message.id === 'string' && /^[a-f0-9-]{36}$/.test(message.id);
   }

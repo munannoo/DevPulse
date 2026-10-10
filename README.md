@@ -286,6 +286,15 @@ your account and a PR requesting your review.
 
 ## Inline autocomplete
 
+### Connection diagnostics
+
+Open **Overview → AI Connection → Check connection**, or run
+**DevPulse: Check AI Connection**. It checks whether your configured review/chat
+and autocomplete models appear in the server's catalog and reports a fresh
+request's response time. No source code is sent, and the panel never displays
+the endpoint or token. Checks can be cancelled; settings changes invalidate
+the result. Model availability does not guarantee successful or fast generation.
+
 Reload the Development Host, then run **DevPulse: Toggle Inline Autocomplete**
 to opt in. Suggestions appear as ghost text; press Tab to accept or Escape to
 dismiss. Only workspace files are eligible; environment/key files are excluded.

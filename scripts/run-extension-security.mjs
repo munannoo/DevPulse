@@ -11,6 +11,9 @@ const fixtures = path.join(project, 'test-repo');
 await mkdir(fixtures, { recursive: true });
 const root = await mkdtemp(path.join(fixtures, '.security-check-'));
 const execute = promisify(execFile);
+const tests = ['security', 'suggestion', 'highlights', 'focus', 'chat-context', 'chat', 'inlineCompletion', 'modelPicker', 'commitDraft', 'attention', 'aiPrecommit', 'connection'];
+const selected = process.env.DEVPULSE_TEST_FILES?.split(',') ?? tests;
+assert.ok(selected.length && selected.every(name => tests.includes(name)), 'Unknown Extension Host fixture test');
 let commitCalls = 0;
 const server = createServer(async (request, response) => {
   if (request.method === 'GET' && request.url === '/v1/fixture-commit-calls') { response.end(JSON.stringify({ calls: commitCalls })); return; }
@@ -71,7 +74,7 @@ try {
     extensionTestsEnv: { DEVPULSE_SECURITY_FIXTURE: '1',
       DEVPULSE_LLM_BASE_URL: `http://127.0.0.1:${server.address().port}/v1`, DEVPULSE_LLM_MODEL: 'fixture',
       VSCODE_TEST_OPTIONS: JSON.stringify({ mochaOpts: { ui: 'tdd', timeout: 30_000 },
-        files: ['security', 'suggestion', 'highlights', 'focus', 'chat-context', 'chat', 'inlineCompletion', 'modelPicker', 'commitDraft', 'attention', 'aiPrecommit'].map(name => path.join(project, `out/test/${name}.test.js`)), preload: [] }) },
+        files: selected.map(name => path.join(project, `out/test/${name}.test.js`)), preload: [] }) },
     launchArgs: [root, '--disable-extensions', '--skip-welcome', '--skip-release-notes', '--disable-workspace-trust', '--user-data-dir', path.join(root, '.profile')],
   });
 } finally {

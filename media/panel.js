@@ -53,6 +53,8 @@ element('chat-clear').addEventListener('click', () => send({ type: 'chatClear' }
 element('pr-connect').addEventListener('click', () => send({ type: 'connectGitHub' }));
 element('pr-refresh').addEventListener('click', () => send({ type: 'refreshPullRequests' }));
 element('pr-cancel').addEventListener('click', () => send({ type: 'cancelPullReview' }));
+element('connection-check').addEventListener('click', () => send({ type: 'checkConnection' }));
+element('connection-cancel').addEventListener('click', () => send({ type: 'cancelConnection' }));
 
 /** @param {import('../src/vscode/panel/messages').PullRequestState | undefined} state */
 function renderPullRequests(state) {
@@ -109,6 +111,14 @@ function renderPullRequests(state) {
 window.addEventListener('message', event => {
   if (event.data?.type !== 'state') { return; }
   const state = event.data.state;
+  if (state.connection) {
+    const connection = state.connection;
+    element('connection-message').textContent = connection.message;
+    element('connection-check').disabled = connection.phase === 'checking';
+    element('connection-cancel').hidden = connection.phase !== 'checking';
+    element('connection-models').hidden = connection.phase !== 'ready';
+    element('connection-models').textContent = `Review/chat: ${connection.reviewFound ? 'found' : 'missing'} · Autocomplete: ${connection.inlineFound ? 'found' : 'missing'} · ${connection.latencyMs ?? 0} ms`;
+  }
   renderPullRequests(state.pullRequests);
   renderChat(state, send);
   const focus = state.focus;

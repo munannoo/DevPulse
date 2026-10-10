@@ -189,6 +189,17 @@
       </details>
 
       <!-- Local First Guarantee Info -->
+      <details id="connection-card" class="card collapsible-card">
+        <summary class="card-header"><span class="card-title">AI Connection</span><span class="chevron-icon" aria-hidden="true">▾</span></summary>
+        <div class="card-body">
+          <p id="connection-message" role="status" aria-live="polite">Check your server and configured models.</p>
+          <p id="connection-models" class="muted-note" hidden></p>
+          <div class="card-actions">
+            <button id="connection-check" class="btn-secondary">Check connection</button>
+            <button id="connection-cancel" class="btn-secondary" hidden>Cancel</button>
+          </div>
+        </div>
+      </details>
       <footer class="overview-footer">
         <p class="footer-note">Reviews are performed through your configured Gemma endpoint. Git pull stays strictly under your control.</p>
       </footer>
