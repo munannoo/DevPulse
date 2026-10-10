@@ -9,6 +9,10 @@ suite('DevPulse settings', () => {
     const extension = vscode.extensions.all.find(item => item.packageJSON.name === 'devpulse'); assert.ok(extension);
     await extension.activate();
     assert.ok((await vscode.commands.getCommands()).includes('devpulse.openSettings'));
+    assert.ok((await vscode.commands.getCommands()).includes('devpulse.openSetupGuide'));
+    await vscode.commands.executeCommand('devpulse.openSetupGuide');
+    const guide = vscode.Uri.joinPath(extension.extensionUri, 'docs', 'ai-setup.md');
+    assert.ok((await vscode.workspace.openTextDocument(guide)).getText().includes('ollama pull gemma4:e2b'));
     await vscode.commands.executeCommand('devpulse.openSettings');
     const config = vscode.workspace.getConfiguration('devpulse.llm');
     const previous = config.inspect<string>('baseUrl')?.globalValue;

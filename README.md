@@ -202,6 +202,12 @@ Use the **⚙ Settings** button in the panel header or **DevPulse: Open Settings
 to edit the host address, review/chat model, autocomplete model and enablement,
 JSON mode, Focus threshold, Flow Shield and reminder timing in VS Code's native
 settings editor. Choose User or Workspace scope where the setting supports it.
+
+New to local models? Run **DevPulse: Set Up Ollama & Models**, or use the guide
+links in the host/model settings. The [setup guide](docs/ai-setup.md) covers
+installing Ollama, downloading Gemma E2B/E4B or another model, and enabling
+autocomplete with a separate model.
+
 Environment and `.env` values still take precedence over host/model defaults;
 use **DevPulse: Set API Key** to store credentials securely.
 

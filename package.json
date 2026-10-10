@@ -22,6 +22,7 @@
       { "command": "devpulse.cancelPullReview", "title": "DevPulse: Cancel PR Review" },
       { "command": "devpulse.openPanel", "title": "DevPulse: Open Panel" },
       { "command": "devpulse.openSettings", "title": "DevPulse: Open Settings" },
+      { "command": "devpulse.openSetupGuide", "title": "DevPulse: Set Up Ollama & Models" },
       { "command": "devpulse.inspectAnalysisStep", "title": "DevPulse: Inspect Analysis Step", "enablement": "false" },
       { "command": "devpulse.openChat", "title": "DevPulse: Open Chat" },
       { "command": "devpulse.selectInlineModel", "title": "DevPulse: Select Autocomplete Model" },
@@ -142,13 +143,13 @@
           "type": "string",
           "default": "http://localhost:11434/v1",
           "scope": "machine",
-          "description": "Host address of your local, LAN or cloud OpenAI-compatible server (for example http://192.0.2.10:11434/v1 or https://ai.example.com/v1). Process environment and workspace .env take precedence. API keys belong in DevPulse: Set API Key."
+          "markdownDescription": "Host address of your local, LAN or cloud OpenAI-compatible server (for example `http://192.0.2.10:11434/v1` or `https://ai.example.com/v1`). Process environment and workspace `.env` take precedence. API keys belong in DevPulse: Set API Key. New here? [Set up Ollama and download a model](command:devpulse.openSetupGuide)."
         },
         "devpulse.llm.model": {
           "type": "string",
           "default": "gemma4:e4b",
           "scope": "machine",
-          "description": "Exact model identifier installed on your self-hosted server."
+          "markdownDescription": "Exact model identifier installed on your self-hosted server. [Ollama installation and model download guide](command:devpulse.openSetupGuide)."
         },
         "devpulse.llm.modelOverride": {
           "type": "string",
@@ -172,7 +173,7 @@
           "type": "string",
           "default": "",
           "scope": "resource",
-          "description": "Optional model override for inline completion (e.g. gemma4:e2b). Empty uses the effective review/chat model."
+          "markdownDescription": "Optional model override for inline completion (e.g. `gemma4:e2b`). Empty uses the effective review/chat model. [Download and select models](command:devpulse.openSetupGuide)."
         }
       }
     }
